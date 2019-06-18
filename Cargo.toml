@@ -1,0 +1,49 @@
+[package]
+name = "rezolus"
+version = "0.2.27"
+authors = ["Brian Martin <bmartin@twitter.com>"]
+build = "build.rs"
+publish = false
+edition = '2018'
+
+[dependencies]
+bcc = { version = "0.0.9", optional = true }
+clap = "2.33.0"
+failure = "0.1.5"
+json = "0.11.14"
+logger = { git = "https://github.com/twitter/rpc-perf", branch = "master" }
+metrics = { git = "https://github.com/twitter/rpc-perf", branch = "master" }
+perfcnt = { version = "0.5.0", optional = true }
+regex = "1.1.7"
+serde = "1.0.92"
+serde_derive = "1.0.92"
+sysconf = "0.3.4"
+time = "0.1.42"
+tiny_http = "0.6.2"
+toml = "0.5.1"
+uuid = "0.7.4"
+walkdir = "2.2.8"
+x86 = { version = "0.19.0", optional = true }
+
+[build-dependencies]
+vergen = "3.0.4"
+
+[features]
+default = ["perf"]
+ebpf = ["bcc"]
+ebpf_static = ["ebpf", "bcc/static"]
+ebpf_v0_5_0 = ["ebpf", "bcc/v0_5_0"]
+ebpf_v0_6_0 = ["ebpf", "bcc/v0_6_0"]
+ebpf_v0_6_1 = ["ebpf", "bcc/v0_6_1"]
+ebpf_v0_7_0 = ["ebpf", "bcc/v0_7_0"]
+ebpf_v0_8_0 = ["ebpf", "bcc/v0_8_0"]
+ebpf_v0_9_0 = ["ebpf", "bcc/v0_9_0"]
+perf = ["perfcnt", "x86/performance-counter"]
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1

@@ -1,0 +1,31 @@
+language: rust
+os: linux
+dist: trusty
+sudo: required
+cache:
+  directories:
+  - $HOME/.cargo
+  - $TRAVIS_BUILD_DIR/target/debug
+  - $TRAVIS_BUILD_DIR/target/release
+matrix:
+  include:
+    - os: linux
+      rust: nightly
+      env: TYPE=default RUST_BACKTRACE=1
+      script:
+        - cargo build --verbose
+        - cargo test --verbose
+        - cargo build --release --verbose
+        - cargo test --release --verbose
+    - os: linux
+      rust: nightly
+      env: TYPE=rustfmt RUST_BACKTRACE=1
+      script:
+        - rustup component add rustfmt
+        - cargo fmt -- --check
+    - os: linux
+      rust: nightly
+      env: TYPE=clippy RUST_BACKTRACE=1
+      script:
+        - rustup component add clippy
+        - cargo clippy
