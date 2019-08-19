@@ -15,7 +15,6 @@ use metrics::*;
 use time;
 
 use std::collections::HashMap;
-use std::mem;
 
 pub struct Scheduler<'a> {
     bpf: BPF,
@@ -65,34 +64,21 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
         let mut data = self.bpf.table("dist");
 
         trace!("copying data to userspace");
-        for entry in data.iter() {
-            let mut key = entry.key;
-            let value = entry.value;
+        for mut entry in data.iter() {
+            let mut key = [0; 4];
+            key.copy_from_slice(&entry.key);
+            let key = u32::from_ne_bytes(key);
 
-            // key is a u64 index into a BPF_HISTOGRAM
-            let mut k = [0_u8; 4];
-            for (index, byte) in k.iter_mut().enumerate() {
-                *byte = *key.get(index).unwrap_or(&0);
-            }
-            let k: u32 = unsafe { mem::transmute(k) };
+            let mut value = [0; 8];
+            value.copy_from_slice(&entry.value);
+            let value = u64::from_ne_bytes(value);
 
-            // convert the key to a block size in kbytes
-            if let Some(latency) = super::key_to_value(k as u64) {
-                let latency = latency * MICROSECOND;
-                // value is a u64 count of times that block size was seen
-                let mut v = [0_u8; 8];
-                for (index, byte) in v.iter_mut().enumerate() {
-                    *byte = *value.get(index).unwrap_or(&0);
-                }
-
-                let count: u64 = unsafe { mem::transmute(v) };
-
-                // store the size-count pair into the hashmap
-                current.insert(latency, count as u32);
+            if let Some(key) = super::key_to_value(key as u64) {
+                current.insert(key * MICROSECOND, value as u32);
             }
 
             // clear the source counter
-            let _ = data.set(&mut key, &mut [0_u8; 8]);
+            let _ = data.set(&mut entry.key, &mut [0_u8; 8]);
         }
         trace!("data copied to userspace");
         if !self.initialized {
