@@ -2,11 +2,6 @@ language: rust
 os: linux
 dist: xenial
 sudo: required
-cache:
-  directories:
-  - $HOME/.cargo
-  - $TRAVIS_BUILD_DIR/target/debug
-  - $TRAVIS_BUILD_DIR/target/release
 matrix:
   allow_failures:
     - env: TYPE=rustfmt RUST_BACKTRACE=1
