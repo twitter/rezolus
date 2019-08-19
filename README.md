@@ -1,4 +1,4 @@
-# Rezolus - High-Resolution Systems Performance Telemetry Agent
+# Rezolus
 
 Rezolus is a tool for collecting detailed systems performance telemetry and
 exposing burst patterns through high-resolution telemetry. Rezolus provides
@@ -17,7 +17,7 @@ subsystem, and from eBPF. Each sampler implements a consistent set of functions
 so that new ones can be easily added to further extend the capabilities of
 Rezolus.
 
-Each telemetry source is oversampled, so that we can build a histogram across a
+Each telemetry source is oversampled so that we can build a histogram across a
 time interval. This histogram allows us to capture variations which will appear
 in the far upper and lower percentiles. This oversampling approach is one of
 the key differentiators of Rezolus when compared to other telemetry agents.
@@ -29,7 +29,14 @@ systems performance, and conducting performance diagnostics.
 More detailed information about the underlying metrics library and sampler
 design can be found in the [DESIGN](docs/DESIGN.md) documentation.
 
-### Traditional Sources
+### Features
+
+* traditional telemetry sources (procfs, sysfs, ...)
+* perf_events support for hardware performance counters
+* eBPF support to instrument kernel and user space activities
+* oversampling and percentile metrics to capture bursts
+
+### Traditional Telemetry Sources
 
 Rezolus collects metrics from traditional sources (procfs, sysfs) to provide
 basic telemetry for CPU, disk, and network. Rezolus exports CPU utilization,
@@ -72,7 +79,7 @@ performance overhead for collecting the telemetry. The eBPF samplers can be
 used to both capture runtime performance anomalies as well as characterize
 workloads.
 
-## Sampling rate and resolution
+### Sampling rate and resolution
 
 In order to accurately reflect the intensity of a burst, the sampling rate must
 be at least twice the duration of the shortest burst to record accurately. This
@@ -85,25 +92,72 @@ or more of consecutive burst is enough to be accurately reflected in the pMax.
 Constrast that with minutely metrics requiring 120_000ms, or secondly requiring
 2000ms of consecutive burst to be accurately recorded.
 
-## Unique metrics for hosts
+## Getting Started
 
-Rezolus provides for instrumentation of perf_events and experimental support
-for eBPF instrumentation. This allows us to begin collecting new types of
-metrics on machine-level performance. With perf_events we gain insight into
-hardware performance - including CPU cache, branch predictor, etc. And now with
-eBPF we can gain deeper insight into kernel and system metrics - scheduler
-latency, block IO sizes, and filesystem operation latencies.
+### Building
 
-This rich telemetry is going to allow us to better quantify workloads and tune
-the performance of our infrastructure.
+Rezolus is built with the standard Rust toolchain which can be installed and
+managed via [rustup](https://rustup.rs) or by following the directions on the
+Rust [website](https://www.rust-lang.org/).
+
+**NOTE:** at this time, Rezolus needs to be built with the nightly toolchain
+or a locally built development toolchain which has nightly features enabled.
+This is because Rezolus requires language features that have not been fully
+stabilized in the language. These features are required to get support for
+performance counters.
+
+The rest of the guide assumes you've chosen to install the toolchain via rustup.
+
+#### Install the nightly toolchain
+```bash
+rustup toolchain install nightly
+```
+#### Clone and build Rezolus from source
+```bash
+git clone https://github.com/twitter/rezolus
+cd rezolus
+
+# create an unoptimized development build
+cargo +nightly build
+
+# run the unoptimized binary and display help
+cargo +nightly run -- --help
+
+# create an optimized release build
+cargo +nightly build --release
+
+# run the optimized binary and display help
+cargo +nightly run --release -- --help
+```
+
+## Support
+
+Create a [new issue](https://github.com/twitter/rezolus/issues/new) on GitHub.
+
+## Contributing
+
+We feel that a welcoming community is important and we ask that you follow
+Twitter's [Open Source Code of Conduct] in all interactions with the community.
+
+## Authors
+
+* Brian Martin <bmartin@twitter.com>
+
+A full list of [contributors] can be found on GitHub.
+
+Follow [@TwitterOSS](https://twitter.com/twitteross) on Twitter for updates.
 
 ## License
 
 Copyright 2019 Twitter, Inc.
 
-Licensed under the Apache License, Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
+Licensed under the Apache License, Version 2.0:
+https://www.apache.org/licenses/LICENSE-2.0
 
 ## Security Issues?
 
-Please report sensitive security issues via Twitter's bug-bounty program (https://hackerone.com/twitter) rather than GitHub.
+Please report sensitive security issues via Twitter's bug-bounty program
+(https://hackerone.com/twitter) rather than GitHub.
 
+[contributors]: https://github.com/twitter/rezolus/graphs/contributors?type=a
+[Open Source Code of Conduct]: https://github.com/twitter/code-of-conduct/blob/master/code-of-conduct.md
