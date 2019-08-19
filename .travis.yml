@@ -1,0 +1,61 @@
+language: rust
+os: linux
+dist: xenial
+sudo: required
+cache:
+  directories:
+  - $HOME/.cargo
+  - $TRAVIS_BUILD_DIR/target/debug
+  - $TRAVIS_BUILD_DIR/target/release
+matrix:
+  allow_failures:
+    - env: TYPE=rustfmt RUST_BACKTRACE=1
+    - env: TYPE=clippy RUST_BACKTRACE=1
+  fast_finish: true
+  include:
+    - os: linux
+      rust: nightly
+      env: TYPE=default RUST_BACKTRACE=1
+      script:
+        - cargo build --verbose
+        - cargo test --verbose
+        - cargo build --release --verbose
+        - cargo test --release --verbose
+    - os: linux
+      rust: nightly
+      env: TYPE=ebpf RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout remotes/origin/tag_v0.10.0
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features ebpf
+        - cargo test --features ebpf
+        - cargo build --release --features ebpf
+        - cargo test --release --features ebpf
+        - cargo run --release --features ebpf -- --version
+    - os: linux
+      rust: nightly
+      env: TYPE=rustfmt RUST_BACKTRACE=1
+      script:
+        - rustup component add rustfmt
+        - cargo fmt -- --check
+    - os: linux
+      rust: nightly
+      env: TYPE=clippy RUST_BACKTRACE=1
+      script:
+        - rustup component add clippy
+        - cargo clippy

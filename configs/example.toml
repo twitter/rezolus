@@ -1,0 +1,69 @@
+[general]
+listen = "0.0.0.0:4242"
+window = 60
+interval = 1000
+timeout = 50
+max_timeouts = 5
+
+[cpu]
+enabled = true
+statistics = ["user", "system", "idle", "irq", "softirq"]
+
+[disk]
+enabled = true
+
+[ebpf]
+all = true
+
+[network]
+enabled = true
+interface_statistics = [
+	"rx_bytes",
+	"rx_crc_errors",
+	"rx_dropped",
+	"rx_errors",
+	"rx_fifo_errors",
+	"rx_missed_errors",
+	"rx_packets",
+	"tx_bytes",
+	"tx_discards_phy",
+	"tx_dropped",
+	"tx_errors",
+	"tx_fifo_errors",
+	"tx_packets",
+]
+protocol_statistics = [
+	"tcp_in_segs",
+	"tcp_out_segs",
+	"tcp_prune_called",
+	"tcp_rcv_collapsed",
+	"tcp_retrans_segs",
+	"udp_in_datagrams",
+	"udp_in_errors",
+	"udp_out_datagrams",
+]
+
+[perf]
+enabled = true
+statistics = [
+	"cache_misses",
+    "cache_references",
+    "context_switches",
+    "cpu_branch_instructions",
+    "cpu_branch_misses",
+    "cpu_cycles",
+    "cpu_instructions",
+    "cpu_migrations",
+    "cpu_ref_cycles",
+    "dtlb_loads",
+    "dtlb_load_misses",
+    "dtlb_stores",
+    "dtlb_store_misses",
+    "memory_loads",
+    "memory_load_misses",
+    "memory_stores",
+    "memory_store_misses",
+    "page_faults",
+    "stalled_cycles_backend",
+    "stalled_cycles_frontend",
+]
