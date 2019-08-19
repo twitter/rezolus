@@ -82,7 +82,7 @@ least 120 seconds or more to be acurately recorded in terms of intensity.
 Rezolus allows for sampling rate to be configured, allowing us to make a
 trade-off between resolution and resource consumption. At 10Hz sampling, 200ms
 or more of consecutive burst is enough to be accurately reflected in the pMax.
-Constrast that with minutely metrics requiring 120_000ms, or secondly requiring
+Contrast that with minutely metrics requiring 120_000ms, or secondly requiring
 2000ms of consecutive burst to be accurately recorded.
 
 ## Unique metrics for hosts
