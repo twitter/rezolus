@@ -118,16 +118,16 @@ git clone https://github.com/twitter/rezolus
 cd rezolus
 
 # create an unoptimized development build
-cargo +nightly build
+cargo build
 
 # run the unoptimized binary and display help
-cargo +nightly run -- --help
+cargo run -- --help
 
 # create an optimized release build
-cargo +nightly build --release
+cargo build --release
 
 # run the optimized binary and display help
-cargo +nightly run --release -- --help
+cargo run --release -- --help
 ```
 
 ## Support
