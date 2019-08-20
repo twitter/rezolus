@@ -79,13 +79,15 @@ impl Config {
             Default::default()
         };
 
-        config
-            .general
-            .set_logging(match matches.occurrences_of("verbose") {
-                0 => Level::Info,
-                1 => Level::Debug,
-                _ => Level::Trace,
-            });
+        match matches.occurrences_of("verbose") {
+            0 => {} // don't do anything, default is Info
+            1 => {
+                if config.general.logging() == Level::Info {
+                    config.general.set_logging(Level::Debug);
+                }
+            }
+            _ => config.general.set_logging(Level::Trace),
+        }
 
         config
     }
