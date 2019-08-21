@@ -128,6 +128,10 @@ cargo build --release
 
 # run the optimized binary and display help
 cargo run --release -- --help
+
+# run the optimized binary with the example config
+cargo build --release && \
+sudo target/release/rezolus --config configs/example.toml
 ```
 
 ## Support

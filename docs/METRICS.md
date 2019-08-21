@@ -52,9 +52,17 @@ All of the following subsections are eBPF telemetry
 
 ### Block
 
-Capture the IO sizes at the block layer
+Captures telemetry about block IO
 
-* `block/io_size_kb` - distribution of block IO sizes in kilobytes
+* `block/device_latency/read` - distribution of device latency for read
+* `block/device_latency/write` - distribution of device latency for write
+* `block/latency/read` - distribution of end-to-end latency for read
+* `block/latency/write` - distribution of end-to-end latency for write
+* `block/queue_latency/read` - distribution of queue latency for read
+* `block/queue_latency/write` - distribution of queue latency for write
+* `block/size/read` - distribution of sizes in kilobytes for reads
+* `block/size/write` - distribution of sizes in kilobytes for writes
+
 
 ### EXT4
 
@@ -86,7 +94,7 @@ Capture filesystem latency for XFS
 Capture telemetry for network interfaces and protocols. Reads from
 `/sys/class/net/...`, `/proc/net/snmp`, and `/proc/net/netstat`
 
-### Interface telemetry:
+### Interface telemetry
 
 * `network/receive/bytes` - `rx_bytes` number of bytes received
 * `network/receive/errors/crc` - `rx_crc_errors` number of packets with CRC
@@ -116,47 +124,68 @@ Capture telemetry for network interfaces and protocols. Reads from
   transmit FIFO errors seen by this network device. Applies to: `mlx4`
 * `network/transmit/packets` - `tx_packets` number of packets transmitted
 
-### TCP Telemetry
+### Protocol telemetry
 
-* `network/tcp/receive/segments` - `Tcp: InSegs` number of TCP segments
+#### TCP Telemetry
+
+* `network/tcp/receive/segments` - `tcp_in_segs` number of TCP segments
   received
-* `network/tcp/transmit/segments` - `Tcp: OutSegs` number of TCP segments sent
-* `network/tcp/receive/prune_called` - `TcpExt: PruneCalled` indicates extreme
+* `network/tcp/transmit/segments` - `tcp_out_segs` number of TCP segments sent
+* `network/tcp/receive/prune_called` - `tcp_prune_called` indicates extreme
   memory pressure on the TCP buffers and that the kernel is dropping packets.
   This is very bad.
-* `network/tcp/receive/collapsed` - `TcpExt: RcvCollapsed` indicates memory
+* `network/tcp/receive/collapsed` - `tcp_rcv_collapsed` indicates memory
   pressure on the TCP buffers
-* `network/tcp/transmit/retransmits` - `Tcp: RetransSegs` indicates number of
+* `network/tcp/transmit/retransmits` - `tcp_retrans_segs` indicates number of
   segments which have been retransmitted
 
-### UDP Telemetry
+#### UDP Telemetry
 
-* `network/udp/receive/datagrams` - `Udp: InDatagrams` indicates number of
+* `network/udp/receive/datagrams` - `udp_in_datagrams` indicates number of
   datagrams received
-* `network/udp/receive/errors` - `Udp: InErrors` indicates number of errors on
+* `network/udp/receive/errors` - `udp_in_errors` indicates number of errors on
   incoming datagrams
-* `network/udp/transmit/datagrams` - `Udp: OutDatagrams` indicates number of
+* `network/udp/transmit/datagrams` - `udp_out_datagrams` indicates number of
   datagrams transmitted
 
 ## Perf
 
 The following telemetry is gathered from the perf events subsystem
 
-* `cache/misses` - number of cache references resulting in miss
-* `cache/references` - total number of cache references
-* `system/context_switches` - number of context switches
-* `cpu/branch_instructions` - total number of branch instructions
-* `cpu/branch_misses` - number of branch predictions missed
-* `cpu/cycles` - number of cycles **may not be accurate with frequency
-  scaling**
-* `cpu/instructions` - number of instructions retired
-* `cpu/reference_cycles` - number of cycles **accurate**
-* `system/cpu_migrations` - number of times a task migrated between cores
-* `cache/dtlb/read/references` - total number of read references to the dTLB
-* `cache/dtlb/read/misses` - number of dTLB reads resulting in miss
-* `cache/dtlb/write/references` - total number of write references to the dTLB
-* `cache/dtlb/write/misses` - number of dTLB writes resulting in miss
-* `system/page_faults` - number of page faults
+* `perf/cache/dtlb/read/references` - `dtlb_loads` total number of read
+  references to the dTLB
+* `perf/cache/dtlb/read/misses` - `dtlb_load_misses` number of dTLB reads
+  resulting in miss
+* `perf/cache/dtlb/write/references` - `dtlb_stores` total number of write
+  references to the dTLB
+* `perf/cache/dtlb/write/misses` - `dtlb_store_misses` number of dTLB writes
+  resulting in miss
+* `perf/cache/misses` - `cache_misses` number of cache references resulting in
+  miss
+* `perf/cache/references` - `cache_references` total number of cache references
+* `perf/cpu/branch_instructions` - `cpu_branch_instruction` total number of
+  branch instructions
+* `perf/cpu/branch_misses` - `cpu_branch_misses` number of branch predictions
+  missed
+* `perf/cpu/cycles` - `cpu_cycles` number of cycles **may not be accurate with
+  frequency scaling**
+* `perf/cpu/cycles/stalled/backend` - `stalled_cycles_backend` number of cycles
+  stalled waiting on backend
+* `perf/cpu/cycles/stalled/frontend` - `stalled_cycles_frontend` number of
+  cycles stalled waiting on frontend
+* `perf/cpu/instructions` - `cpu_instructions` number of instructions retired
+* `perf/cpu/reference_cycles` - `cpu_ref_cycles` number of cycles **accurate**
+* `perf/memory/read/references` - `memory_loads` number of memory read accesses
+* `perf/memory/read/misses` - `memory_load_misses` number of memory reads
+  resulting in miss
+* `perf/memory/write/references` - `memory_stores` number of memory write
+  accesses
+* `perf/memory/write/misses` - `memory_store_misses` number of memory writes
+  resulting in miss
+* `perf/system/context_switches` - `context_switches` number of context switches
+* `perf/system/cpu_migrations` - `cpu_migrations` number of times a task
+  migrated between cores
+* `perf/system/page_faults` - `page_faults` number of page faults
 
 ## Softnet
 
