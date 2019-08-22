@@ -635,7 +635,7 @@ dependencies = [
 
 [[package]]
 name = "rezolus"
-version = "1.0.1"
+version = "1.0.2-alpha.0"
 dependencies = [
  "bcc 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
