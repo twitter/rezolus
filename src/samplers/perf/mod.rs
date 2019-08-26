@@ -5,17 +5,16 @@
 mod event;
 
 pub use self::event::PerfStatistic;
-use crate::stats::{record_counter, register_counter};
-use failure::Error;
 
 use crate::common::*;
 use crate::config::Config;
 use crate::samplers::Sampler;
+use crate::stats::{record_counter, register_counter};
 
+use failure::Error;
 use logger::*;
 use metrics::*;
-use perfcnt::AbstractPerfCounter;
-use perfcnt::PerfCounter;
+use perfcnt::{AbstractPerfCounter, PerfCounter};
 use time;
 
 use std::collections::HashMap;

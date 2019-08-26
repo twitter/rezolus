@@ -6,8 +6,8 @@ use crate::common::*;
 use crate::config::Config;
 use crate::samplers::Sampler;
 use crate::stats::{record_counter, register_counter};
-use failure::Error;
 
+use failure::Error;
 use logger::*;
 use metrics::*;
 use serde_derive::*;
