@@ -6,14 +6,15 @@ use crate::common::*;
 use crate::config::Config;
 use crate::samplers::Sampler;
 use crate::stats::{record_counter, record_gauge, register_counter, register_gauge};
-use failure::Error;
-use std::collections::HashMap;
-use std::path::Path;
 
+use failure::Error;
 use logger::*;
 use metrics::*;
 use serde_derive::*;
 use time;
+
+use std::collections::HashMap;
+use std::path::Path;
 
 pub struct Rezolus<'a> {
     config: &'a Config,

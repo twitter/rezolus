@@ -27,8 +27,8 @@ use crate::config::Config;
 use metrics::{AtomicU32, Recorder};
 
 /// `Sampler`s are used to get samples of a particular subsystem or component
-/// The `Sampler` will send `Message`s across the `Sender` for aggregation by
-/// the stats library, `tock`
+/// The `Sampler` will perform the necessary actions to update the telemetry and
+/// record updated values into the metrics `Recorder`
 pub trait Sampler<'a> {
     fn new(
         config: &'a Config,
@@ -36,6 +36,7 @@ pub trait Sampler<'a> {
     ) -> Result<Option<Box<Self>>, Error>
     where
         Self: Sized;
+
     /// Perform required sampling steps and send stats to the `Recorder`
     fn sample(&mut self) -> Result<(), ()>;
 

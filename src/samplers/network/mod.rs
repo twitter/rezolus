@@ -6,13 +6,13 @@ pub(crate) mod interface;
 pub(crate) mod protocol;
 
 pub use self::interface::*;
-use crate::stats::{record_counter, register_counter};
-use failure::Error;
 
 use crate::common::*;
 use crate::config::Config;
 use crate::samplers::Sampler;
+use crate::stats::{record_counter, register_counter};
 
+use failure::Error;
 use logger::*;
 use metrics::*;
 use time;

@@ -6,14 +6,16 @@ use crate::common::*;
 use crate::config::Config;
 use crate::samplers::Sampler;
 use crate::stats::{record_counter, record_gauge, register_counter};
+
 use failure::Error;
 use logger::*;
 use metrics::*;
+use time;
+
 use std::io::{Read, Write};
 use std::net::{TcpStream, ToSocketAddrs};
 use std::process;
 use std::str;
-use time;
 
 pub struct Memcache<'a> {
     config: &'a Config,

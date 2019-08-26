@@ -7,14 +7,13 @@ mod entry;
 
 pub use self::device::Device;
 pub use self::entry::Entry;
-use crate::stats::record_counter;
-use crate::stats::register_counter;
-use failure::Error;
 
 use crate::common::*;
 use crate::config::Config;
 use crate::samplers::Sampler;
+use crate::stats::{record_counter, register_counter};
 
+use failure::Error;
 use logger::*;
 use metrics::*;
 use regex::Regex;
