@@ -46,7 +46,7 @@ errors, as well as TCP and UDP protocol counters.
 These basic telemetry sources, when coupled with the approach of oversampling
 to capture their bursts, often provide a high-level view of systems performance
 and may readily indicate areas where resources are saturated or errors are
-occuring.
+occurring.
 
 ### Perf Events
 
