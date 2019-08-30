@@ -71,8 +71,8 @@ Additionally, the max value would represent the highest rate seen between two
 consecutive samplings of the counter.
 
 In addition to tracking the value of the maximum rate, we may also track the
-offset into a minute at which the peak occured. This can help us to determine
-if bursts are occuring at regular intervals, and if so having the offset into a
+offset into a minute at which the peak occurred. This can help us to determine
+if bursts are occurring at regular intervals, and if so having the offset into a
 minute can help us correlate with logs or other traces.
 
 [1]: https://github.com/twitter/rpc-perf

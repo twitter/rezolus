@@ -129,7 +129,7 @@ fn main() {
         Some("count")
     } else {
         // running in memcache mode and must NOT have a count suffix
-        // resulting in passthrough of original metric name
+        // resulting in pass-through of original metric name
         None
     };
 
