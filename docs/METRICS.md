@@ -9,7 +9,7 @@ by:
 * `/maximum/value` - the maximum of a counter's secondly rate or the maximum
   value taken from a distribution
 * `/maximum/offset_ms` - the offset into the minute at which the maximum
-  occured
+  occurred
 
 ## CPU
 
@@ -116,7 +116,7 @@ Capture telemetry for network interfaces and protocols. Reads from
 * `network/transmit/bytes` - `tx_bytes` the number of bytes transmitted
 * `network/transmit/errors/discards_phy` - `tx_discards_phy` the number of
   packets dropped due to lack of buffers on transmit. Implies the adapter is
-  congested and acnnot absorb the traffic. Applies to: `mlx5`
+  congested and cannot absorb the traffic. Applies to: `mlx5`
 * `network/transmit/dropped` - `tx_dropped` number of packets dropped on
   transmit
 * `network/transmit/errors/total` - `tx_errors` number of errors on transmit

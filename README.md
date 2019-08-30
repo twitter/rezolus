@@ -46,7 +46,7 @@ errors, as well as TCP and UDP protocol counters.
 These basic telemetry sources, when coupled with the approach of oversampling
 to capture their bursts, often provide a high-level view of systems performance
 and may readily indicate areas where resources are saturated or errors are
-occuring.
+occurring.
 
 ### Perf Events
 
@@ -85,7 +85,7 @@ In order to accurately reflect the intensity of a burst, the sampling rate must
 be at least twice the duration of the shortest burst to record accurately. This
 ensures that at least 1 sample completely overlaps the burst section of the
 event. With a traditional minutely time series, this means that a spike must
-least 120 seconds or more to be acurately recorded in terms of intensity.
+least 120 seconds or more to be accurately recorded in terms of intensity.
 Rezolus allows for sampling rate to be configured, allowing us to make a
 trade-off between resolution and resource consumption. At 10Hz sampling, 200ms
 or more of consecutive burst is enough to be accurately reflected in the pMax.
