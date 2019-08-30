@@ -13,15 +13,31 @@ use metrics::*;
 use time;
 
 use std::io::{Read, Write};
-use std::net::{TcpStream, ToSocketAddrs};
-use std::process;
+use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
+
 use std::str;
 
 pub struct Memcache<'a> {
+    address: SocketAddr,
     config: &'a Config,
-    stream: TcpStream,
     initialized: bool,
     recorder: &'a Recorder<AtomicU32>,
+    stream: Option<TcpStream>,
+}
+
+impl<'a> Memcache<'a> {
+    fn reconnect(&mut self) {
+        if self.stream.is_none() {
+            let stream = match TcpStream::connect(self.address) {
+                Ok(stream) => Some(stream),
+                Err(e) => {
+                    error!("Failed to connect to memcache: {}", e);
+                    None
+                }
+            };
+            self.stream = stream;
+        }
+    }
 }
 
 impl<'a> Sampler<'a> for Memcache<'a> {
@@ -34,19 +50,23 @@ impl<'a> Sampler<'a> for Memcache<'a> {
             println!("ERROR: endpoint address is malformed: {}", endpoint);
             std::process::exit(1);
         });
-        let sock_addr = addrs.next().unwrap_or_else(|| {
+        let address = addrs.next().unwrap_or_else(|| {
             println!("ERROR: failed to resolve address: {}", endpoint);
             std::process::exit(1);
         });
-        let stream = TcpStream::connect(sock_addr).unwrap_or_else(|e| {
-            error!("Failed to connect to memcache: {}", e);
-            process::exit(1);
-        });
+        let stream = match TcpStream::connect(address) {
+            Ok(stream) => Some(stream),
+            Err(e) => {
+                error!("Failed to connect to memcache: {}", e);
+                None
+            }
+        };
         Ok(Some(Box::new(Memcache {
+            address,
             config,
-            stream,
             initialized: false,
             recorder,
+            stream,
         })))
     }
 
@@ -58,64 +78,77 @@ impl<'a> Sampler<'a> for Memcache<'a> {
         // gather current state
         trace!("sampling memcache");
         let time = time::precise_time_ns();
-        self.stream.write_all(b"stats\r\n").unwrap();
-        let mut buffer = [0_u8; 16355];
-        loop {
-            let length = self.stream.peek(&mut buffer).unwrap();
+        if let Some(ref mut stream) = self.stream {
+            stream.write_all(b"stats\r\n").unwrap();
+            let mut buffer = [0_u8; 16355];
+            loop {
+                let length = stream.peek(&mut buffer).unwrap();
+                if length > 0 {
+                    let stats = str::from_utf8(&buffer).unwrap().to_string();
+                    let lines: Vec<&str> = stats.split("\r\n").collect();
+                    if lines[lines.len() - 2] == "END" {
+                        break;
+                    }
+                }
+            }
+            let length = stream.read(&mut buffer).unwrap();
             if length > 0 {
                 let stats = str::from_utf8(&buffer).unwrap().to_string();
                 let lines: Vec<&str> = stats.split("\r\n").collect();
-                if lines[lines.len() - 2] == "END" {
-                    break;
-                }
-            }
-        }
-        let length = self.stream.read(&mut buffer).unwrap();
-        if length > 0 {
-            let stats = str::from_utf8(&buffer).unwrap().to_string();
-            let lines: Vec<&str> = stats.split("\r\n").collect();
-            for line in lines {
-                let parts: Vec<&str> = line.split_whitespace().collect();
-                if let Some(name) = parts.get(1) {
-                    if let Some(value) = parts.get(2) {
-                        match *name {
-                            "data_read" | "data_written" | "cmd_total" | "conn_total"
-                            | "conn_yield" | "hotkey_bw" | "hotkey_qps" => {
-                                if !self.initialized {
-                                    register_counter(
-                                        self.recorder,
-                                        name,
-                                        BILLION,
-                                        3,
-                                        self.config.general().window(),
-                                        PERCENTILES,
-                                    );
+                for line in lines {
+                    let parts: Vec<&str> = line.split_whitespace().collect();
+                    if let Some(name) = parts.get(1) {
+                        if let Some(value) = parts.get(2) {
+                            match *name {
+                                "data_read" | "data_written" | "cmd_total" | "conn_total"
+                                | "conn_yield" | "hotkey_bw" | "hotkey_qps" => {
+                                    if !self.initialized {
+                                        register_counter(
+                                            self.recorder,
+                                            name,
+                                            BILLION,
+                                            3,
+                                            self.config.general().window(),
+                                            PERCENTILES,
+                                        );
+                                    }
+                                    if let Ok(value) =
+                                        value.parse::<f64>().map(|v| v.floor() as u64)
+                                    {
+                                        record_counter(
+                                            self.recorder,
+                                            name.to_string(),
+                                            time,
+                                            value,
+                                        );
+                                    }
                                 }
-                                if let Ok(value) = value.parse::<f64>().map(|v| v.floor() as u64) {
-                                    record_counter(self.recorder, name.to_string(), time, value);
-                                }
-                            }
-                            _ => {
-                                if !self.initialized {
-                                    self.recorder.add_channel(
-                                        name.to_string(),
-                                        Source::Gauge,
-                                        None,
-                                    );
-                                    self.recorder.add_output(name.to_string(), Output::Counter);
-                                }
-                                if let Ok(value) = value.parse::<f64>().map(|v| v.floor() as u64) {
-                                    record_gauge(self.recorder, name.to_string(), time, value);
+                                _ => {
+                                    if !self.initialized {
+                                        self.recorder.add_channel(
+                                            name.to_string(),
+                                            Source::Gauge,
+                                            None,
+                                        );
+                                        self.recorder.add_output(name.to_string(), Output::Counter);
+                                    }
+                                    if let Ok(value) =
+                                        value.parse::<f64>().map(|v| v.floor() as u64)
+                                    {
+                                        record_gauge(self.recorder, name.to_string(), time, value);
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                self.initialized = true;
+            } else {
+                error!("failed to get stats. disconnect");
+                self.stream = None;
             }
-            self.initialized = true;
         } else {
-            error!("failed to get stats");
-            std::process::exit(1);
+            self.reconnect();
         }
         Ok(())
     }
