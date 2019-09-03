@@ -3,15 +3,16 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::config::*;
-
 use crate::samplers::network::interface::InterfaceStatistic;
 use crate::samplers::network::protocol::ProtocolStatistic;
 
-#[derive(Clone, Debug, Deserialize)]
+use atomics::*;
+
+#[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Network {
     #[serde(default = "default_enabled")]
-    enabled: bool,
+    enabled: AtomicBool,
     #[serde(default = "default_interface_statistics")]
     interface_statistics: Vec<InterfaceStatistic>,
     #[serde(default = "default_protocol_statistics")]
@@ -28,8 +29,8 @@ impl Default for Network {
     }
 }
 
-fn default_enabled() -> bool {
-    false
+fn default_enabled() -> AtomicBool {
+    AtomicBool::new(false)
 }
 
 fn default_interface_statistics() -> Vec<InterfaceStatistic> {
@@ -65,7 +66,7 @@ fn default_protocol_statistics() -> Vec<ProtocolStatistic> {
 
 impl Network {
     pub fn enabled(&self) -> bool {
-        self.enabled
+        self.enabled.load(Ordering::Relaxed)
     }
 
     pub fn interface_statistics(&self) -> &[InterfaceStatistic] {

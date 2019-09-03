@@ -5,11 +5,13 @@
 use crate::config::*;
 use crate::samplers::perf::PerfStatistic;
 
-#[derive(Clone, Debug, Deserialize)]
+use atomics::*;
+
+#[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Perf {
     #[serde(default = "default_enabled")]
-    enabled: bool,
+    enabled: AtomicBool,
     #[serde(default = "default_statistics")]
     statistics: Vec<PerfStatistic>,
 }
@@ -23,8 +25,8 @@ impl Default for Perf {
     }
 }
 
-fn default_enabled() -> bool {
-    false
+fn default_enabled() -> AtomicBool {
+    AtomicBool::new(false)
 }
 
 fn default_statistics() -> Vec<PerfStatistic> {
@@ -54,7 +56,7 @@ fn default_statistics() -> Vec<PerfStatistic> {
 
 impl Perf {
     pub fn enabled(&self) -> bool {
-        self.enabled
+        self.enabled.load(Ordering::Relaxed)
     }
 
     pub fn statistics(&self) -> &[PerfStatistic] {

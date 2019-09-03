@@ -4,11 +4,13 @@
 
 use crate::config::*;
 
-#[derive(Clone, Debug, Deserialize)]
+use atomics::*;
+
+#[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Softnet {
     #[serde(default = "default_enabled")]
-    enabled: bool,
+    enabled: AtomicBool,
 }
 
 impl Default for Softnet {
@@ -19,12 +21,12 @@ impl Default for Softnet {
     }
 }
 
-fn default_enabled() -> bool {
-    true
+fn default_enabled() -> AtomicBool {
+    AtomicBool::new(false)
 }
 
 impl Softnet {
     pub fn enabled(&self) -> bool {
-        self.enabled
+        self.enabled.load(Ordering::Relaxed)
     }
 }
