@@ -1,3 +1,7 @@
+# This config is an example for running Rezolus for system-level telemetry. It
+# is intended to be run as an agent on the machine to export systems performance
+# telemetry.
+
 # settings that apply to the entire process
 [general]
 

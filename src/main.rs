@@ -62,6 +62,9 @@ fn main() {
             samplers.push((s, Stats::default()));
         }
     } else {
+        if let Ok(Some(s)) = samplers::Container::new(&config, &recorder) {
+            samplers.push((s, Stats::default()));
+        }
         if let Ok(Some(s)) = samplers::Cpu::new(&config, &recorder) {
             samplers.push((s, Stats::default()));
         }

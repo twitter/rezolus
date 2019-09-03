@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+pub(crate) mod container;
 pub(crate) mod cpu;
 pub(crate) mod disk;
 #[cfg(feature = "ebpf")]
@@ -13,6 +14,7 @@ pub(crate) mod perf;
 pub(crate) mod rezolus;
 pub(crate) mod softnet;
 
+pub use self::container::Container;
 pub use self::cpu::Cpu;
 pub use self::disk::Disk;
 pub use self::memcache::Memcache;
