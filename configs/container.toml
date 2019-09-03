@@ -1,0 +1,29 @@
+# This config is an example for running Rezolus within an application container.
+# It is intended to be run within the container as a "sidecar" process and used
+# to export additional telemetry about the container.
+
+# settings that apply to the entire process
+[general]
+
+# socket address for the metrics endpoint
+listen = "0.0.0.0:4242"
+
+# integration period for histograms in seconds
+window = 60
+
+# default collection interval for each sampler in milliseconds
+interval = 1000
+
+# per-sampler timeout in milliseconds
+timeout = 50
+
+# per-sampler max for consecutive timeouts before disabling that sampler
+max_timeouts = 5
+
+
+
+# settings for basic container telemetry
+[conmtainer]
+
+# enable or disable collection
+enabled = true

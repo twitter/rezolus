@@ -1,4 +1,7 @@
 # [Unreleased]
+## Added
+- Container sampler to use within an application container for telemetry
+
 ## Fixed
 - Allows memcache sampler to reconnect to the cache instance which helps to make
   the sampler more resilient to transient errors

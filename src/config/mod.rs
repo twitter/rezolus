@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+mod container;
 mod cpu;
 mod disk;
 mod ebpf;
@@ -10,6 +11,7 @@ mod network;
 mod perf;
 mod softnet;
 
+use self::container::Container;
 use self::cpu::Cpu;
 use self::disk::Disk;
 use self::ebpf::Ebpf;
@@ -32,6 +34,8 @@ pub const NAME: &str = env!("CARGO_PKG_NAME");
 #[derive(Debug, Default, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
+    #[serde(default)]
+    container: Container,
     #[serde(default)]
     cpu: Cpu,
     #[serde(default)]
@@ -112,6 +116,10 @@ impl Config {
 
     pub fn stats_log(&self) -> Option<String> {
         self.general.stats_log()
+    }
+
+    pub fn container(&self) -> &Container {
+        &self.container
     }
 
     pub fn cpu(&self) -> &Cpu {
