@@ -3,7 +3,8 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::config::*;
-use core::sync::atomic::{AtomicBool, Ordering};
+
+use atomics::*;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]

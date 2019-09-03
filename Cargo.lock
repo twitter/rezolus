@@ -652,6 +652,7 @@ dependencies = [
 name = "rezolus"
 version = "1.0.2-alpha.0"
 dependencies = [
+ "atomics 0.2.0 (git+https://github.com/twitter/rpc-perf)",
  "bcc 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",

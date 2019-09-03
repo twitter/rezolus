@@ -7,6 +7,7 @@ publish = false
 edition = '2018'
 
 [dependencies]
+atomics = { git = "https://github.com/twitter/rpc-perf", branch = "master" }
 bcc = { version = "0.0.10", optional = true }
 clap = "2.33.0"
 failure = "0.1.5"

@@ -4,7 +4,8 @@
 
 use crate::config::*;
 use crate::samplers::cpu::CpuStatistic;
-use core::sync::atomic::{AtomicBool, Ordering};
+
+use atomics::*;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]

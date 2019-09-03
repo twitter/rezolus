@@ -2,6 +2,7 @@
 ## Fixed
 - Allows memcache sampler to reconnect to the cache instance which helps to make
   the sampler more resilient to transient errors
+- Softnet sampler now disabled by default to be consistent with other samplers
 
 # [1.0.1] - 2019-08-22
 ## Fixed
