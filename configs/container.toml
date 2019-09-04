@@ -23,7 +23,7 @@ max_timeouts = 5
 
 
 # settings for basic container telemetry
-[conmtainer]
+[container]
 
 # enable or disable collection
 enabled = true
