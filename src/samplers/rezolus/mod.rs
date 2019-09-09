@@ -4,12 +4,11 @@
 
 use crate::common::*;
 use crate::config::Config;
-use crate::samplers::Sampler;
-use crate::stats::{record_counter, record_gauge, register_counter, register_gauge};
+use crate::samplers::{Common, Sampler};
 
 use failure::Error;
 use logger::*;
-use metrics::*;
+use metrics::{AtomicU32, Percentile, Recorder};
 use serde_derive::*;
 use time;
 
@@ -17,9 +16,8 @@ use std::collections::HashMap;
 use std::path::Path;
 
 pub struct Rezolus<'a> {
-    config: &'a Config,
+    common: Common<'a>,
     initialized: bool,
-    recorder: &'a Recorder<AtomicU32>,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
@@ -126,25 +124,23 @@ impl<'a> Rezolus<'a> {
         ]
     }
 
-    pub fn memory_usage(&self, recorder: &Recorder<AtomicU32>) {
+    pub fn memory_usage(&self) {
         let time = time::precise_time_ns();
         let pid: u32 = std::process::id();
         let parsed = parse_process_memory_stats(format!("/proc/{}/statm", pid));
-        record_gauge(
-            recorder,
-            Statistic::MemoryVirtual,
+        self.common.record_gauge(
+            &Statistic::MemoryVirtual,
             time,
             parsed.get(&ProcessMemory::Size).unwrap() * 4096,
         );
-        record_gauge(
-            recorder,
-            Statistic::MemoryResident,
+        self.common.record_gauge(
+            &Statistic::MemoryResident,
             time,
             parsed.get(&ProcessMemory::Resident).unwrap() * 4096,
         );
     }
 
-    pub fn cpu_usage(&self, recorder: &Recorder<AtomicU32>) {
+    pub fn cpu_usage(&self) {
         let time = time::precise_time_ns();
         let pid: u32 = std::process::id();
         let parsed = parse_process_stats(format!("/proc/{}/stat", pid));
@@ -152,12 +148,20 @@ impl<'a> Rezolus<'a> {
         let user_seconds = (*parsed.get(&ProcessStat::UserTime).unwrap_or(&0)
             + *parsed.get(&ProcessStat::ChildrenUserTime).unwrap_or(&0))
             * nanos_per_tick();
-        record_counter(recorder, Statistic::CpuUser, time, user_seconds);
+        self.common.record_counter(
+            &Statistic::CpuUser,
+            time,
+            user_seconds,
+        );
 
         let kernel_seconds = (*parsed.get(&ProcessStat::SystemTime).unwrap_or(&0)
             + *parsed.get(&ProcessStat::ChildrenSystemTime).unwrap_or(&0))
             * nanos_per_tick();
-        record_counter(recorder, Statistic::CpuKernel, time, kernel_seconds);
+        self.common.record_counter(
+            &Statistic::CpuKernel,
+            time,
+            kernel_seconds,
+        );
     }
 }
 
@@ -167,9 +171,8 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
         recorder: &'a Recorder<AtomicU32>,
     ) -> Result<Option<Box<Self>>, Error> {
         Ok(Some(Box::new(Rezolus {
-            config,
+            common: Common::new(config, recorder),
             initialized: false,
-            recorder,
         })))
     }
 
@@ -180,8 +183,8 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
     fn sample(&mut self) -> Result<(), ()> {
         trace!("sample {}", self.name());
         self.register();
-        self.memory_usage(self.recorder);
-        self.cpu_usage(self.recorder);
+        self.memory_usage();
+        self.cpu_usage();
         Ok(())
     }
 
@@ -189,24 +192,10 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
         if !self.initialized {
             trace!("register {}", self.name());
             for label in self.gauges() {
-                register_gauge(
-                    self.recorder,
-                    label.clone(),
-                    32 * TERABYTE,
-                    3,
-                    self.config.general().window(),
-                    &[Percentile::Maximum],
-                );
+                self.common.register_gauge(&label, 32 * TERABYTE, 3, &[Percentile::Maximum]);
             }
             for label in self.counters() {
-                register_counter(
-                    self.recorder,
-                    label.clone(),
-                    BILLION,
-                    3,
-                    self.config.general().window(),
-                    &[Percentile::Maximum],
-                );
+                self.common.register_counter(&label, BILLION, 3, &[Percentile::Maximum]);
             }
             self.initialized = true;
         }
@@ -216,10 +205,10 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
         if self.initialized {
             trace!("deregister {}", self.name());
             for label in self.gauges() {
-                self.recorder.delete_channel(label.clone());
+                self.common.delete_channel(label.clone());
             }
             for label in self.counters() {
-                self.recorder.delete_channel(label.clone());
+                self.common.delete_channel(label.clone());
             }
             self.initialized = false;
         }
