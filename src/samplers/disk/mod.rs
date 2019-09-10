@@ -27,7 +27,6 @@ const REFRESH: u64 = 60_000_000_000;
 pub struct Disk<'a> {
     common: Common<'a>,
     devices: Vec<Device>,
-    initialized: bool,
     last_refreshed: u64,
 }
 
@@ -93,7 +92,6 @@ impl<'a> Sampler<'a> for Disk<'a> {
             Ok(Some(Box::new(Self {
                 common: Common::new(config, recorder),
                 devices: Vec::new(),
-                initialized: false,
                 last_refreshed: 0,
             })))
         } else {
@@ -117,16 +115,14 @@ impl<'a> Sampler<'a> for Disk<'a> {
             let entry = Entry::for_device(&device);
             current.insert(device, entry);
         }
-        if !self.initialized {
-            self.register();
-        }
+        self.register();
         self.record(time, current.values().sum());
         Ok(())
     }
 
     fn register(&mut self) {
-        trace!("register {}", self.name());
-        if !self.initialized {
+        if !self.common.initialized() {
+            trace!("register {}", self.name());
             self.devices = self.get_devices();
             self.last_refreshed = time::precise_time_ns();
             for statistic in &[Statistic::BandwidthRead, Statistic::BandwidthWrite] {
@@ -137,13 +133,13 @@ impl<'a> Sampler<'a> for Disk<'a> {
                 self.common
                     .register_counter(statistic, BILLION, 3, PERCENTILES);
             }
-            self.initialized = true;
+            self.common.set_initialized(true);
         }
     }
 
     fn deregister(&mut self) {
-        trace!("deregister {}", self.name());
-        if self.initialized {
+        if self.common.initialized() {
+            trace!("deregister {}", self.name());
             for statistic in &[
                 Statistic::BandwidthRead,
                 Statistic::BandwidthWrite,
@@ -152,7 +148,7 @@ impl<'a> Sampler<'a> for Disk<'a> {
             ] {
                 self.common.delete_channel(statistic);
             }
-            self.initialized = false;
+            self.common.set_initialized(false);
         }
     }
 }

@@ -16,7 +16,6 @@ use std::io::{BufRead, BufReader};
 pub struct Container<'a> {
     common: Common<'a>,
     cgroup: Option<String>,
-    initialized: bool,
     nanos_per_tick: u64,
 }
 
@@ -44,7 +43,6 @@ impl<'a> Sampler<'a> for Container<'a> {
                 Ok(Some(Box::new(Container {
                     common: Common::new(config, recorder),
                     cgroup,
-                    initialized: false,
                     nanos_per_tick: crate::common::nanos_per_tick(),
                 })))
             } else {
@@ -109,7 +107,7 @@ impl<'a> Sampler<'a> for Container<'a> {
     }
 
     fn register(&mut self) {
-        if !self.initialized {
+        if !self.common.initialized() {
             let cores = crate::common::hardware_threads().unwrap_or(1);
             self.common.register_counter(
                 &"container/cpu/total",
@@ -125,16 +123,16 @@ impl<'a> Sampler<'a> for Container<'a> {
             );
             self.common
                 .register_counter(&"container/cpu/user", 2 * cores * SECOND, 3, PERCENTILES);
-            self.initialized = true;
+            self.common.set_initialized(true);
         }
     }
 
     fn deregister(&mut self) {
-        if self.initialized {
+        if self.common.initialized() {
             self.common.delete_channel(&"container/cpu/total");
             self.common.delete_channel(&"container/cpu/system");
             self.common.delete_channel(&"container/cpu/user");
-            self.initialized = false;
+            self.common.set_initialized(false);
         }
     }
 }

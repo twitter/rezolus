@@ -19,7 +19,6 @@ use std::str;
 pub struct Memcache<'a> {
     address: SocketAddr,
     common: Common<'a>,
-    initialized: bool,
     stream: Option<TcpStream>,
 }
 
@@ -62,7 +61,6 @@ impl<'a> Sampler<'a> for Memcache<'a> {
         Ok(Some(Box::new(Memcache {
             address,
             common: Common::new(config, recorder),
-            initialized: false,
             stream,
         })))
     }
@@ -99,7 +97,7 @@ impl<'a> Sampler<'a> for Memcache<'a> {
                             match *name {
                                 "data_read" | "data_written" | "cmd_total" | "conn_total"
                                 | "conn_yield" | "hotkey_bw" | "hotkey_qps" => {
-                                    if !self.initialized {
+                                    if !self.common.initialized() {
                                         self.common.register_counter(name, BILLION, 3, PERCENTILES);
                                     }
                                     if let Ok(value) =
@@ -109,7 +107,7 @@ impl<'a> Sampler<'a> for Memcache<'a> {
                                     }
                                 }
                                 _ => {
-                                    if !self.initialized {
+                                    if !self.common.initialized() {
                                         self.common.recorder().add_channel(
                                             name.to_string(),
                                             Source::Gauge,
@@ -129,7 +127,7 @@ impl<'a> Sampler<'a> for Memcache<'a> {
                         }
                     }
                 }
-                self.initialized = true;
+                self.common.set_initialized(true);
             } else {
                 error!("failed to get stats. disconnect");
                 self.stream = None;

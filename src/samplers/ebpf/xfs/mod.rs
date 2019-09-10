@@ -19,7 +19,6 @@ use std::collections::HashMap;
 pub struct Xfs<'a> {
     bpf: BPF,
     common: Common<'a>,
-    initialized: bool,
 }
 
 impl<'a> Sampler<'a> for Xfs<'a> {
@@ -54,7 +53,6 @@ impl<'a> Sampler<'a> for Xfs<'a> {
         Ok(Some(Box::new(Self {
             bpf,
             common: Common::new(config, recorder),
-            initialized: false,
         })))
     }
 
@@ -66,10 +64,7 @@ impl<'a> Sampler<'a> for Xfs<'a> {
         // gather current state
         trace!("sample {}", self.name());
         let time = time::precise_time_ns();
-
-        if !self.initialized {
-            self.register();
-        }
+        self.register();
         for stat in &["read", "write", "open", "fsync"] {
             let mut table = self.bpf.table(stat);
             for (&latency, &count) in &map_from_table(&mut table) {
@@ -81,23 +76,23 @@ impl<'a> Sampler<'a> for Xfs<'a> {
     }
 
     fn register(&mut self) {
-        debug!("register {}", self.name());
-        if !self.initialized {
+        if !self.common.initialized() {
+            trace!("register {}", self.name());
             for label in &["xfs/read", "xfs/write", "xfs/open", "xfs/fsync"] {
                 self.common
                     .register_distribution(label, SECOND, 2, PERCENTILES);
             }
-            self.initialized = true;
+            self.common.set_initialized(true);
         }
     }
 
     fn deregister(&mut self) {
-        debug!("deregister {}", self.name());
-        if self.initialized {
+        if self.common.initialized() {
+            trace!("deregister {}", self.name());
             for label in &["xfs/read", "xfs/write", "xfs/open", "xfs/fsync"] {
                 self.common.delete_channel(label);
             }
-            self.initialized = false;
+            self.common.set_initialized(false);
         }
     }
 }

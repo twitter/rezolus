@@ -18,7 +18,6 @@ use std::collections::HashMap;
 pub struct Block<'a> {
     bpf: BPF,
     common: Common<'a>,
-    initialized: bool,
 }
 
 impl<'a> Block<'a> {
@@ -43,12 +42,9 @@ impl<'a> Block<'a> {
             // clear the source counter
             let _ = data.set(&mut entry.key, &mut [0_u8; 8]);
         }
-        if !self.initialized {
-            self.register();
-        } else {
-            for (&value, &count) in &current {
-                self.common.record_distribution(&label, time, value, count);
-            }
+        self.register();
+        for (&value, &count) in &current {
+            self.common.record_distribution(&label, time, value, count);
         }
     }
 
@@ -73,12 +69,9 @@ impl<'a> Block<'a> {
             // clear the source counter
             let _ = data.set(&mut entry.key, &mut [0_u8; 8]);
         }
-        if !self.initialized {
-            self.register();
-        } else {
-            for (&value, &count) in &current {
-                self.common.record_distribution(&label, time, value, count);
-            }
+        self.register();
+        for (&value, &count) in &current {
+            self.common.record_distribution(&label, time, value, count);
         }
     }
 }
@@ -106,7 +99,6 @@ impl<'a> Sampler<'a> for Block<'a> {
         Ok(Some(Box::new(Self {
             bpf,
             common: Common::new(config, recorder),
-            initialized: false,
         })))
     }
 
@@ -129,8 +121,8 @@ impl<'a> Sampler<'a> for Block<'a> {
     }
 
     fn register(&mut self) {
-        debug!("register {}", self.name());
-        if !self.initialized {
+        if !self.common.initialized() {
+            debug!("register {}", self.name());
             for size in &["block/size/read", "block/size/write"] {
                 self.common
                     .register_distribution(size, MILLION, 2, PERCENTILES);
@@ -146,13 +138,13 @@ impl<'a> Sampler<'a> for Block<'a> {
                 self.common
                     .register_distribution(latency, BILLION, 2, PERCENTILES);
             }
-            self.initialized = true;
+            self.common.set_initialized(true);
         }
     }
 
     fn deregister(&mut self) {
-        debug!("deregister {}", self.name());
-        if self.initialized {
+        if self.common.initialized() {
+            trace!("deregister {}", self.name());
             for statistic in &[
                 "block/size/read",
                 "block/size/write",
@@ -165,7 +157,7 @@ impl<'a> Sampler<'a> for Block<'a> {
             ] {
                 self.common.delete_channel(statistic);
             }
-            self.initialized = false;
+            self.common.set_initialized(false);
         }
     }
 }

@@ -23,7 +23,6 @@ const REFRESH: u64 = 60_000_000_000;
 
 pub struct Network<'a> {
     common: Common<'a>,
-    initialized: bool,
     interfaces: HashSet<Interface>,
     last_refreshed: u64,
 }
@@ -67,7 +66,6 @@ impl<'a> Sampler<'a> for Network<'a> {
         if config.network().enabled() {
             Ok(Some(Box::new(Self {
                 common: Common::new(config, recorder),
-                initialized: false,
                 interfaces: HashSet::new(),
                 last_refreshed: 0,
             })))
@@ -87,9 +85,7 @@ impl<'a> Sampler<'a> for Network<'a> {
             self.interfaces = self.get_interfaces();
             self.last_refreshed = time;
         }
-        if !self.initialized {
-            self.register();
-        }
+        self.register();
 
         // interface statistics
         for statistic in self.common.config().network().interface_statistics() {
@@ -113,8 +109,8 @@ impl<'a> Sampler<'a> for Network<'a> {
     }
 
     fn register(&mut self) {
-        trace!("register {}", self.name());
-        if !self.initialized {
+        if !self.common.initialized() {
+            trace!("register {}", self.name());
             self.interfaces = self.get_interfaces();
             self.last_refreshed = time::precise_time_ns();
             let mut total_bandwidth_bytes = 0;
@@ -136,20 +132,20 @@ impl<'a> Sampler<'a> for Network<'a> {
                 let max = 2 * total_bandwidth_bytes / 64;
                 self.common.register_counter(statistic, max, 3, PERCENTILES);
             }
-            self.initialized = true;
+            self.common.set_initialized(true);
         }
     }
 
     fn deregister(&mut self) {
-        trace!("deregister {}", self.name());
-        if self.initialized {
+        if self.common.initialized() {
+            trace!("deregister {}", self.name());
             for statistic in self.common.config().network().interface_statistics() {
                 self.common.delete_channel(statistic);
             }
             for statistic in self.common.config().network().protocol_statistics() {
                 self.common.delete_channel(statistic);
             }
-            self.initialized = false;
+            self.common.set_initialized(false);
         }
     }
 }

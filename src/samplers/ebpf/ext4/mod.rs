@@ -19,7 +19,6 @@ use std::collections::HashMap;
 pub struct Ext4<'a> {
     bpf: BPF,
     common: Common<'a>,
-    initialized: bool,
 }
 
 impl<'a> Sampler<'a> for Ext4<'a> {
@@ -57,7 +56,6 @@ impl<'a> Sampler<'a> for Ext4<'a> {
         Ok(Some(Box::new(Self {
             bpf,
             common: Common::new(config, recorder),
-            initialized: false,
         })))
     }
 
@@ -69,10 +67,7 @@ impl<'a> Sampler<'a> for Ext4<'a> {
         // gather current state
         trace!("sampling ebpf::ext4");
         let time = time::precise_time_ns();
-
-        if !self.initialized {
-            self.register();
-        }
+        self.register();
         for stat in &["read", "write", "open", "fsync"] {
             trace!("sampling ebpf::ext4::{}", stat);
             let mut table = self.bpf.table(stat);
@@ -85,23 +80,23 @@ impl<'a> Sampler<'a> for Ext4<'a> {
     }
 
     fn register(&mut self) {
-        debug!("register {}", self.name());
-        if !self.initialized {
+        if !self.common.initialized() {
+            trace!("register {}", self.name());
             for label in ["ext4/read", "ext4/write", "ext4/open", "ext4/fsync"].iter() {
                 self.common
                     .register_distribution(label, SECOND, 2, PERCENTILES);
             }
-            self.initialized = true;
+            self.common.set_initialized(true);
         }
     }
 
     fn deregister(&mut self) {
-        debug!("deregister {}", self.name());
-        if self.initialized {
+        if self.common.initialized() {
+            trace!("deregister {}", self.name());
             for label in ["ext4/read", "ext4/write", "ext4/open", "ext4/fsync"].iter() {
                 self.common.delete_channel(label);
             }
-            self.initialized = false;
+            self.common.set_initialized(false);
         }
     }
 }
