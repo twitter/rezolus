@@ -8,8 +8,7 @@ pub use self::event::PerfStatistic;
 
 use crate::common::*;
 use crate::config::Config;
-use crate::samplers::Sampler;
-use crate::stats::{record_counter, register_counter};
+use crate::samplers::{Common, Sampler};
 
 use failure::Error;
 use logger::*;
@@ -20,10 +19,9 @@ use time;
 use std::collections::HashMap;
 
 pub struct Perf<'a> {
-    config: &'a Config,
+    common: Common<'a>,
     counters: HashMap<PerfStatistic, Vec<PerfCounter>>,
     initialized: bool,
-    recorder: &'a Recorder<AtomicU32>,
 }
 
 impl<'a> Sampler<'a> for Perf<'a> {
@@ -58,10 +56,9 @@ impl<'a> Sampler<'a> for Perf<'a> {
             }
 
             Ok(Some(Box::new(Self {
-                config,
+                common: Common::new(config, recorder),
                 counters,
                 initialized: false,
-                recorder,
             })))
         } else {
             Ok(None)
@@ -97,7 +94,7 @@ impl<'a> Sampler<'a> for Perf<'a> {
         for statistic in self.counters.keys() {
             if let Some(counter) = current.get(statistic) {
                 let value: u64 = counter.iter().sum();
-                record_counter(self.recorder, statistic, time, value);
+                self.common.record_counter(&statistic, time, value);
             }
         }
         Ok(())
@@ -107,14 +104,8 @@ impl<'a> Sampler<'a> for Perf<'a> {
         trace!("register {}", self.name());
         if !self.initialized {
             for statistic in self.counters.keys() {
-                register_counter(
-                    self.recorder,
-                    statistic,
-                    TRILLION,
-                    3,
-                    self.config.general().window(),
-                    PERCENTILES,
-                );
+                self.common
+                    .register_counter(statistic, TRILLION, 3, PERCENTILES);
             }
             self.initialized = true;
         }
@@ -124,7 +115,7 @@ impl<'a> Sampler<'a> for Perf<'a> {
         trace!("deregister {}", self.name());
         if self.initialized {
             for statistic in self.counters.keys() {
-                self.recorder.delete_channel(statistic.to_string());
+                self.common.delete_channel(statistic);
             }
             self.initialized = false;
         }

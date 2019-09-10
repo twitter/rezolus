@@ -4,8 +4,7 @@
 
 use crate::common::{MICROSECOND, PERCENTILES, SECOND};
 use crate::config::Config;
-use crate::samplers::Sampler;
-use crate::stats::{record_distribution, register_distribution};
+use crate::samplers::{Common, Sampler};
 
 use bcc;
 use bcc::core::BPF;
@@ -19,9 +18,8 @@ use std::collections::HashMap;
 
 pub struct Ext4<'a> {
     bpf: BPF,
-    config: &'a Config,
+    common: Common<'a>,
     initialized: bool,
-    recorder: &'a Recorder<AtomicU32>,
 }
 
 impl<'a> Sampler<'a> for Ext4<'a> {
@@ -58,9 +56,8 @@ impl<'a> Sampler<'a> for Ext4<'a> {
 
         Ok(Some(Box::new(Self {
             bpf,
-            config,
+            common: Common::new(config, recorder),
             initialized: false,
-            recorder,
         })))
     }
 
@@ -80,13 +77,8 @@ impl<'a> Sampler<'a> for Ext4<'a> {
             trace!("sampling ebpf::ext4::{}", stat);
             let mut table = self.bpf.table(stat);
             for (&latency, &count) in &map_from_table(&mut table) {
-                record_distribution(
-                    self.recorder,
-                    format!("ext4/{}", stat),
-                    time,
-                    latency,
-                    count,
-                );
+                self.common
+                    .record_distribution(&format!("ext4/{}", stat), time, latency, count);
             }
         }
         Ok(())
@@ -96,14 +88,8 @@ impl<'a> Sampler<'a> for Ext4<'a> {
         debug!("register {}", self.name());
         if !self.initialized {
             for label in ["ext4/read", "ext4/write", "ext4/open", "ext4/fsync"].iter() {
-                register_distribution(
-                    self.recorder,
-                    label,
-                    SECOND,
-                    2,
-                    self.config.general().window(),
-                    PERCENTILES,
-                );
+                self.common
+                    .register_distribution(label, SECOND, 2, PERCENTILES);
             }
             self.initialized = true;
         }
@@ -113,7 +99,7 @@ impl<'a> Sampler<'a> for Ext4<'a> {
         debug!("deregister {}", self.name());
         if self.initialized {
             for label in ["ext4/read", "ext4/write", "ext4/open", "ext4/fsync"].iter() {
-                self.recorder.delete_channel(label.to_string());
+                self.common.delete_channel(label);
             }
             self.initialized = false;
         }

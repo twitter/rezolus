@@ -55,7 +55,6 @@ pub trait Sampler<'a> {
 
 pub trait Statistic: ToString + Sized {}
 
-
 pub struct Common<'a> {
     config: &'a Config,
     recorder: &'a Recorder<AtomicU32>,
@@ -63,10 +62,7 @@ pub struct Common<'a> {
 
 impl<'a> Common<'a> {
     pub fn new(config: &'a Config, recorder: &'a Recorder<AtomicU32>) -> Self {
-        Self {
-            config,
-            recorder,
-        }
+        Self { config, recorder }
     }
 
     pub fn config(&self) -> &'a Config {
@@ -77,16 +73,51 @@ impl<'a> Common<'a> {
         self.recorder
     }
 
-    pub fn delete_channel(&self, name: String) {
-        self.recorder.delete_channel(name)
+    pub fn delete_channel(&self, name: &dyn ToString) {
+        self.recorder.delete_channel(name.to_string())
+    }
+
+    pub fn record_distribution(&self, label: &dyn ToString, time: u64, value: u64, count: u32) {
+        self.recorder.record(
+            label.to_string(),
+            Measurement::Distribution { time, value, count },
+        );
     }
 
     pub fn record_counter(&self, label: &dyn ToString, time: u64, value: u64) {
-        self.recorder.record(label.to_string(), Measurement::Counter { time, value });
+        self.recorder
+            .record(label.to_string(), Measurement::Counter { time, value });
     }
 
     pub fn record_gauge(&self, label: &dyn ToString, time: u64, value: u64) {
-        self.recorder.record(label.to_string(), Measurement::Gauge { time, value });
+        self.recorder
+            .record(label.to_string(), Measurement::Gauge { time, value });
+    }
+
+    pub fn register_distribution(
+        &self,
+        label: &dyn ToString,
+        max: u64,
+        precision: u32,
+        percentiles: &[Percentile],
+    ) {
+        self.recorder.add_channel(
+            label.to_string(),
+            Source::Distribution,
+            Some(Histogram::new(
+                max,
+                precision,
+                Some(self.config.general().window()),
+                None,
+            )),
+        );
+        self.recorder.add_output(label.to_string(), Output::Counter);
+        self.recorder
+            .add_output(label.to_string(), Output::MaxPointTime);
+        for percentile in percentiles {
+            self.recorder
+                .add_output(label.to_string(), Output::Percentile(*percentile));
+        }
     }
 
     pub fn register_counter(
@@ -99,12 +130,19 @@ impl<'a> Common<'a> {
         self.recorder.add_channel(
             label.to_string(),
             Source::Counter,
-            Some(Histogram::new(max, precision, Some(self.config.general().window()), None)),
+            Some(Histogram::new(
+                max,
+                precision,
+                Some(self.config.general().window()),
+                None,
+            )),
         );
         self.recorder.add_output(label.to_string(), Output::Counter);
-        self.recorder.add_output(label.to_string(), Output::MaxPointTime);
+        self.recorder
+            .add_output(label.to_string(), Output::MaxPointTime);
         for percentile in percentiles {
-            self.recorder.add_output(label.to_string(), Output::Percentile(*percentile));
+            self.recorder
+                .add_output(label.to_string(), Output::Percentile(*percentile));
         }
     }
 
@@ -118,12 +156,19 @@ impl<'a> Common<'a> {
         self.recorder.add_channel(
             label.to_string(),
             Source::Gauge,
-            Some(Histogram::new(max, precision, Some(self.config.general().window()), None)),
+            Some(Histogram::new(
+                max,
+                precision,
+                Some(self.config.general().window()),
+                None,
+            )),
         );
         self.recorder.add_output(label.to_string(), Output::Counter);
-        self.recorder.add_output(label.to_string(), Output::MaxPointTime);
+        self.recorder
+            .add_output(label.to_string(), Output::MaxPointTime);
         for percentile in percentiles {
-            self.recorder.add_output(label.to_string(), Output::Percentile(*percentile));
+            self.recorder
+                .add_output(label.to_string(), Output::Percentile(*percentile));
         }
     }
 }

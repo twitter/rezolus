@@ -148,20 +148,14 @@ impl<'a> Rezolus<'a> {
         let user_seconds = (*parsed.get(&ProcessStat::UserTime).unwrap_or(&0)
             + *parsed.get(&ProcessStat::ChildrenUserTime).unwrap_or(&0))
             * nanos_per_tick();
-        self.common.record_counter(
-            &Statistic::CpuUser,
-            time,
-            user_seconds,
-        );
+        self.common
+            .record_counter(&Statistic::CpuUser, time, user_seconds);
 
         let kernel_seconds = (*parsed.get(&ProcessStat::SystemTime).unwrap_or(&0)
             + *parsed.get(&ProcessStat::ChildrenSystemTime).unwrap_or(&0))
             * nanos_per_tick();
-        self.common.record_counter(
-            &Statistic::CpuKernel,
-            time,
-            kernel_seconds,
-        );
+        self.common
+            .record_counter(&Statistic::CpuKernel, time, kernel_seconds);
     }
 }
 
@@ -192,10 +186,12 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
         if !self.initialized {
             trace!("register {}", self.name());
             for label in self.gauges() {
-                self.common.register_gauge(&label, 32 * TERABYTE, 3, &[Percentile::Maximum]);
+                self.common
+                    .register_gauge(&label, 32 * TERABYTE, 3, &[Percentile::Maximum]);
             }
             for label in self.counters() {
-                self.common.register_counter(&label, BILLION, 3, &[Percentile::Maximum]);
+                self.common
+                    .register_counter(&label, BILLION, 3, &[Percentile::Maximum]);
             }
             self.initialized = true;
         }
@@ -205,10 +201,10 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
         if self.initialized {
             trace!("deregister {}", self.name());
             for label in self.gauges() {
-                self.common.delete_channel(label.clone());
+                self.common.delete_channel(&label);
             }
             for label in self.counters() {
-                self.common.delete_channel(label.clone());
+                self.common.delete_channel(&label);
             }
             self.initialized = false;
         }

@@ -7,7 +7,6 @@
 mod http;
 
 pub use self::http::Http;
-use std::time::Duration;
 
 use metrics::*;
 
@@ -99,98 +98,5 @@ impl StatsLog {
             std::thread::sleep(std::time::Duration::new(60, 0));
             self.print();
         }
-    }
-}
-
-pub fn record_counter<T>(recorder: &Recorder<AtomicU32>, label: T, time: u64, value: u64)
-where
-    T: ToString,
-{
-    recorder.record(label.to_string(), Measurement::Counter { time, value });
-}
-
-pub fn record_gauge<T>(recorder: &Recorder<AtomicU32>, label: T, time: u64, value: u64)
-where
-    T: ToString,
-{
-    recorder.record(label.to_string(), Measurement::Gauge { time, value });
-}
-
-pub fn record_distribution<T>(
-    recorder: &Recorder<AtomicU32>,
-    label: T,
-    time: u64,
-    value: u64,
-    count: u32,
-) where
-    T: ToString,
-{
-    recorder.record(
-        label.to_string(),
-        Measurement::Distribution { time, value, count },
-    );
-}
-
-pub fn register_counter<T>(
-    recorder: &Recorder<AtomicU32>,
-    label: T,
-    max: u64,
-    precision: u32,
-    duration: Duration,
-    percentiles: &[Percentile],
-) where
-    T: ToString,
-{
-    recorder.add_channel(
-        label.to_string(),
-        Source::Counter,
-        Some(Histogram::new(max, precision, Some(duration), None)),
-    );
-    recorder.add_output(label.to_string(), Output::Counter);
-    recorder.add_output(label.to_string(), Output::MaxPointTime);
-    for percentile in percentiles {
-        recorder.add_output(label.to_string(), Output::Percentile(*percentile));
-    }
-}
-
-pub fn register_gauge<T>(
-    recorder: &Recorder<AtomicU32>,
-    label: T,
-    max: u64,
-    precision: u32,
-    duration: Duration,
-    percentiles: &[Percentile],
-) where
-    T: ToString,
-{
-    recorder.add_channel(
-        label.to_string(),
-        Source::Gauge,
-        Some(Histogram::new(max, precision, Some(duration), None)),
-    );
-    recorder.add_output(label.to_string(), Output::Counter);
-    recorder.add_output(label.to_string(), Output::MaxPointTime);
-    for percentile in percentiles {
-        recorder.add_output(label.to_string(), Output::Percentile(*percentile));
-    }
-}
-
-pub fn register_distribution<T>(
-    recorder: &Recorder<AtomicU32>,
-    label: T,
-    max: u64,
-    precision: u32,
-    duration: Duration,
-    percentiles: &[Percentile],
-) where
-    T: ToString,
-{
-    recorder.add_channel(
-        label.to_string(),
-        Source::Distribution,
-        Some(Histogram::new(max, precision, Some(duration), None)),
-    );
-    for &percentile in percentiles {
-        recorder.add_output(label.to_string(), Output::Percentile(percentile));
     }
 }

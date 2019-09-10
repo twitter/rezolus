@@ -4,8 +4,7 @@
 
 use crate::common::*;
 use crate::config::Config;
-use crate::samplers::Sampler;
-use crate::stats::{record_counter, record_gauge, register_counter};
+use crate::samplers::{Common, Sampler};
 
 use failure::Error;
 use logger::*;
@@ -19,9 +18,8 @@ use std::str;
 
 pub struct Memcache<'a> {
     address: SocketAddr,
-    config: &'a Config,
+    common: Common<'a>,
     initialized: bool,
-    recorder: &'a Recorder<AtomicU32>,
     stream: Option<TcpStream>,
 }
 
@@ -63,9 +61,8 @@ impl<'a> Sampler<'a> for Memcache<'a> {
         };
         Ok(Some(Box::new(Memcache {
             address,
-            config,
+            common: Common::new(config, recorder),
             initialized: false,
-            recorder,
             stream,
         })))
     }
@@ -103,39 +100,29 @@ impl<'a> Sampler<'a> for Memcache<'a> {
                                 "data_read" | "data_written" | "cmd_total" | "conn_total"
                                 | "conn_yield" | "hotkey_bw" | "hotkey_qps" => {
                                     if !self.initialized {
-                                        register_counter(
-                                            self.recorder,
-                                            name,
-                                            BILLION,
-                                            3,
-                                            self.config.general().window(),
-                                            PERCENTILES,
-                                        );
+                                        self.common.register_counter(name, BILLION, 3, PERCENTILES);
                                     }
                                     if let Ok(value) =
                                         value.parse::<f64>().map(|v| v.floor() as u64)
                                     {
-                                        record_counter(
-                                            self.recorder,
-                                            name.to_string(),
-                                            time,
-                                            value,
-                                        );
+                                        self.common.record_counter(name, time, value);
                                     }
                                 }
                                 _ => {
                                     if !self.initialized {
-                                        self.recorder.add_channel(
+                                        self.common.recorder().add_channel(
                                             name.to_string(),
                                             Source::Gauge,
                                             None,
                                         );
-                                        self.recorder.add_output(name.to_string(), Output::Counter);
+                                        self.common
+                                            .recorder()
+                                            .add_output(name.to_string(), Output::Counter);
                                     }
                                     if let Ok(value) =
                                         value.parse::<f64>().map(|v| v.floor() as u64)
                                     {
-                                        record_gauge(self.recorder, name.to_string(), time, value);
+                                        self.common.record_gauge(name, time, value);
                                     }
                                 }
                             }

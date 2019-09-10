@@ -4,8 +4,7 @@
 
 use crate::common::{MICROSECOND, PERCENTILES, SECOND};
 use crate::config::Config;
-use crate::samplers::Sampler;
-use crate::stats::{record_distribution, register_distribution};
+use crate::samplers::{Common, Sampler};
 
 use bcc;
 use bcc::core::BPF;
@@ -19,9 +18,8 @@ use std::collections::HashMap;
 
 pub struct Xfs<'a> {
     bpf: BPF,
-    config: &'a Config,
+    common: Common<'a>,
     initialized: bool,
-    recorder: &'a Recorder<AtomicU32>,
 }
 
 impl<'a> Sampler<'a> for Xfs<'a> {
@@ -55,9 +53,8 @@ impl<'a> Sampler<'a> for Xfs<'a> {
 
         Ok(Some(Box::new(Self {
             bpf,
-            config,
+            common: Common::new(config, recorder),
             initialized: false,
-            recorder,
         })))
     }
 
@@ -76,7 +73,8 @@ impl<'a> Sampler<'a> for Xfs<'a> {
         for stat in &["read", "write", "open", "fsync"] {
             let mut table = self.bpf.table(stat);
             for (&latency, &count) in &map_from_table(&mut table) {
-                record_distribution(self.recorder, format!("xfs/{}", stat), time, latency, count);
+                self.common
+                    .record_distribution(&format!("xfs/{}", stat), time, latency, count);
             }
         }
         Ok(())
@@ -85,15 +83,9 @@ impl<'a> Sampler<'a> for Xfs<'a> {
     fn register(&mut self) {
         debug!("register {}", self.name());
         if !self.initialized {
-            for label in ["xfs/read", "xfs/write", "xfs/open", "xfs/fsync"].iter() {
-                register_distribution(
-                    self.recorder,
-                    label,
-                    SECOND,
-                    2,
-                    self.config.general().window(),
-                    PERCENTILES,
-                );
+            for label in &["xfs/read", "xfs/write", "xfs/open", "xfs/fsync"] {
+                self.common
+                    .register_distribution(label, SECOND, 2, PERCENTILES);
             }
             self.initialized = true;
         }
@@ -102,8 +94,8 @@ impl<'a> Sampler<'a> for Xfs<'a> {
     fn deregister(&mut self) {
         debug!("deregister {}", self.name());
         if self.initialized {
-            for label in ["xfs/read", "xfs/write", "xfs/open", "xfs/fsync"].iter() {
-                self.recorder.delete_channel(label.to_string());
+            for label in &["xfs/read", "xfs/write", "xfs/open", "xfs/fsync"] {
+                self.common.delete_channel(label);
             }
             self.initialized = false;
         }
