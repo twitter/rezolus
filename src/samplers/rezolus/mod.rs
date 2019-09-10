@@ -17,7 +17,6 @@ use std::path::Path;
 
 pub struct Rezolus<'a> {
     common: Common<'a>,
-    initialized: bool,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
@@ -166,7 +165,6 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
     ) -> Result<Option<Box<Self>>, Error> {
         Ok(Some(Box::new(Rezolus {
             common: Common::new(config, recorder),
-            initialized: false,
         })))
     }
 
@@ -183,7 +181,7 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
     }
 
     fn register(&mut self) {
-        if !self.initialized {
+        if !self.common.initialized() {
             trace!("register {}", self.name());
             for label in self.gauges() {
                 self.common
@@ -193,12 +191,12 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
                 self.common
                     .register_counter(&label, BILLION, 3, &[Percentile::Maximum]);
             }
-            self.initialized = true;
+            self.common.set_initialized(true)
         }
     }
 
     fn deregister(&mut self) {
-        if self.initialized {
+        if self.common.initialized() {
             trace!("deregister {}", self.name());
             for label in self.gauges() {
                 self.common.delete_channel(&label);
@@ -206,7 +204,7 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
             for label in self.counters() {
                 self.common.delete_channel(&label);
             }
-            self.initialized = false;
+            self.common.set_initialized(false);
         }
     }
 }

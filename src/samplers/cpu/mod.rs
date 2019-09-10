@@ -34,7 +34,6 @@ pub const PERCENTILES: &[Percentile] = &[
 pub struct Cpu<'a> {
     common: Common<'a>,
     nanos_per_tick: u64,
-    initialized: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Hash)]
@@ -121,7 +120,6 @@ impl<'a> Sampler<'a> for Cpu<'a> {
             Ok(Some(Box::new(Cpu {
                 common: Common::new(config, recorder),
                 nanos_per_tick: crate::common::nanos_per_tick(),
-                initialized: false,
             })))
         } else {
             Ok(None)
@@ -135,9 +133,7 @@ impl<'a> Sampler<'a> for Cpu<'a> {
         trace!("sample {}", self.name());
         let data = read_proc_stat();
         let time = time::precise_time_ns();
-        if !self.initialized {
-            self.register();
-        }
+        self.register();
         for statistic in self.common.config().cpu().statistics() {
             let raw = *data.cpu_total.get(&statistic).unwrap_or(&0);
             let value = raw * self.nanos_per_tick;
@@ -148,7 +144,7 @@ impl<'a> Sampler<'a> for Cpu<'a> {
 
     fn register(&mut self) {
         trace!("register {}", self.name());
-        if !self.initialized {
+        if !self.common.initialized() {
             let cores = crate::common::hardware_threads().unwrap_or(1);
 
             for statistic in self.common.config().cpu().statistics() {
@@ -156,17 +152,17 @@ impl<'a> Sampler<'a> for Cpu<'a> {
                     .register_counter(&statistic, 2 * cores * SECOND, 3, PERCENTILES);
             }
 
-            self.initialized = true;
+            self.common.set_initialized(true);
         }
     }
 
     fn deregister(&mut self) {
         trace!("deregister {}", self.name());
-        if self.initialized {
+        if self.common.initialized() {
             for statistic in self.common.config().cpu().statistics() {
                 self.common.delete_channel(&statistic);
             }
-            self.initialized = false;
+            self.common.set_initialized(false);
         }
     }
 }

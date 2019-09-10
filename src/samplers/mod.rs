@@ -26,8 +26,9 @@ pub use self::softnet::Softnet;
 
 use crate::config::Config;
 
+use atomics::*;
 use failure::Error;
-use metrics::{AtomicU32, Histogram, Measurement, Output, Percentile, Recorder, Source};
+use metrics::{Histogram, Measurement, Output, Percentile, Recorder, Source};
 
 /// `Sampler`s are used to get samples of a particular subsystem or component
 /// The `Sampler` will perform the necessary actions to update the telemetry and
@@ -57,16 +58,29 @@ pub trait Statistic: ToString + Sized {}
 
 pub struct Common<'a> {
     config: &'a Config,
+    initialized: AtomicBool,
     recorder: &'a Recorder<AtomicU32>,
 }
 
 impl<'a> Common<'a> {
     pub fn new(config: &'a Config, recorder: &'a Recorder<AtomicU32>) -> Self {
-        Self { config, recorder }
+        Self {
+            config,
+            initialized: AtomicBool::new(false),
+            recorder,
+        }
     }
 
     pub fn config(&self) -> &'a Config {
         self.config
+    }
+
+    pub fn initialized(&self) -> bool {
+        self.initialized.load(Ordering::SeqCst)
+    }
+
+    pub fn set_initialized(&self, value: bool) {
+        self.initialized.store(value, Ordering::SeqCst);
     }
 
     pub fn recorder(&self) -> &'a Recorder<AtomicU32> {

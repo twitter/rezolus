@@ -18,7 +18,6 @@ use std::collections::HashMap;
 pub struct Scheduler<'a> {
     bpf: BPF,
     common: Common<'a>,
-    initialized: bool,
 }
 
 impl<'a> Sampler<'a> for Scheduler<'a> {
@@ -43,7 +42,6 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
         Ok(Some(Box::new(Self {
             bpf,
             common: Common::new(config, recorder),
-            initialized: false,
         })))
     }
 
@@ -78,40 +76,32 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
             let _ = data.set(&mut entry.key, &mut [0_u8; 8]);
         }
         trace!("data copied to userspace");
-        if !self.initialized {
-            self.register();
-        } else {
-            for (&latency, &count) in &current {
-                self.common.record_distribution(
-                    &"scheduler/runqueue_latency_ns",
-                    time,
-                    latency,
-                    count,
-                );
-            }
+        self.register();
+        for (&latency, &count) in &current {
+            self.common
+                .record_distribution(&"scheduler/runqueue_latency_ns", time, latency, count);
         }
-
         Ok(())
     }
 
     fn register(&mut self) {
         debug!("register {}", self.name());
-        if !self.initialized {
+        if !self.common.initialized() {
             self.common.register_distribution(
                 &"scheduler/runqueue_latency_ns",
                 SECOND,
                 2,
                 PERCENTILES,
             );
-            self.initialized = true;
+            self.common.set_initialized(true);
         }
     }
 
     fn deregister(&mut self) {
         debug!("deregister {}", self.name());
-        if self.initialized {
+        if self.common.initialized() {
             self.common.delete_channel(&"scheduler/runqueue_latency_ns");
-            self.initialized = false;
+            self.common.set_initialized(false);
         }
     }
 }

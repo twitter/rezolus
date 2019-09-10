@@ -58,7 +58,6 @@ impl Statistic {
 
 pub struct Softnet<'a> {
     common: Common<'a>,
-    initialized: bool,
 }
 
 pub fn read_softnet_stat<P: AsRef<Path>>(path: P) -> HashMap<Statistic, u64> {
@@ -101,7 +100,6 @@ impl<'a> Sampler<'a> for Softnet<'a> {
         if config.softnet().enabled() {
             Ok(Some(Box::new(Self {
                 common: Common::new(config, recorder),
-                initialized: false,
             })))
         } else {
             Ok(None)
@@ -116,9 +114,7 @@ impl<'a> Sampler<'a> for Softnet<'a> {
         trace!("sample {}", self.name());
         let time = time::precise_time_ns();
         let data = read_softnet_stat(SOFTNET_STAT);
-        if !self.initialized {
-            self.register();
-        }
+        self.register();
         for (statistic, value) in data {
             self.common.record_counter(&statistic, time, value);
         }
@@ -126,25 +122,25 @@ impl<'a> Sampler<'a> for Softnet<'a> {
     }
 
     fn register(&mut self) {
-        trace!("register {}", self.name());
-        if !self.initialized {
+        if !self.common.initialized() {
+            trace!("register {}", self.name());
             let data = read_softnet_stat(SOFTNET_STAT);
             for statistic in data.keys() {
                 self.common
                     .register_counter(statistic, TRILLION, 3, PERCENTILES);
             }
-            self.initialized = true;
+            self.common.set_initialized(true);
         }
     }
 
     fn deregister(&mut self) {
-        trace!("deregister {}", self.name());
-        if self.initialized {
+        if self.common.initialized() {
+            trace!("deregister {}", self.name());
             let data = read_softnet_stat(SOFTNET_STAT);
             for statistic in data.keys() {
                 self.common.delete_channel(statistic);
             }
-            self.initialized = false;
+            self.common.set_initialized(false);
         }
     }
 }

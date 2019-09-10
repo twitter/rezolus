@@ -21,7 +21,6 @@ use std::collections::HashMap;
 pub struct Perf<'a> {
     common: Common<'a>,
     counters: HashMap<PerfStatistic, Vec<PerfCounter>>,
-    initialized: bool,
 }
 
 impl<'a> Sampler<'a> for Perf<'a> {
@@ -58,7 +57,6 @@ impl<'a> Sampler<'a> for Perf<'a> {
             Ok(Some(Box::new(Self {
                 common: Common::new(config, recorder),
                 counters,
-                initialized: false,
             })))
         } else {
             Ok(None)
@@ -88,9 +86,7 @@ impl<'a> Sampler<'a> for Perf<'a> {
             }
             current.insert(*event, c);
         }
-        if !self.initialized {
-            self.register();
-        }
+        self.register();
         for statistic in self.counters.keys() {
             if let Some(counter) = current.get(statistic) {
                 let value: u64 = counter.iter().sum();
@@ -101,23 +97,23 @@ impl<'a> Sampler<'a> for Perf<'a> {
     }
 
     fn register(&mut self) {
-        trace!("register {}", self.name());
-        if !self.initialized {
+        if !self.common.initialized() {
+            trace!("register {}", self.name());
             for statistic in self.counters.keys() {
                 self.common
                     .register_counter(statistic, TRILLION, 3, PERCENTILES);
             }
-            self.initialized = true;
+            self.common.set_initialized(true);
         }
     }
 
     fn deregister(&mut self) {
-        trace!("deregister {}", self.name());
-        if self.initialized {
+        if self.common.initialized() {
+            trace!("deregister {}", self.name());
             for statistic in self.counters.keys() {
                 self.common.delete_channel(statistic);
             }
-            self.initialized = false;
+            self.common.set_initialized(false);
         }
     }
 }
