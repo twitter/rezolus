@@ -10,8 +10,7 @@ pub use self::entry::Entry;
 
 use crate::common::*;
 use crate::config::Config;
-use crate::samplers::Sampler;
-use crate::stats::{record_counter, register_counter};
+use crate::samplers::{Common, Sampler};
 
 use failure::Error;
 use logger::*;
@@ -26,11 +25,10 @@ use std::collections::HashMap;
 const REFRESH: u64 = 60_000_000_000;
 
 pub struct Disk<'a> {
-    config: &'a Config,
+    common: Common<'a>,
     devices: Vec<Device>,
     initialized: bool,
     last_refreshed: u64,
-    recorder: &'a Recorder<AtomicU32>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Hash)]
@@ -55,31 +53,15 @@ impl std::fmt::Display for Statistic {
 
 impl<'a> Disk<'a> {
     /// send deltas to the stats library
-    fn record(&self, time: u64, recorder: &Recorder<AtomicU32>, reading: Entry) {
-        record_counter(
-            recorder,
-            Statistic::BandwidthRead,
-            time,
-            reading.read_bytes(),
-        );
-        record_counter(
-            recorder,
-            Statistic::BandwidthWrite,
-            time,
-            reading.write_bytes(),
-        );
-        record_counter(
-            recorder,
-            Statistic::OperationsRead,
-            time,
-            reading.read_ops(),
-        );
-        record_counter(
-            recorder,
-            Statistic::OperationsWrite,
-            time,
-            reading.write_ops(),
-        );
+    fn record(&self, time: u64, reading: Entry) {
+        self.common
+            .record_counter(&Statistic::BandwidthRead, time, reading.read_bytes());
+        self.common
+            .record_counter(&Statistic::BandwidthWrite, time, reading.write_bytes());
+        self.common
+            .record_counter(&Statistic::OperationsRead, time, reading.read_ops());
+        self.common
+            .record_counter(&Statistic::OperationsWrite, time, reading.write_ops());
     }
 
     /// identifies the set of all primary block `Device`s on the host
@@ -109,11 +91,10 @@ impl<'a> Sampler<'a> for Disk<'a> {
     ) -> Result<Option<Box<Self>>, Error> {
         if config.disk().enabled() {
             Ok(Some(Box::new(Self {
-                config,
+                common: Common::new(config, recorder),
                 devices: Vec::new(),
                 initialized: false,
                 last_refreshed: 0,
-                recorder,
             })))
         } else {
             Ok(None)
@@ -139,7 +120,7 @@ impl<'a> Sampler<'a> for Disk<'a> {
         if !self.initialized {
             self.register();
         }
-        self.record(time, self.recorder, current.values().sum());
+        self.record(time, current.values().sum());
         Ok(())
     }
 
@@ -148,38 +129,14 @@ impl<'a> Sampler<'a> for Disk<'a> {
         if !self.initialized {
             self.devices = self.get_devices();
             self.last_refreshed = time::precise_time_ns();
-            register_counter(
-                self.recorder,
-                Statistic::BandwidthRead,
-                TRILLION,
-                3,
-                self.config.general().window(),
-                PERCENTILES,
-            );
-            register_counter(
-                self.recorder,
-                Statistic::BandwidthWrite,
-                TRILLION,
-                3,
-                self.config.general().window(),
-                PERCENTILES,
-            );
-            register_counter(
-                self.recorder,
-                Statistic::OperationsRead,
-                BILLION,
-                3,
-                self.config.general().window(),
-                PERCENTILES,
-            );
-            register_counter(
-                self.recorder,
-                Statistic::OperationsWrite,
-                BILLION,
-                3,
-                self.config.general().window(),
-                PERCENTILES,
-            );
+            for statistic in &[Statistic::BandwidthRead, Statistic::BandwidthWrite] {
+                self.common
+                    .register_counter(statistic, TRILLION, 3, PERCENTILES);
+            }
+            for statistic in &[Statistic::OperationsRead, Statistic::OperationsWrite] {
+                self.common
+                    .register_counter(statistic, BILLION, 3, PERCENTILES);
+            }
             self.initialized = true;
         }
     }
@@ -187,14 +144,14 @@ impl<'a> Sampler<'a> for Disk<'a> {
     fn deregister(&mut self) {
         trace!("deregister {}", self.name());
         if self.initialized {
-            self.recorder
-                .delete_channel(Statistic::BandwidthRead.to_string());
-            self.recorder
-                .delete_channel(Statistic::BandwidthWrite.to_string());
-            self.recorder
-                .delete_channel(Statistic::OperationsRead.to_string());
-            self.recorder
-                .delete_channel(Statistic::OperationsWrite.to_string());
+            for statistic in &[
+                Statistic::BandwidthRead,
+                Statistic::BandwidthWrite,
+                Statistic::OperationsRead,
+                Statistic::OperationsWrite,
+            ] {
+                self.common.delete_channel(statistic);
+            }
             self.initialized = false;
         }
     }

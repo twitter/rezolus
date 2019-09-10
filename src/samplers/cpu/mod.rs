@@ -4,8 +4,7 @@
 
 use crate::common::*;
 use crate::config::Config;
-use crate::samplers::{Sampler, Statistic};
-use crate::stats::{record_counter, register_counter};
+use crate::samplers::{Common, Sampler, Statistic};
 
 use failure::Error;
 use logger::*;
@@ -33,10 +32,9 @@ pub const PERCENTILES: &[Percentile] = &[
 ];
 
 pub struct Cpu<'a> {
-    config: &'a Config,
+    common: Common<'a>,
     nanos_per_tick: u64,
     initialized: bool,
-    recorder: &'a Recorder<AtomicU32>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Hash)]
@@ -121,10 +119,9 @@ impl<'a> Sampler<'a> for Cpu<'a> {
     ) -> Result<Option<Box<Self>>, Error> {
         if config.cpu().enabled() {
             Ok(Some(Box::new(Cpu {
-                config,
+                common: Common::new(config, recorder),
                 nanos_per_tick: crate::common::nanos_per_tick(),
                 initialized: false,
-                recorder,
             })))
         } else {
             Ok(None)
@@ -141,10 +138,10 @@ impl<'a> Sampler<'a> for Cpu<'a> {
         if !self.initialized {
             self.register();
         }
-        for statistic in self.config.cpu().statistics() {
+        for statistic in self.common.config().cpu().statistics() {
             let raw = *data.cpu_total.get(&statistic).unwrap_or(&0);
             let value = raw * self.nanos_per_tick;
-            record_counter(self.recorder, statistic, time, value);
+            self.common.record_counter(&statistic, time, value);
         }
         Ok(())
     }
@@ -154,15 +151,9 @@ impl<'a> Sampler<'a> for Cpu<'a> {
         if !self.initialized {
             let cores = crate::common::hardware_threads().unwrap_or(1);
 
-            for statistic in self.config.cpu().statistics() {
-                register_counter(
-                    self.recorder,
-                    statistic,
-                    2 * cores * SECOND,
-                    3,
-                    self.config.general().window(),
-                    PERCENTILES,
-                );
+            for statistic in self.common.config().cpu().statistics() {
+                self.common
+                    .register_counter(&statistic, 2 * cores * SECOND, 3, PERCENTILES);
             }
 
             self.initialized = true;
@@ -172,8 +163,8 @@ impl<'a> Sampler<'a> for Cpu<'a> {
     fn deregister(&mut self) {
         trace!("deregister {}", self.name());
         if self.initialized {
-            for statistic in self.config.cpu().statistics() {
-                self.recorder.delete_channel(statistic.to_string());
+            for statistic in self.common.config().cpu().statistics() {
+                self.common.delete_channel(&statistic);
             }
             self.initialized = false;
         }

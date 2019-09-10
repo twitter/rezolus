@@ -4,8 +4,7 @@
 
 use crate::common::{BILLION, MICROSECOND, MILLION, PERCENTILES};
 use crate::config::Config;
-use crate::samplers::Sampler;
-use crate::stats::{record_distribution, register_distribution};
+use crate::samplers::{Common, Sampler};
 
 use bcc;
 use bcc::core::BPF;
@@ -17,10 +16,9 @@ use time;
 use std::collections::HashMap;
 
 pub struct Block<'a> {
-    config: &'a Config,
     bpf: BPF,
+    common: Common<'a>,
     initialized: bool,
-    recorder: &'a Recorder<AtomicU32>,
 }
 
 impl<'a> Block<'a> {
@@ -49,7 +47,7 @@ impl<'a> Block<'a> {
             self.register();
         } else {
             for (&value, &count) in &current {
-                record_distribution(self.recorder, label, time, value, count);
+                self.common.record_distribution(&label, time, value, count);
             }
         }
     }
@@ -79,7 +77,7 @@ impl<'a> Block<'a> {
             self.register();
         } else {
             for (&value, &count) in &current {
-                record_distribution(self.recorder, label, time, value, count);
+                self.common.record_distribution(&label, time, value, count);
             }
         }
     }
@@ -106,10 +104,9 @@ impl<'a> Sampler<'a> for Block<'a> {
         bpf.attach_kprobe("blk_account_io_completion", do_count)?;
 
         Ok(Some(Box::new(Self {
-            config,
             bpf,
+            common: Common::new(config, recorder),
             initialized: false,
-            recorder,
         })))
     }
 
@@ -135,14 +132,8 @@ impl<'a> Sampler<'a> for Block<'a> {
         debug!("register {}", self.name());
         if !self.initialized {
             for size in &["block/size/read", "block/size/write"] {
-                register_distribution(
-                    self.recorder,
-                    size,
-                    MILLION,
-                    2,
-                    self.config.general().window(),
-                    PERCENTILES,
-                );
+                self.common
+                    .register_distribution(size, MILLION, 2, PERCENTILES);
             }
             for latency in &[
                 "block/latency/read",
@@ -152,14 +143,8 @@ impl<'a> Sampler<'a> for Block<'a> {
                 "block/device_latency/write",
                 "block/queue_latency/write",
             ] {
-                register_distribution(
-                    self.recorder,
-                    latency,
-                    BILLION,
-                    2,
-                    self.config.general().window(),
-                    PERCENTILES,
-                );
+                self.common
+                    .register_distribution(latency, BILLION, 2, PERCENTILES);
             }
             self.initialized = true;
         }
@@ -168,20 +153,18 @@ impl<'a> Sampler<'a> for Block<'a> {
     fn deregister(&mut self) {
         debug!("deregister {}", self.name());
         if self.initialized {
-            self.recorder.delete_channel("block/size/read".to_string());
-            self.recorder.delete_channel("block/size/write".to_string());
-            self.recorder
-                .delete_channel("block/latency/read".to_string());
-            self.recorder
-                .delete_channel("block/device_latency/read".to_string());
-            self.recorder
-                .delete_channel("block/queue_latency/read".to_string());
-            self.recorder
-                .delete_channel("block/latency/write".to_string());
-            self.recorder
-                .delete_channel("block/device_latency/write".to_string());
-            self.recorder
-                .delete_channel("block/queue_latency/write".to_string());
+            for statistic in &[
+                "block/size/read",
+                "block/size/write",
+                "block/latency/read",
+                "block/device_latency/read",
+                "block/queue_latency/read",
+                "block/latency/write",
+                "block/device_latency/write",
+                "block/queue_latency/write",
+            ] {
+                self.common.delete_channel(statistic);
+            }
             self.initialized = false;
         }
     }

@@ -4,8 +4,7 @@
 
 use crate::common::*;
 use crate::config::Config;
-use crate::samplers::Sampler;
-use crate::stats::{record_counter, register_counter};
+use crate::samplers::{Common, Sampler};
 
 use failure::*;
 use logger::*;
@@ -15,11 +14,10 @@ use time;
 use std::io::{BufRead, BufReader};
 
 pub struct Container<'a> {
-    config: &'a Config,
+    common: Common<'a>,
     cgroup: Option<String>,
     initialized: bool,
     nanos_per_tick: u64,
-    recorder: &'a Recorder<AtomicU32>,
 }
 
 impl<'a> Sampler<'a> for Container<'a> {
@@ -30,13 +28,8 @@ impl<'a> Sampler<'a> for Container<'a> {
         if config.container().enabled() {
             let mut cgroup = None;
             let path = format!("/proc/{}/cgroup", std::process::id());
-            let file = std::fs::File::open(&path).map_err(|e| {
-                format_err!(
-                    "failed to open file ({:?}): {}",
-                    path,
-                    e
-                )
-            })?;
+            let file = std::fs::File::open(&path)
+                .map_err(|e| format_err!("failed to open file ({:?}): {}", path, e))?;
             let f = BufReader::new(file);
             for line in f.lines() {
                 let line = line.unwrap();
@@ -49,11 +42,10 @@ impl<'a> Sampler<'a> for Container<'a> {
             }
             if cgroup.is_some() {
                 Ok(Some(Box::new(Container {
-                    config,
+                    common: Common::new(config, recorder),
                     cgroup,
                     initialized: false,
                     nanos_per_tick: crate::common::nanos_per_tick(),
-                    recorder,
                 })))
             } else {
                 Err(format_err!("failed to find cgroup"))
@@ -72,40 +64,45 @@ impl<'a> Sampler<'a> for Container<'a> {
         trace!("sampling {}", self.name());
         self.register();
         let time = time::precise_time_ns();
-        
+
         let mut total = 0;
 
-        let path = format!("/sys/fs/cgroup/cpu,cpuacct{}/cpuacct.stat", self.cgroup.as_ref().unwrap());
+        let path = format!(
+            "/sys/fs/cgroup/cpu,cpuacct{}/cpuacct.stat",
+            self.cgroup.as_ref().unwrap()
+        );
         if let Ok(file) = std::fs::File::open(&path) {
-        	let file = BufReader::new(file);
-        	for line in file.lines() {
-        		if let Ok(line) = line {
-        			let parts: Vec<&str> = line.split(' ').collect();
-        			if parts.len() == 2 {
-        				match parts[0] {
-        					"system" => {
-        						if let Ok(ticks) = parts[1].parse::<u64>() {
-        							let ns = ticks * self.nanos_per_tick;
-        							record_counter(self.recorder, "container/cpu/system", time, ns);
+            let file = BufReader::new(file);
+            for line in file.lines() {
+                if let Ok(line) = line {
+                    let parts: Vec<&str> = line.split(' ').collect();
+                    if parts.len() == 2 {
+                        match parts[0] {
+                            "system" => {
+                                if let Ok(ticks) = parts[1].parse::<u64>() {
+                                    let ns = ticks * self.nanos_per_tick;
+                                    self.common
+                                        .record_counter(&"container/cpu/system", time, ns);
                                     total += ns;
-        						}
-        					}
-        					"user" => {
-        						if let Ok(ticks) = parts[1].parse::<u64>() {
-        							let ns = ticks * self.nanos_per_tick;
-        							record_counter(self.recorder, "container/cpu/user", time, ns);
+                                }
+                            }
+                            "user" => {
+                                if let Ok(ticks) = parts[1].parse::<u64>() {
+                                    let ns = ticks * self.nanos_per_tick;
+                                    self.common.record_counter(&"container/cpu/user", time, ns);
                                     total += ns;
-        						}
-        					}
-        					&_ => {}
-        				}
-        			}
-        		}
-        	}
+                                }
+                            }
+                            &_ => {}
+                        }
+                    }
+                }
+            }
         }
 
         if total != 0 {
-            record_counter(self.recorder, "container/cpu/total", time, total);
+            self.common
+                .record_counter(&"container/cpu/total", time, total);
         }
 
         Ok(())
@@ -113,41 +110,31 @@ impl<'a> Sampler<'a> for Container<'a> {
 
     fn register(&mut self) {
         if !self.initialized {
-        	let cores = crate::common::hardware_threads().unwrap_or(1);
-        	register_counter(
-                self.recorder,
-                "container/cpu/total",
+            let cores = crate::common::hardware_threads().unwrap_or(1);
+            self.common.register_counter(
+                &"container/cpu/total",
                 2 * cores * SECOND,
                 3,
-                self.config.general().window(),
                 PERCENTILES,
             );
-            register_counter(
-                self.recorder,
-                "container/cpu/system",
+            self.common.register_counter(
+                &"container/cpu/system",
                 2 * cores * SECOND,
                 3,
-                self.config.general().window(),
                 PERCENTILES,
             );
-            register_counter(
-                self.recorder,
-                "container/cpu/user",
-                2 * cores * SECOND,
-                3,
-                self.config.general().window(),
-                PERCENTILES,
-            );
-        	self.initialized = true;
+            self.common
+                .register_counter(&"container/cpu/user", 2 * cores * SECOND, 3, PERCENTILES);
+            self.initialized = true;
         }
     }
 
     fn deregister(&mut self) {
         if self.initialized {
-        	self.recorder.delete_channel("container/cpu/total".to_string());
-        	self.recorder.delete_channel("container/cpu/system".to_string());
-        	self.recorder.delete_channel("container/cpu/user".to_string());
-        	self.initialized = false;
+            self.common.delete_channel(&"container/cpu/total");
+            self.common.delete_channel(&"container/cpu/system");
+            self.common.delete_channel(&"container/cpu/user");
+            self.initialized = false;
         }
     }
 }

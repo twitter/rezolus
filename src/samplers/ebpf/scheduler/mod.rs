@@ -4,8 +4,7 @@
 
 use crate::common::{MICROSECOND, PERCENTILES, SECOND};
 use crate::config::Config;
-use crate::samplers::Sampler;
-use crate::stats::{record_distribution, register_distribution};
+use crate::samplers::{Common, Sampler};
 
 use bcc;
 use bcc::core::BPF;
@@ -18,9 +17,8 @@ use std::collections::HashMap;
 
 pub struct Scheduler<'a> {
     bpf: BPF,
-    config: &'a Config,
+    common: Common<'a>,
     initialized: bool,
-    recorder: &'a Recorder<AtomicU32>,
 }
 
 impl<'a> Sampler<'a> for Scheduler<'a> {
@@ -44,9 +42,8 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
 
         Ok(Some(Box::new(Self {
             bpf,
-            config,
+            common: Common::new(config, recorder),
             initialized: false,
-            recorder,
         })))
     }
 
@@ -85,9 +82,8 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
             self.register();
         } else {
             for (&latency, &count) in &current {
-                record_distribution(
-                    self.recorder,
-                    "scheduler/runqueue_latency_ns",
+                self.common.record_distribution(
+                    &"scheduler/runqueue_latency_ns",
                     time,
                     latency,
                     count,
@@ -101,12 +97,10 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
     fn register(&mut self) {
         debug!("register {}", self.name());
         if !self.initialized {
-            register_distribution(
-                self.recorder,
-                "scheduler/runqueue_latency_ns",
+            self.common.register_distribution(
+                &"scheduler/runqueue_latency_ns",
                 SECOND,
                 2,
-                self.config.general().window(),
                 PERCENTILES,
             );
             self.initialized = true;
@@ -116,8 +110,7 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
     fn deregister(&mut self) {
         debug!("deregister {}", self.name());
         if self.initialized {
-            self.recorder
-                .delete_channel("scheduler/runqueue_latency_ns".to_string());
+            self.common.delete_channel(&"scheduler/runqueue_latency_ns");
             self.initialized = false;
         }
     }

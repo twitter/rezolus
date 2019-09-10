@@ -9,8 +9,7 @@ pub use self::interface::*;
 
 use crate::common::*;
 use crate::config::Config;
-use crate::samplers::Sampler;
-use crate::stats::{record_counter, register_counter};
+use crate::samplers::{Common, Sampler};
 
 use failure::Error;
 use logger::*;
@@ -23,11 +22,10 @@ use std::collections::HashSet;
 const REFRESH: u64 = 60_000_000_000;
 
 pub struct Network<'a> {
-    config: &'a Config,
+    common: Common<'a>,
     initialized: bool,
     interfaces: HashSet<Interface>,
     last_refreshed: u64,
-    recorder: &'a Recorder<AtomicU32>,
 }
 
 impl<'a> Network<'a> {
@@ -68,11 +66,10 @@ impl<'a> Sampler<'a> for Network<'a> {
     ) -> Result<Option<Box<Self>>, Error> {
         if config.network().enabled() {
             Ok(Some(Box::new(Self {
-                config,
+                common: Common::new(config, recorder),
                 initialized: false,
                 interfaces: HashSet::new(),
                 last_refreshed: 0,
-                recorder,
             })))
         } else {
             Ok(None)
@@ -95,20 +92,20 @@ impl<'a> Sampler<'a> for Network<'a> {
         }
 
         // interface statistics
-        for statistic in self.config.network().interface_statistics() {
+        for statistic in self.common.config().network().interface_statistics() {
             let sum: u64 = self
                 .interfaces
                 .iter()
                 .map(|i| i.get_statistic(&statistic).unwrap_or(0))
                 .sum();
-            record_counter(self.recorder, statistic, time, sum);
+            self.common.record_counter(statistic, time, sum);
         }
 
         // protocol statistics
         if let Ok(protocol) = protocol::Protocol::new() {
-            for statistic in self.config.network().protocol_statistics() {
+            for statistic in self.common.config().network().protocol_statistics() {
                 let value = *protocol.get(statistic).unwrap_or(&0);
-                record_counter(self.recorder, statistic, time, value);
+                self.common.record_counter(statistic, time, value);
             }
         }
 
@@ -126,32 +123,18 @@ impl<'a> Sampler<'a> for Network<'a> {
                     total_bandwidth_bytes += interface.bandwidth_bytes().unwrap_or(0);
                 }
             }
-            for statistic in self.config.network().interface_statistics() {
+            for statistic in self.common.config().network().interface_statistics() {
                 let max = match statistic {
                     InterfaceStatistic::RxBytes | InterfaceStatistic::TxBytes => {
                         2 * total_bandwidth_bytes
                     }
                     _ => (2 * total_bandwidth_bytes / 64),
                 };
-                register_counter(
-                    self.recorder,
-                    statistic,
-                    max,
-                    3,
-                    self.config.general().window(),
-                    PERCENTILES,
-                );
+                self.common.register_counter(statistic, max, 3, PERCENTILES);
             }
-            for statistic in self.config.network().protocol_statistics() {
+            for statistic in self.common.config().network().protocol_statistics() {
                 let max = 2 * total_bandwidth_bytes / 64;
-                register_counter(
-                    self.recorder,
-                    statistic,
-                    max,
-                    3,
-                    self.config.general().window(),
-                    PERCENTILES,
-                );
+                self.common.register_counter(statistic, max, 3, PERCENTILES);
             }
             self.initialized = true;
         }
@@ -160,11 +143,11 @@ impl<'a> Sampler<'a> for Network<'a> {
     fn deregister(&mut self) {
         trace!("deregister {}", self.name());
         if self.initialized {
-            for statistic in self.config.network().interface_statistics() {
-                self.recorder.delete_channel(statistic.to_string());
+            for statistic in self.common.config().network().interface_statistics() {
+                self.common.delete_channel(statistic);
             }
-            for statistic in self.config.network().protocol_statistics() {
-                self.recorder.delete_channel(statistic.to_string())
+            for statistic in self.common.config().network().protocol_statistics() {
+                self.common.delete_channel(statistic);
             }
             self.initialized = false;
         }

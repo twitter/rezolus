@@ -4,8 +4,7 @@
 
 use crate::common::*;
 use crate::config::Config;
-use crate::samplers::Sampler;
-use crate::stats::{record_counter, register_counter};
+use crate::samplers::{Common, Sampler};
 
 use failure::Error;
 use logger::*;
@@ -58,9 +57,8 @@ impl Statistic {
 }
 
 pub struct Softnet<'a> {
-    config: &'a Config,
+    common: Common<'a>,
     initialized: bool,
-    recorder: &'a Recorder<AtomicU32>,
 }
 
 pub fn read_softnet_stat<P: AsRef<Path>>(path: P) -> HashMap<Statistic, u64> {
@@ -102,9 +100,8 @@ impl<'a> Sampler<'a> for Softnet<'a> {
     ) -> Result<Option<Box<Self>>, Error> {
         if config.softnet().enabled() {
             Ok(Some(Box::new(Self {
-                config,
+                common: Common::new(config, recorder),
                 initialized: false,
-                recorder,
             })))
         } else {
             Ok(None)
@@ -123,7 +120,7 @@ impl<'a> Sampler<'a> for Softnet<'a> {
             self.register();
         }
         for (statistic, value) in data {
-            record_counter(self.recorder, statistic, time, value);
+            self.common.record_counter(&statistic, time, value);
         }
         Ok(())
     }
@@ -133,14 +130,8 @@ impl<'a> Sampler<'a> for Softnet<'a> {
         if !self.initialized {
             let data = read_softnet_stat(SOFTNET_STAT);
             for statistic in data.keys() {
-                register_counter(
-                    self.recorder,
-                    statistic.to_string(),
-                    TRILLION,
-                    3,
-                    self.config.general().window(),
-                    PERCENTILES,
-                );
+                self.common
+                    .register_counter(statistic, TRILLION, 3, PERCENTILES);
             }
             self.initialized = true;
         }
@@ -151,7 +142,7 @@ impl<'a> Sampler<'a> for Softnet<'a> {
         if self.initialized {
             let data = read_softnet_stat(SOFTNET_STAT);
             for statistic in data.keys() {
-                self.recorder.delete_channel(statistic.to_string());
+                self.common.delete_channel(statistic);
             }
             self.initialized = false;
         }
