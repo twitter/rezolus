@@ -2,13 +2,12 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-mod event;
-
-pub use self::event::PerfStatistic;
+pub mod statistics;
 
 use crate::common::*;
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
+use self::statistics::*;
 
 use failure::Error;
 use logger::*;
@@ -20,7 +19,7 @@ use std::collections::HashMap;
 
 pub struct Perf<'a> {
     common: Common<'a>,
-    counters: HashMap<PerfStatistic, Vec<PerfCounter>>,
+    counters: HashMap<Statistic, Vec<PerfCounter>>,
 }
 
 impl<'a> Sampler<'a> for Perf<'a> {
