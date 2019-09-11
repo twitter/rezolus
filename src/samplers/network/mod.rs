@@ -4,12 +4,14 @@
 
 pub(crate) mod interface;
 pub(crate) mod protocol;
+pub(crate) mod statistics;
 
 pub use self::interface::*;
 
 use crate::common::*;
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
+use self::statistics::InterfaceStatistic;
 
 use failure::Error;
 use logger::*;
@@ -94,7 +96,7 @@ impl<'a> Sampler<'a> for Network<'a> {
                 .iter()
                 .map(|i| i.get_statistic(&statistic).unwrap_or(0))
                 .sum();
-            self.common.record_counter(statistic, time, sum);
+            self.common.record_counter(&statistic, time, sum);
         }
 
         // protocol statistics
@@ -126,7 +128,7 @@ impl<'a> Sampler<'a> for Network<'a> {
                     }
                     _ => (2 * total_bandwidth_bytes / 64),
                 };
-                self.common.register_counter(statistic, max, 3, PERCENTILES);
+                self.common.register_counter(&statistic, max, 3, PERCENTILES);
             }
             for statistic in self.common.config().network().protocol_statistics() {
                 let max = 2 * total_bandwidth_bytes / 64;

@@ -3,8 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::config::*;
-use crate::samplers::network::interface::InterfaceStatistic;
-use crate::samplers::network::protocol::ProtocolStatistic;
+use crate::samplers::network::statistics::*;
 
 use atomics::*;
 
