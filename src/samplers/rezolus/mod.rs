@@ -2,14 +2,16 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+mod statistics;
+
 use crate::common::*;
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
+use self::statistics::Statistic;
 
 use failure::Error;
 use logger::*;
 use metrics::{AtomicU32, Percentile, Recorder};
-use serde_derive::*;
 use time;
 
 use std::collections::HashMap;
@@ -17,26 +19,6 @@ use std::path::Path;
 
 pub struct Rezolus<'a> {
     common: Common<'a>,
-}
-
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "lowercase")]
-enum Statistic {
-    MemoryVirtual,
-    MemoryResident,
-    CpuUser,
-    CpuKernel,
-}
-
-impl std::fmt::Display for Statistic {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Statistic::MemoryVirtual => write!(f, "rezolus/memory/virtual"),
-            Statistic::MemoryResident => write!(f, "rezolus/memory/resident"),
-            Statistic::CpuUser => write!(f, "rezolus/cpu/user"),
-            Statistic::CpuKernel => write!(f, "rezolus/cpu/kernel"),
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
