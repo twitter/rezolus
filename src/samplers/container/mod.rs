@@ -2,9 +2,12 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+mod statistics;
+
 use crate::common::*;
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
+use self::statistics::Statistic;
 
 use failure::*;
 use logger::*;
@@ -80,14 +83,14 @@ impl<'a> Sampler<'a> for Container<'a> {
                                 if let Ok(ticks) = parts[1].parse::<u64>() {
                                     let ns = ticks * self.nanos_per_tick;
                                     self.common
-                                        .record_counter(&"container/cpu/system", time, ns);
+                                        .record_counter(&Statistic::CpuSystem, time, ns);
                                     total += ns;
                                 }
                             }
                             "user" => {
                                 if let Ok(ticks) = parts[1].parse::<u64>() {
                                     let ns = ticks * self.nanos_per_tick;
-                                    self.common.record_counter(&"container/cpu/user", time, ns);
+                                    self.common.record_counter(&Statistic::CpuUser, time, ns);
                                     total += ns;
                                 }
                             }
@@ -100,7 +103,7 @@ impl<'a> Sampler<'a> for Container<'a> {
 
         if total != 0 {
             self.common
-                .record_counter(&"container/cpu/total", time, total);
+                .record_counter(&Statistic::CpuTotal, time, total);
         }
 
         Ok(())
@@ -109,29 +112,18 @@ impl<'a> Sampler<'a> for Container<'a> {
     fn register(&mut self) {
         if !self.common.initialized() {
             let cores = crate::common::hardware_threads().unwrap_or(1);
-            self.common.register_counter(
-                &"container/cpu/total",
-                2 * cores * SECOND,
-                3,
-                PERCENTILES,
-            );
-            self.common.register_counter(
-                &"container/cpu/system",
-                2 * cores * SECOND,
-                3,
-                PERCENTILES,
-            );
-            self.common
-                .register_counter(&"container/cpu/user", 2 * cores * SECOND, 3, PERCENTILES);
+            for statistic in &[Statistic::CpuSystem, Statistic::CpuTotal, Statistic::CpuUser] {
+                self.common.register_counter(statistic, 2 * cores * SECOND, 3, PERCENTILES);
+            }
             self.common.set_initialized(true);
         }
     }
 
     fn deregister(&mut self) {
         if self.common.initialized() {
-            self.common.delete_channel(&"container/cpu/total");
-            self.common.delete_channel(&"container/cpu/system");
-            self.common.delete_channel(&"container/cpu/user");
+            for statistic in &[Statistic::CpuSystem, Statistic::CpuTotal, Statistic::CpuUser] {
+                self.common.delete_channel(statistic);
+            }
             self.common.set_initialized(false);
         }
     }
