@@ -3,7 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::config::*;
-use crate::samplers::perf::PerfStatistic;
+use crate::samplers::perf::statistics::Statistic;
 
 use atomics::*;
 
@@ -13,7 +13,7 @@ pub struct Perf {
     #[serde(default = "default_enabled")]
     enabled: AtomicBool,
     #[serde(default = "default_statistics")]
-    statistics: Vec<PerfStatistic>,
+    statistics: Vec<Statistic>,
 }
 
 impl Default for Perf {
@@ -29,28 +29,28 @@ fn default_enabled() -> AtomicBool {
     AtomicBool::new(false)
 }
 
-fn default_statistics() -> Vec<PerfStatistic> {
+fn default_statistics() -> Vec<Statistic> {
     vec![
-        PerfStatistic::CacheMisses,
-        PerfStatistic::CacheReferences,
-        PerfStatistic::ContextSwitches,
-        PerfStatistic::CpuBranchInstructions,
-        PerfStatistic::CpuBranchMisses,
-        PerfStatistic::CpuCycles,
-        PerfStatistic::CpuInstructions,
-        PerfStatistic::CpuMigrations,
-        PerfStatistic::CpuRefCycles,
-        PerfStatistic::DtlbLoads,
-        PerfStatistic::DtlbLoadMisses,
-        PerfStatistic::DtlbStores,
-        PerfStatistic::DtlbStoreMisses,
-        PerfStatistic::MemoryLoads,
-        PerfStatistic::MemoryLoadMisses,
-        PerfStatistic::MemoryStores,
-        PerfStatistic::MemoryStoreMisses,
-        PerfStatistic::PageFaults,
-        PerfStatistic::StalledCyclesBackend,
-        PerfStatistic::StalledCyclesFrontend,
+        Statistic::CacheMisses,
+        Statistic::CacheReferences,
+        Statistic::ContextSwitches,
+        Statistic::CpuBranchInstructions,
+        Statistic::CpuBranchMisses,
+        Statistic::CpuCycles,
+        Statistic::CpuInstructions,
+        Statistic::CpuMigrations,
+        Statistic::CpuRefCycles,
+        Statistic::DtlbLoads,
+        Statistic::DtlbLoadMisses,
+        Statistic::DtlbStores,
+        Statistic::DtlbStoreMisses,
+        Statistic::MemoryLoads,
+        Statistic::MemoryLoadMisses,
+        Statistic::MemoryStores,
+        Statistic::MemoryStoreMisses,
+        Statistic::PageFaults,
+        Statistic::StalledCyclesBackend,
+        Statistic::StalledCyclesFrontend,
     ]
 }
 
@@ -59,7 +59,7 @@ impl Perf {
         self.enabled.load(Ordering::Relaxed)
     }
 
-    pub fn statistics(&self) -> &[PerfStatistic] {
+    pub fn statistics(&self) -> &[Statistic] {
         &self.statistics
     }
 }
