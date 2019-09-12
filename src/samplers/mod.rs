@@ -54,8 +54,6 @@ pub trait Sampler<'a> {
     fn deregister(&mut self);
 }
 
-pub trait Statistic: ToString + Sized {}
-
 pub struct Common<'a> {
     config: &'a Config,
     initialized: AtomicBool,
