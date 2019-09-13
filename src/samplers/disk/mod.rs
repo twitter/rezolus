@@ -4,9 +4,11 @@
 
 mod device;
 mod entry;
+mod statistics;
 
 pub use self::device::Device;
 pub use self::entry::Entry;
+pub(crate) use self::statistics::Statistic;
 
 use crate::common::*;
 use crate::config::Config;
@@ -16,7 +18,6 @@ use failure::Error;
 use logger::*;
 use metrics::*;
 use regex::Regex;
-use serde_derive::*;
 use time;
 use walkdir::WalkDir;
 
@@ -30,25 +31,6 @@ pub struct Disk<'a> {
     last_refreshed: u64,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "lowercase")]
-pub enum Statistic {
-    BandwidthRead,
-    BandwidthWrite,
-    OperationsRead,
-    OperationsWrite,
-}
-
-impl std::fmt::Display for Statistic {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Statistic::BandwidthRead => write!(f, "disk/bandwidth/read"),
-            Statistic::BandwidthWrite => write!(f, "disk/bandwidth/write"),
-            Statistic::OperationsRead => write!(f, "disk/operations/read"),
-            Statistic::OperationsWrite => write!(f, "disk/operations/write"),
-        }
-    }
-}
 
 impl<'a> Disk<'a> {
     /// send deltas to the stats library
