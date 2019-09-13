@@ -3,7 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::config::*;
-use crate::samplers::cpu::CpuStatistic;
+use crate::samplers::cpu::statistics::*;
 
 use atomics::*;
 
@@ -13,7 +13,7 @@ pub struct Cpu {
     #[serde(default = "default_enabled")]
     enabled: AtomicBool,
     #[serde(default = "default_statistics")]
-    statistics: Vec<CpuStatistic>,
+    statistics: Vec<Statistic>,
 }
 
 impl Default for Cpu {
@@ -29,8 +29,8 @@ fn default_enabled() -> AtomicBool {
     AtomicBool::new(false)
 }
 
-fn default_statistics() -> Vec<CpuStatistic> {
-    vec![CpuStatistic::User, CpuStatistic::System, CpuStatistic::Idle]
+fn default_statistics() -> Vec<Statistic> {
+    vec![Statistic::User, Statistic::System, Statistic::Idle]
 }
 
 impl Cpu {
@@ -38,7 +38,7 @@ impl Cpu {
         self.enabled.load(Ordering::Relaxed)
     }
 
-    pub fn statistics(&self) -> Vec<CpuStatistic> {
+    pub fn statistics(&self) -> Vec<Statistic> {
         self.statistics.clone()
     }
 }

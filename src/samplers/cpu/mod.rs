@@ -2,14 +2,16 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+pub(crate) mod statistics;
+
 use crate::common::*;
 use crate::config::Config;
-use crate::samplers::{Common, Sampler, Statistic};
+use crate::samplers::{Common, Sampler};
+use self::statistics::*;
 
 use failure::Error;
 use logger::*;
 use metrics::*;
-use serde_derive::*;
 use time;
 
 use std::collections::HashMap;
@@ -36,40 +38,8 @@ pub struct Cpu<'a> {
     nanos_per_tick: u64,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
-pub enum CpuStatistic {
-    User,
-    Nice,
-    System,
-    Idle,
-    Irq,
-    Softirq,
-    Steal,
-    Guest,
-    GuestNice,
-}
-
-impl std::fmt::Display for CpuStatistic {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            CpuStatistic::User => write!(f, "cpu/user"),
-            CpuStatistic::Nice => write!(f, "cpu/nice"),
-            CpuStatistic::System => write!(f, "cpu/system"),
-            CpuStatistic::Idle => write!(f, "cpu/idle"),
-            CpuStatistic::Irq => write!(f, "cpu/irq"),
-            CpuStatistic::Softirq => write!(f, "cpu/softirq"),
-            CpuStatistic::Steal => write!(f, "cpu/steal"),
-            CpuStatistic::Guest => write!(f, "cpu/guest"),
-            CpuStatistic::GuestNice => write!(f, "cpu/guest_nice"),
-        }
-    }
-}
-
-impl Statistic for CpuStatistic {}
-
 struct ProcStat {
-    cpu_total: HashMap<CpuStatistic, u64>,
+    cpu_total: HashMap<Statistic, u64>,
 }
 
 fn read_proc_stat() -> ProcStat {
@@ -89,23 +59,23 @@ fn parse_proc_stat<T: BufRead>(reader: &mut T) -> ProcStat {
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts[0] == "cpu" && parts.len() == 11 {
             ret.cpu_total
-                .insert(CpuStatistic::User, parts[1].parse().unwrap_or(0));
+                .insert(Statistic::User, parts[1].parse().unwrap_or(0));
             ret.cpu_total
-                .insert(CpuStatistic::Nice, parts[2].parse().unwrap_or(0));
+                .insert(Statistic::Nice, parts[2].parse().unwrap_or(0));
             ret.cpu_total
-                .insert(CpuStatistic::System, parts[3].parse().unwrap_or(0));
+                .insert(Statistic::System, parts[3].parse().unwrap_or(0));
             ret.cpu_total
-                .insert(CpuStatistic::Idle, parts[4].parse().unwrap_or(0));
+                .insert(Statistic::Idle, parts[4].parse().unwrap_or(0));
             ret.cpu_total
-                .insert(CpuStatistic::Irq, parts[6].parse().unwrap_or(0));
+                .insert(Statistic::Irq, parts[6].parse().unwrap_or(0));
             ret.cpu_total
-                .insert(CpuStatistic::Softirq, parts[7].parse().unwrap_or(0));
+                .insert(Statistic::Softirq, parts[7].parse().unwrap_or(0));
             ret.cpu_total
-                .insert(CpuStatistic::Steal, parts[8].parse().unwrap_or(0));
+                .insert(Statistic::Steal, parts[8].parse().unwrap_or(0));
             ret.cpu_total
-                .insert(CpuStatistic::Guest, parts[9].parse().unwrap_or(0));
+                .insert(Statistic::Guest, parts[9].parse().unwrap_or(0));
             ret.cpu_total
-                .insert(CpuStatistic::GuestNice, parts[10].parse().unwrap_or(0));
+                .insert(Statistic::GuestNice, parts[10].parse().unwrap_or(0));
         }
     }
     ret
@@ -178,29 +148,14 @@ mod tests {
             .unwrap();
         let mut file = BufReader::new(file);
         let data = parse_proc_stat(&mut file);
-        assert_eq!(
-            *data.cpu_total.get(&CpuStatistic::User).unwrap_or(&0),
-            370627
-        );
-        assert_eq!(*data.cpu_total.get(&CpuStatistic::Nice).unwrap_or(&0), 0);
-        assert_eq!(
-            *data.cpu_total.get(&CpuStatistic::System).unwrap_or(&0),
-            64096
-        );
-        assert_eq!(
-            *data.cpu_total.get(&CpuStatistic::Idle).unwrap_or(&0),
-            8020800
-        );
-        assert_eq!(*data.cpu_total.get(&CpuStatistic::Irq).unwrap_or(&0), 0);
-        assert_eq!(
-            *data.cpu_total.get(&CpuStatistic::Softirq).unwrap_or(&0),
-            3053
-        );
-        assert_eq!(*data.cpu_total.get(&CpuStatistic::Steal).unwrap_or(&0), 0);
-        assert_eq!(*data.cpu_total.get(&CpuStatistic::Guest).unwrap_or(&0), 0);
-        assert_eq!(
-            *data.cpu_total.get(&CpuStatistic::GuestNice).unwrap_or(&0),
-            0
-        );
+        assert_eq!(*data.cpu_total.get(&Statistic::User).unwrap_or(&0), 370627);
+        assert_eq!(*data.cpu_total.get(&Statistic::Nice).unwrap_or(&0), 0);
+        assert_eq!(*data.cpu_total.get(&Statistic::System).unwrap_or(&0), 64096);
+        assert_eq!(*data.cpu_total.get(&Statistic::Idle).unwrap_or(&0), 8020800);
+        assert_eq!(*data.cpu_total.get(&Statistic::Irq).unwrap_or(&0), 0);
+        assert_eq!(*data.cpu_total.get(&Statistic::Softirq).unwrap_or(&0), 3053);
+        assert_eq!(*data.cpu_total.get(&Statistic::Steal).unwrap_or(&0), 0);
+        assert_eq!(*data.cpu_total.get(&Statistic::Guest).unwrap_or(&0), 0);
+        assert_eq!(*data.cpu_total.get(&Statistic::GuestNice).unwrap_or(&0), 0);
     }
 }
