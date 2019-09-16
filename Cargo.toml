@@ -8,7 +8,7 @@ edition = '2018'
 
 [dependencies]
 atomics = { git = "https://github.com/twitter/rpc-perf", branch = "master" }
-bcc = { version = "0.0.11", optional = true }
+bcc = { version = "0.0.12", optional = true }
 clap = "2.33.0"
 failure = "0.1.5"
 json = "0.12.0"
