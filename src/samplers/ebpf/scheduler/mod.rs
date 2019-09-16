@@ -2,12 +2,16 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+mod statistics;
+
 use crate::common::{MICROSECOND, PERCENTILES, SECOND};
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
+use self::statistics::Statistic;
 
 use bcc;
 use bcc::core::BPF;
+use bcc::table::Table;
 use failure::*;
 use logger::*;
 use metrics::*;
@@ -52,34 +56,17 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
     fn sample(&mut self) -> Result<(), ()> {
         // gather current state
         trace!("sampling {}", self.name());
-        let time = time::precise_time_ns();
-        let mut current = HashMap::new();
-
-        trace!("accessing data in kernelspace");
-        let mut data = self.bpf.table("dist");
-
-        trace!("copying data to userspace");
-        for mut entry in data.iter() {
-            let mut key = [0; 4];
-            key.copy_from_slice(&entry.key);
-            let key = u32::from_ne_bytes(key);
-
-            let mut value = [0; 8];
-            value.copy_from_slice(&entry.value);
-            let value = u64::from_ne_bytes(value);
-
-            if let Some(key) = super::key_to_value(key as u64) {
-                current.insert(key * MICROSECOND, value as u32);
-            }
-
-            // clear the source counter
-            let _ = data.set(&mut entry.key, &mut [0_u8; 8]);
-        }
-        trace!("data copied to userspace");
         self.register();
-        for (&latency, &count) in &current {
-            self.common
-                .record_distribution(&"scheduler/runqueue_latency_ns", time, latency, count);
+        let time = time::precise_time_ns();
+        for statistic in &[
+            Statistic::RunqueueLatency,
+        ] {
+            trace!("sampling {}", statistic);
+            let mut table = self.bpf.table(&statistic.table_name());
+            for (&value, &count) in &map_from_table(&mut table) {
+                self.common
+                    .record_distribution(statistic, time, value, count);
+            }
         }
         Ok(())
     }
@@ -88,7 +75,7 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
         debug!("register {}", self.name());
         if !self.common.initialized() {
             self.common.register_distribution(
-                &"scheduler/runqueue_latency_ns",
+                &Statistic::RunqueueLatency,
                 SECOND,
                 2,
                 PERCENTILES,
@@ -100,8 +87,31 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
     fn deregister(&mut self) {
         debug!("deregister {}", self.name());
         if self.common.initialized() {
-            self.common.delete_channel(&"scheduler/runqueue_latency_ns");
+            self.common.delete_channel(&Statistic::RunqueueLatency);
             self.common.set_initialized(false);
         }
     }
+}
+
+fn map_from_table(table: &mut Table) -> HashMap<u64, u32> {
+    let mut current = HashMap::new();
+
+    trace!("transferring data to userspace");
+    for mut entry in table.iter() {
+        let mut key = [0; 4];
+        key.copy_from_slice(&entry.key);
+        let key = u32::from_ne_bytes(key);
+
+        let mut value = [0; 8];
+        value.copy_from_slice(&entry.value);
+        let value = u64::from_ne_bytes(value);
+
+        if let Some(key) = super::key_to_value(key as u64) {
+            current.insert(key * MICROSECOND, value as u32);
+        }
+
+        // clear the source counter
+        let _ = table.set(&mut entry.key, &mut [0_u8; 8]);
+    }
+    current
 }

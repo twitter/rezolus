@@ -2,9 +2,12 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+mod statistics;
+
 use crate::common::{BILLION, MICROSECOND, MILLION, PERCENTILES};
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
+use self::statistics::{Direction, Statistic};
 
 use bcc;
 use bcc::core::BPF;
@@ -21,6 +24,17 @@ pub struct Block<'a> {
 }
 
 impl<'a> Block<'a> {
+    fn report_statistic(&mut self, statistic: &Statistic) {
+        match statistic {
+            Statistic::Size(_) => {
+                self.report_size(&statistic.table_name(), &statistic.to_string());
+            }
+            _ => {
+                self.report_latency(&statistic.table_name(), &statistic.to_string());
+            }
+        }
+    }
+
     fn report_latency(&mut self, table: &str, label: &str) {
         let time = time::precise_time_ns();
         let mut current = HashMap::new();
@@ -109,34 +123,45 @@ impl<'a> Sampler<'a> for Block<'a> {
     fn sample(&mut self) -> Result<(), ()> {
         // gather current state
         trace!("sampling {}", self.name());
-        self.report_size("read_size", "block/size/read");
-        self.report_size("write_size", "block/size/write");
-        self.report_latency("read_latency", "block/latency/read");
-        self.report_latency("read_request_latency", "block/device_latency/read");
-        self.report_latency("read_queue_latency", "block/queue_latency/read");
-        self.report_latency("write_latency", "block/latency/write");
-        self.report_latency("write_request_latency", "block/device_latency/write");
-        self.report_latency("write_queue_latency", "block/queue_latency/write");
+        for statistic in &[
+            Statistic::Size(Direction::Read),
+            Statistic::Size(Direction::Write),
+            Statistic::Latency(Direction::Read),
+            Statistic::Latency(Direction::Write),
+            Statistic::DeviceLatency(Direction::Read),
+            Statistic::DeviceLatency(Direction::Write),
+            Statistic::QueueLatency(Direction::Read),
+            Statistic::QueueLatency(Direction::Write),
+        ] {
+            self.report_statistic(statistic);
+        }
         Ok(())
     }
 
     fn register(&mut self) {
         if !self.common.initialized() {
             debug!("register {}", self.name());
+            for statistic in &[
+                Statistic::Size(Direction::Read),
+                Statistic::Size(Direction::Write),
+            ] {
+                self.common
+                    .register_distribution(statistic, MILLION, 2, PERCENTILES);
+            }
             for size in &["block/size/read", "block/size/write"] {
                 self.common
                     .register_distribution(size, MILLION, 2, PERCENTILES);
             }
-            for latency in &[
-                "block/latency/read",
-                "block/device_latency/read",
-                "block/queue_latency/read",
-                "block/latency/write",
-                "block/device_latency/write",
-                "block/queue_latency/write",
+            for statistic in &[
+                Statistic::Latency(Direction::Read),
+                Statistic::Latency(Direction::Write),
+                Statistic::DeviceLatency(Direction::Read),
+                Statistic::DeviceLatency(Direction::Write),
+                Statistic::QueueLatency(Direction::Read),
+                Statistic::QueueLatency(Direction::Write),
             ] {
                 self.common
-                    .register_distribution(latency, BILLION, 2, PERCENTILES);
+                    .register_distribution(statistic, BILLION, 2, PERCENTILES);
             }
             self.common.set_initialized(true);
         }
@@ -146,14 +171,14 @@ impl<'a> Sampler<'a> for Block<'a> {
         if self.common.initialized() {
             trace!("deregister {}", self.name());
             for statistic in &[
-                "block/size/read",
-                "block/size/write",
-                "block/latency/read",
-                "block/device_latency/read",
-                "block/queue_latency/read",
-                "block/latency/write",
-                "block/device_latency/write",
-                "block/queue_latency/write",
+                Statistic::Size(Direction::Read),
+                Statistic::Size(Direction::Write),
+                Statistic::Latency(Direction::Read),
+                Statistic::Latency(Direction::Write),
+                Statistic::DeviceLatency(Direction::Read),
+                Statistic::DeviceLatency(Direction::Write),
+                Statistic::QueueLatency(Direction::Read),
+                Statistic::QueueLatency(Direction::Write),
             ] {
                 self.common.delete_channel(statistic);
             }
