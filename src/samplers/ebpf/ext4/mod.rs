@@ -2,9 +2,12 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+mod statistics;
+
 use crate::common::{MICROSECOND, PERCENTILES, SECOND};
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
+use self::statistics::Statistic;
 
 use bcc;
 use bcc::core::BPF;
@@ -65,15 +68,20 @@ impl<'a> Sampler<'a> for Ext4<'a> {
 
     fn sample(&mut self) -> Result<(), ()> {
         // gather current state
-        trace!("sampling ebpf::ext4");
+        trace!("sampling {}", self.name());
         let time = time::precise_time_ns();
         self.register();
-        for stat in &["read", "write", "open", "fsync"] {
-            trace!("sampling ebpf::ext4::{}", stat);
-            let mut table = self.bpf.table(stat);
-            for (&latency, &count) in &map_from_table(&mut table) {
+        for statistic in &[
+            Statistic::Fsync,
+            Statistic::Open,
+            Statistic::Read,
+            Statistic::Write,
+        ] {
+            trace!("sampling {}", statistic);
+            let mut table = self.bpf.table(&statistic.table_name());
+            for (&value, &count) in &map_from_table(&mut table) {
                 self.common
-                    .record_distribution(&format!("ext4/{}", stat), time, latency, count);
+                    .record_distribution(statistic, time, value, count);
             }
         }
         Ok(())
@@ -82,9 +90,14 @@ impl<'a> Sampler<'a> for Ext4<'a> {
     fn register(&mut self) {
         if !self.common.initialized() {
             trace!("register {}", self.name());
-            for label in ["ext4/read", "ext4/write", "ext4/open", "ext4/fsync"].iter() {
+            for statistic in &[
+                Statistic::Fsync,
+                Statistic::Open,
+                Statistic::Read,
+                Statistic::Write,
+            ] {
                 self.common
-                    .register_distribution(label, SECOND, 2, PERCENTILES);
+                    .register_distribution(statistic, SECOND, 2, PERCENTILES);
             }
             self.common.set_initialized(true);
         }
@@ -93,8 +106,14 @@ impl<'a> Sampler<'a> for Ext4<'a> {
     fn deregister(&mut self) {
         if self.common.initialized() {
             trace!("deregister {}", self.name());
-            for label in ["ext4/read", "ext4/write", "ext4/open", "ext4/fsync"].iter() {
-                self.common.delete_channel(label);
+            for statistic in &[
+                Statistic::Fsync,
+                Statistic::Open,
+                Statistic::Read,
+                Statistic::Write,
+            ] {
+                self.common
+                    .delete_channel(statistic);
             }
             self.common.set_initialized(false);
         }
