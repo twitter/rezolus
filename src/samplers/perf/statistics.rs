@@ -39,12 +39,8 @@ impl Statistic {
     pub fn builder(self) -> Builder {
         match self {
             Self::CacheMisses => Builder::from_hardware_event(Hardware::CacheMisses),
-            Self::CacheReferences => {
-                Builder::from_hardware_event(Hardware::CacheReferences)
-            }
-            Self::ContextSwitches => {
-                Builder::from_software_event(Software::ContextSwitches)
-            }
+            Self::CacheReferences => Builder::from_hardware_event(Hardware::CacheReferences),
+            Self::ContextSwitches => Builder::from_software_event(Software::ContextSwitches),
             Self::CpuBranchInstructions => {
                 Builder::from_hardware_event(Hardware::BranchInstructions)
             }

@@ -4,10 +4,10 @@
 
 mod statistics;
 
+use self::statistics::Statistic;
 use crate::common::{MICROSECOND, PERCENTILES, SECOND};
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
-use self::statistics::Statistic;
 
 use bcc;
 use bcc::core::BPF;
@@ -58,9 +58,7 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
         trace!("sampling {}", self.name());
         self.register();
         let time = time::precise_time_ns();
-        for statistic in &[
-            Statistic::RunqueueLatency,
-        ] {
+        for statistic in &[Statistic::RunqueueLatency] {
             trace!("sampling {}", statistic);
             let mut table = self.bpf.table(&statistic.table_name());
             for (&value, &count) in &map_from_table(&mut table) {
@@ -74,12 +72,8 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
     fn register(&mut self) {
         debug!("register {}", self.name());
         if !self.common.initialized() {
-            self.common.register_distribution(
-                &Statistic::RunqueueLatency,
-                SECOND,
-                2,
-                PERCENTILES,
-            );
+            self.common
+                .register_distribution(&Statistic::RunqueueLatency, SECOND, 2, PERCENTILES);
             self.common.set_initialized(true);
         }
     }

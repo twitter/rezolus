@@ -8,10 +8,10 @@ pub(crate) mod statistics;
 
 pub use self::interface::*;
 
+use self::statistics::InterfaceStatistic;
 use crate::common::*;
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
-use self::statistics::InterfaceStatistic;
 
 use failure::Error;
 use logger::*;
@@ -128,7 +128,8 @@ impl<'a> Sampler<'a> for Network<'a> {
                     }
                     _ => (2 * total_bandwidth_bytes / 64),
                 };
-                self.common.register_counter(&statistic, max, 3, PERCENTILES);
+                self.common
+                    .register_counter(&statistic, max, 3, PERCENTILES);
             }
             for statistic in self.common.config().network().protocol_statistics() {
                 let max = 2 * total_bandwidth_bytes / 64;

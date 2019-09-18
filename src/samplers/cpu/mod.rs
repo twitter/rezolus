@@ -4,10 +4,10 @@
 
 pub(crate) mod statistics;
 
+use self::statistics::*;
 use crate::common::*;
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
-use self::statistics::*;
 
 use failure::Error;
 use logger::*;

@@ -31,7 +31,6 @@ pub struct Disk<'a> {
     last_refreshed: u64,
 }
 
-
 impl<'a> Disk<'a> {
     /// send deltas to the stats library
     fn record(&self, time: u64, reading: Entry) {

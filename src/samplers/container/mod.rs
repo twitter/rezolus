@@ -4,10 +4,10 @@
 
 mod statistics;
 
+use self::statistics::Statistic;
 use crate::common::*;
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
-use self::statistics::Statistic;
 
 use failure::*;
 use logger::*;
@@ -82,8 +82,7 @@ impl<'a> Sampler<'a> for Container<'a> {
                             "system" => {
                                 if let Ok(ticks) = parts[1].parse::<u64>() {
                                     let ns = ticks * self.nanos_per_tick;
-                                    self.common
-                                        .record_counter(&Statistic::CpuSystem, time, ns);
+                                    self.common.record_counter(&Statistic::CpuSystem, time, ns);
                                     total += ns;
                                 }
                             }
@@ -112,8 +111,13 @@ impl<'a> Sampler<'a> for Container<'a> {
     fn register(&mut self) {
         if !self.common.initialized() {
             let cores = crate::common::hardware_threads().unwrap_or(1);
-            for statistic in &[Statistic::CpuSystem, Statistic::CpuTotal, Statistic::CpuUser] {
-                self.common.register_counter(statistic, 2 * cores * SECOND, 3, PERCENTILES);
+            for statistic in &[
+                Statistic::CpuSystem,
+                Statistic::CpuTotal,
+                Statistic::CpuUser,
+            ] {
+                self.common
+                    .register_counter(statistic, 2 * cores * SECOND, 3, PERCENTILES);
             }
             self.common.set_initialized(true);
         }
@@ -121,7 +125,11 @@ impl<'a> Sampler<'a> for Container<'a> {
 
     fn deregister(&mut self) {
         if self.common.initialized() {
-            for statistic in &[Statistic::CpuSystem, Statistic::CpuTotal, Statistic::CpuUser] {
+            for statistic in &[
+                Statistic::CpuSystem,
+                Statistic::CpuTotal,
+                Statistic::CpuUser,
+            ] {
                 self.common.delete_channel(statistic);
             }
             self.common.set_initialized(false);

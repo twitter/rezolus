@@ -4,9 +4,9 @@
 
 pub enum Statistic {
     Fsync,
-	Open,
-	Read,
-	Write,
+    Open,
+    Read,
+    Write,
 }
 
 impl std::fmt::Display for Statistic {
