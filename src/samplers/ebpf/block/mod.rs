@@ -4,10 +4,10 @@
 
 mod statistics;
 
+use self::statistics::{Direction, Statistic};
 use crate::common::{BILLION, MICROSECOND, MILLION, PERCENTILES};
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
-use self::statistics::{Direction, Statistic};
 
 use bcc;
 use bcc::core::BPF;

@@ -156,14 +156,9 @@ impl ProtocolStatistic {
 
     pub fn protocol(&self) -> &str {
         match self {
-            Self::TcpInSegs
-            | Self::TcpOutSegs
-            | Self::TcpRetransSegs => "Tcp:",
+            Self::TcpInSegs | Self::TcpOutSegs | Self::TcpRetransSegs => "Tcp:",
             Self::TcpPruneCalled | Self::TcpRcvCollapsed => "TcpExt:",
-            Self::UdpInDatagrams
-            | Self::UdpInErrors
-            | Self::UdpOutDatagrams => "Udp:",
+            Self::UdpInDatagrams | Self::UdpInErrors | Self::UdpOutDatagrams => "Udp:",
         }
     }
 }
-

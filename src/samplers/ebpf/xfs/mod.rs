@@ -4,10 +4,10 @@
 
 mod statistics;
 
+use self::statistics::Statistic;
 use crate::common::{MICROSECOND, PERCENTILES, SECOND};
 use crate::config::Config;
 use crate::samplers::{Common, Sampler};
-use self::statistics::Statistic;
 
 use bcc;
 use bcc::core::BPF;
@@ -109,8 +109,7 @@ impl<'a> Sampler<'a> for Xfs<'a> {
                 Statistic::Read,
                 Statistic::Write,
             ] {
-                self.common
-                    .delete_channel(statistic);
+                self.common.delete_channel(statistic);
             }
             self.common.set_initialized(false);
         }
