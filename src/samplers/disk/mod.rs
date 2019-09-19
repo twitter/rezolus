@@ -80,6 +80,10 @@ impl<'a> Sampler<'a> for Disk<'a> {
         }
     }
 
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "disk".to_string()
     }

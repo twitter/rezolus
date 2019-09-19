@@ -71,6 +71,10 @@ impl<'a> Sampler<'a> for Softnet<'a> {
         }
     }
 
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "softnet".to_string()
     }

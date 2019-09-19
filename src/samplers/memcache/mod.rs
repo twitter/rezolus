@@ -65,6 +65,10 @@ impl<'a> Sampler<'a> for Memcache<'a> {
         })))
     }
 
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "memcache".to_string()
     }

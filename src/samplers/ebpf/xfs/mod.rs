@@ -59,6 +59,10 @@ impl<'a> Sampler<'a> for Xfs<'a> {
         })))
     }
 
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "ebpf::xfs".to_string()
     }

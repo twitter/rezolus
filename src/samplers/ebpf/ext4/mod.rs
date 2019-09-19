@@ -62,6 +62,10 @@ impl<'a> Sampler<'a> for Ext4<'a> {
         })))
     }
 
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "ebpf::ext4".to_string()
     }

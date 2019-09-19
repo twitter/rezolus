@@ -41,6 +41,9 @@ pub trait Sampler<'a> {
     where
         Self: Sized;
 
+    /// Return a reference to the `Common` struct
+    fn common(&self) -> &Common<'a>;
+
     /// Perform required sampling steps and send stats to the `Recorder`
     fn sample(&mut self) -> Result<(), ()>;
 
