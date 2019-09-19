@@ -95,6 +95,11 @@ impl<'a> Sampler<'a> for Cpu<'a> {
             Ok(None)
         }
     }
+
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "cpu".to_string()
     }

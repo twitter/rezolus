@@ -56,6 +56,10 @@ impl<'a> Sampler<'a> for Container<'a> {
         }
     }
 
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "container".to_string()
     }

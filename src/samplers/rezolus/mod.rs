@@ -150,6 +150,10 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
         })))
     }
 
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "rezolus".to_string()
     }

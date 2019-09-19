@@ -62,6 +62,10 @@ impl<'a> Sampler<'a> for Perf<'a> {
         }
     }
 
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "perf".to_string()
     }

@@ -116,6 +116,10 @@ impl<'a> Sampler<'a> for Block<'a> {
         })))
     }
 
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "ebpf::block".to_string()
     }

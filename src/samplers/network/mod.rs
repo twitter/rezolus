@@ -76,6 +76,10 @@ impl<'a> Sampler<'a> for Network<'a> {
         }
     }
 
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "network".to_string()
     }

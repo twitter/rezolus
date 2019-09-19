@@ -49,6 +49,10 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
         })))
     }
 
+    fn common(&self) -> &Common<'a> {
+        &self.common
+    }
+
     fn name(&self) -> String {
         "ebpf::scheduler".to_string()
     }
