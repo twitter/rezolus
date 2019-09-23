@@ -13,6 +13,8 @@ use crate::samplers::*;
 
 use logger::*;
 use metrics::{Metrics, Reading};
+use slab::Slab;
+use timer::Wheel;
 
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -53,67 +55,78 @@ fn main() {
 
     let metrics = Metrics::new();
     let recorder = metrics.recorder();
-    let mut samplers = Vec::<(Box<dyn Sampler>, Stats)>::new();
+    let mut samplers = Slab::<(Box<dyn Sampler>, Stats)>::new();
+    let mut timer = Wheel::<usize>::new(1000);
 
     // register samplers
     if config.memcache().is_some() {
         info!("memcache proxy mode");
         if let Ok(Some(s)) = samplers::Memcache::new(&config, &recorder) {
-            samplers.push((s, Stats::default()));
+            let token = samplers.insert((s, Stats::default()));
+            timer.add(token, config.interval());
         }
     } else {
         if let Ok(Some(s)) = samplers::Container::new(&config, &recorder) {
-            samplers.push((s, Stats::default()));
+            let token = samplers.insert((s, Stats::default()));
+            timer.add(token, config.interval());
         }
         if let Ok(Some(s)) = samplers::Cpu::new(&config, &recorder) {
-            samplers.push((s, Stats::default()));
+            let token = samplers.insert((s, Stats::default()));
+            timer.add(token, config.interval());
         }
         if let Ok(Some(s)) = samplers::Disk::new(&config, &recorder) {
-            samplers.push((s, Stats::default()));
+            let token = samplers.insert((s, Stats::default()));
+            timer.add(token, config.interval());
         }
         if let Ok(Some(s)) = samplers::Rezolus::new(&config, &recorder) {
-            samplers.push((s, Stats::default()));
+            let token = samplers.insert((s, Stats::default()));
+            timer.add(token, config.interval());
         }
         if let Ok(Some(s)) = samplers::Network::new(&config, &recorder) {
-            samplers.push((s, Stats::default()));
+            let token = samplers.insert((s, Stats::default()));
+            timer.add(token, config.interval());
         }
         #[cfg(feature = "ebpf")]
         {
             if config.ebpf().block() {
                 if let Ok(Some(s)) = ebpf::Block::new(&config, &recorder) {
-                    samplers.push((s, Stats::default()));
+                    let token = samplers.insert((s, Stats::default()));
+                    timer.add(token, config.interval());
                 }
             }
             if config.ebpf().ext4() {
                 if let Ok(Some(s)) = ebpf::Ext4::new(&config, &recorder) {
-                    samplers.push((s, Stats::default()));
+                    let token = samplers.insert((s, Stats::default()));
+                    timer.add(token, config.interval());
                 }
             }
             if config.ebpf().scheduler() {
                 if let Ok(Some(s)) = ebpf::Scheduler::new(&config, &recorder) {
-                    samplers.push((s, Stats::default()));
+                    let token = samplers.insert((s, Stats::default()));
+                    timer.add(token, config.interval());
                 }
             }
             if config.ebpf().xfs() {
                 if let Ok(Some(s)) = ebpf::Xfs::new(&config, &recorder) {
-                    samplers.push((s, Stats::default()));
+                    let token = samplers.insert((s, Stats::default()));
+                    timer.add(token, config.interval());
                 }
             }
         }
         #[cfg(feature = "perf")]
         {
             if let Ok(Some(s)) = samplers::Perf::new(&config, &recorder) {
-                samplers.push((s, Stats::default()));
+                let token = samplers.insert((s, Stats::default()));
+                timer.add(token, config.interval());
             }
         }
         if let Ok(Some(s)) = samplers::Softnet::new(&config, &recorder) {
-            samplers.push((s, Stats::default()));
+            let token = samplers.insert((s, Stats::default()));
+            timer.add(token, config.interval());
         }
     }
 
     let time = time::precise_time_ns();
-    // calculate interval in nanoseconds between samples
-    let sample_interval = config.general().interval() as u64 * MILLISECOND;
 
     // snapshot at 2Hz to prevent stale samples at 1Hz external sampling
     let snapshot_interval = SECOND / 2;
@@ -155,18 +168,22 @@ fn main() {
             });
     }
 
-    // let mut stats_stdout = stats::StatsLog::new(&recorder);
-
     let mut first_run = true;
+    let mut t0 = time::precise_time_ns();
 
     loop {
-        debug!("Sampling...");
-        let start = time::precise_time_ns();
-
-        // sample each sampler
-        let mut samplers_temp = Vec::new();
-        for (mut sampler, mut stats) in samplers.drain(..) {
+        let t1 = time::precise_time_ns();
+        let ticks = (t1 - t0) / 1000000;
+        t0 += ticks * 1000000;
+        let to_sample = timer.tick(ticks as usize);
+        trace!(
+            "ticked: {} ms and sampling: {} samplers",
+            ticks,
+            to_sample.len()
+        );
+        for token in to_sample {
             let start = Instant::now();
+            let (sampler, stats) = samplers.get_mut(token).unwrap();
             let result = sampler.sample();
             let stop = Instant::now();
             let runtime = stop - start;
@@ -185,10 +202,10 @@ fn main() {
                             sampler.deregister();
                         } else {
                             stats.sequential_timeouts = 0;
-                            samplers_temp.push((sampler, stats));
+                            timer.add(token, config.interval());
                         }
                     } else {
-                        samplers_temp.push((sampler, stats));
+                        timer.add(token, config.interval());
                     }
                 }
                 Err(_) => {
@@ -200,7 +217,6 @@ fn main() {
                 }
             }
         }
-        samplers = samplers_temp;
         debug!("sampling complete");
 
         // take a snapshot if necessary
@@ -219,9 +235,7 @@ fn main() {
 
         first_run = false;
 
-        let stop = time::precise_time_ns();
-
-        let sleep = sample_interval - (stop - start);
+        let sleep = timer.next_timeout().unwrap_or(1000) as u64 * MILLISECOND;
         debug!("sleep for: {} ns", sleep);
         thread::sleep(Duration::from_nanos(sleep));
     }

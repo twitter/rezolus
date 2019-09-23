@@ -134,6 +134,10 @@ impl Config {
         &self.general
     }
 
+    pub fn interval(&self) -> usize {
+        self.general().interval()
+    }
+
     pub fn network(&self) -> &Network {
         &self.network
     }
