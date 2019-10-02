@@ -26,9 +26,8 @@ pub use self::softnet::Softnet;
 
 use crate::config::Config;
 
-use atomics::*;
 use failure::Error;
-use metrics::{Histogram, Measurement, Output, Percentile, Recorder, Source};
+use metrics::*;
 
 /// `Sampler`s are used to get samples of a particular subsystem or component
 /// The `Sampler` will perform the necessary actions to update the telemetry and
@@ -36,7 +35,7 @@ use metrics::{Histogram, Measurement, Output, Percentile, Recorder, Source};
 pub trait Sampler<'a> {
     fn new(
         config: &'a Config,
-        recorder: &'a Recorder<AtomicU32>,
+        metrics: &'a Metrics<AtomicU32>,
     ) -> Result<Option<Box<Self>>, Error>
     where
         Self: Sized;
@@ -60,15 +59,15 @@ pub trait Sampler<'a> {
 pub struct Common<'a> {
     config: &'a Config,
     initialized: AtomicBool,
-    recorder: &'a Recorder<AtomicU32>,
+    metrics: &'a Metrics<AtomicU32>,
 }
 
 impl<'a> Common<'a> {
-    pub fn new(config: &'a Config, recorder: &'a Recorder<AtomicU32>) -> Self {
+    pub fn new(config: &'a Config, metrics: &'a Metrics<AtomicU32>) -> Self {
         Self {
             config,
             initialized: AtomicBool::new(false),
-            recorder,
+            metrics,
         }
     }
 
@@ -84,28 +83,28 @@ impl<'a> Common<'a> {
         self.initialized.store(value, Ordering::SeqCst);
     }
 
-    pub fn recorder(&self) -> &'a Recorder<AtomicU32> {
-        self.recorder
+    pub fn metrics(&self) -> &'a Metrics<AtomicU32> {
+        self.metrics
     }
 
     pub fn delete_channel(&self, name: &dyn ToString) {
-        self.recorder.delete_channel(name.to_string())
+        self.metrics.delete_channel(name.to_string())
     }
 
     pub fn record_distribution(&self, label: &dyn ToString, time: u64, value: u64, count: u32) {
-        self.recorder.record(
+        self.metrics.record(
             label.to_string(),
             Measurement::Distribution { time, value, count },
         );
     }
 
     pub fn record_counter(&self, label: &dyn ToString, time: u64, value: u64) {
-        self.recorder
+        self.metrics
             .record(label.to_string(), Measurement::Counter { time, value });
     }
 
     pub fn record_gauge(&self, label: &dyn ToString, time: u64, value: u64) {
-        self.recorder
+        self.metrics
             .record(label.to_string(), Measurement::Gauge { time, value });
     }
 
@@ -116,7 +115,7 @@ impl<'a> Common<'a> {
         precision: u32,
         percentiles: &[Percentile],
     ) {
-        self.recorder.add_channel(
+        self.metrics.add_channel(
             label.to_string(),
             Source::Distribution,
             Some(Histogram::new(
@@ -126,11 +125,11 @@ impl<'a> Common<'a> {
                 None,
             )),
         );
-        self.recorder.add_output(label.to_string(), Output::Counter);
-        self.recorder
+        self.metrics.add_output(label.to_string(), Output::Counter);
+        self.metrics
             .add_output(label.to_string(), Output::MaxPointTime);
         for percentile in percentiles {
-            self.recorder
+            self.metrics
                 .add_output(label.to_string(), Output::Percentile(*percentile));
         }
     }
@@ -142,7 +141,7 @@ impl<'a> Common<'a> {
         precision: u32,
         percentiles: &[Percentile],
     ) {
-        self.recorder.add_channel(
+        self.metrics.add_channel(
             label.to_string(),
             Source::Counter,
             Some(Histogram::new(
@@ -152,11 +151,11 @@ impl<'a> Common<'a> {
                 None,
             )),
         );
-        self.recorder.add_output(label.to_string(), Output::Counter);
-        self.recorder
+        self.metrics.add_output(label.to_string(), Output::Counter);
+        self.metrics
             .add_output(label.to_string(), Output::MaxPointTime);
         for percentile in percentiles {
-            self.recorder
+            self.metrics
                 .add_output(label.to_string(), Output::Percentile(*percentile));
         }
     }
@@ -168,7 +167,7 @@ impl<'a> Common<'a> {
         precision: u32,
         percentiles: &[Percentile],
     ) {
-        self.recorder.add_channel(
+        self.metrics.add_channel(
             label.to_string(),
             Source::Gauge,
             Some(Histogram::new(
@@ -178,11 +177,11 @@ impl<'a> Common<'a> {
                 None,
             )),
         );
-        self.recorder.add_output(label.to_string(), Output::Counter);
-        self.recorder
+        self.metrics.add_output(label.to_string(), Output::Counter);
+        self.metrics
             .add_output(label.to_string(), Output::MaxPointTime);
         for percentile in percentiles {
-            self.recorder
+            self.metrics
                 .add_output(label.to_string(), Output::Percentile(*percentile));
         }
     }

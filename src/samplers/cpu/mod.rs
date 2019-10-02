@@ -84,11 +84,11 @@ fn parse_proc_stat<T: BufRead>(reader: &mut T) -> ProcStat {
 impl<'a> Sampler<'a> for Cpu<'a> {
     fn new(
         config: &'a Config,
-        recorder: &'a Recorder<AtomicU32>,
+        metrics: &'a Metrics<AtomicU32>,
     ) -> Result<Option<Box<Self>>, Error> {
         if config.cpu().enabled() {
             Ok(Some(Box::new(Cpu {
-                common: Common::new(config, recorder),
+                common: Common::new(config, metrics),
                 nanos_per_tick: crate::common::nanos_per_tick(),
             })))
         } else {

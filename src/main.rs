@@ -54,60 +54,59 @@ fn main() {
     debug!("host cores: {}", hardware_threads().unwrap_or(1));
 
     let metrics = Metrics::new();
-    let recorder = metrics.recorder();
     let mut samplers = Slab::<(Box<dyn Sampler>, Stats)>::new();
     let mut timer = Wheel::<usize>::new(1000);
 
     // register samplers
     if config.memcache().is_some() {
         info!("memcache proxy mode");
-        if let Ok(Some(s)) = samplers::Memcache::new(&config, &recorder) {
+        if let Ok(Some(s)) = samplers::Memcache::new(&config, &metrics) {
             let token = samplers.insert((s, Stats::default()));
             timer.add(token, config.interval());
         }
     } else {
-        if let Ok(Some(s)) = samplers::Container::new(&config, &recorder) {
+        if let Ok(Some(s)) = samplers::Container::new(&config, &metrics) {
             let token = samplers.insert((s, Stats::default()));
             timer.add(token, config.interval());
         }
-        if let Ok(Some(s)) = samplers::Cpu::new(&config, &recorder) {
+        if let Ok(Some(s)) = samplers::Cpu::new(&config, &metrics) {
             let token = samplers.insert((s, Stats::default()));
             timer.add(token, config.interval());
         }
-        if let Ok(Some(s)) = samplers::Disk::new(&config, &recorder) {
+        if let Ok(Some(s)) = samplers::Disk::new(&config, &metrics) {
             let token = samplers.insert((s, Stats::default()));
             timer.add(token, config.interval());
         }
-        if let Ok(Some(s)) = samplers::Rezolus::new(&config, &recorder) {
+        if let Ok(Some(s)) = samplers::Rezolus::new(&config, &metrics) {
             let token = samplers.insert((s, Stats::default()));
             timer.add(token, config.interval());
         }
-        if let Ok(Some(s)) = samplers::Network::new(&config, &recorder) {
+        if let Ok(Some(s)) = samplers::Network::new(&config, &metrics) {
             let token = samplers.insert((s, Stats::default()));
             timer.add(token, config.interval());
         }
         #[cfg(feature = "ebpf")]
         {
             if config.ebpf().block() {
-                if let Ok(Some(s)) = ebpf::Block::new(&config, &recorder) {
+                if let Ok(Some(s)) = ebpf::Block::new(&config, &metrics) {
                     let token = samplers.insert((s, Stats::default()));
                     timer.add(token, config.interval());
                 }
             }
             if config.ebpf().ext4() {
-                if let Ok(Some(s)) = ebpf::Ext4::new(&config, &recorder) {
+                if let Ok(Some(s)) = ebpf::Ext4::new(&config, &metrics) {
                     let token = samplers.insert((s, Stats::default()));
                     timer.add(token, config.interval());
                 }
             }
             if config.ebpf().scheduler() {
-                if let Ok(Some(s)) = ebpf::Scheduler::new(&config, &recorder) {
+                if let Ok(Some(s)) = ebpf::Scheduler::new(&config, &metrics) {
                     let token = samplers.insert((s, Stats::default()));
                     timer.add(token, config.interval());
                 }
             }
             if config.ebpf().xfs() {
-                if let Ok(Some(s)) = ebpf::Xfs::new(&config, &recorder) {
+                if let Ok(Some(s)) = ebpf::Xfs::new(&config, &metrics) {
                     let token = samplers.insert((s, Stats::default()));
                     timer.add(token, config.interval());
                 }
@@ -115,12 +114,12 @@ fn main() {
         }
         #[cfg(feature = "perf")]
         {
-            if let Ok(Some(s)) = samplers::Perf::new(&config, &recorder) {
+            if let Ok(Some(s)) = samplers::Perf::new(&config, &metrics) {
                 let token = samplers.insert((s, Stats::default()));
                 timer.add(token, config.interval());
             }
         }
-        if let Ok(Some(s)) = samplers::Softnet::new(&config, &recorder) {
+        if let Ok(Some(s)) = samplers::Softnet::new(&config, &metrics) {
             let token = samplers.insert((s, Stats::default()));
             timer.add(token, config.interval());
         }
@@ -152,7 +151,7 @@ fn main() {
     let listen = config.listen().unwrap_or_else(|| {
         fatal!("no listen address");
     });
-    let mut stats_http = stats::Http::new(listen, metrics.recorder(), count_suffix);
+    let mut stats_http = stats::Http::new(listen, metrics.clone(), count_suffix);
     let _ = thread::Builder::new()
         .name("http".to_string())
         .spawn(move || loop {
@@ -160,7 +159,7 @@ fn main() {
         });
 
     if let Some(stats_log) = config.stats_log() {
-        let mut stats_logger = stats::StatsLog::new(&stats_log, metrics.recorder(), count_suffix);
+        let mut stats_logger = stats::StatsLog::new(&stats_log, metrics.clone(), count_suffix);
         let _ = thread::Builder::new()
             .name("logger".to_string())
             .spawn(move || loop {
@@ -221,14 +220,14 @@ fn main() {
 
         // take a snapshot if necessary
         if time >= snapshot_time {
-            let current_readings = recorder.readings();
+            let current_readings = metrics.readings();
             let mut readings = readings.lock().unwrap();
             *readings = current_readings;
             snapshot_time += snapshot_interval;
 
             // clear any latched histograms and min/max if necessary
             if time >= latch_time {
-                recorder.latch();
+                metrics.latch();
                 latch_time += latch_interval;
             }
         }

@@ -60,11 +60,11 @@ pub fn read_softnet_stat<P: AsRef<Path>>(path: P) -> HashMap<Statistic, u64> {
 impl<'a> Sampler<'a> for Softnet<'a> {
     fn new(
         config: &'a Config,
-        recorder: &'a Recorder<AtomicU32>,
+        metrics: &'a Metrics<AtomicU32>,
     ) -> Result<Option<Box<Self>>, Error> {
         if config.softnet().enabled() {
             Ok(Some(Box::new(Self {
-                common: Common::new(config, recorder),
+                common: Common::new(config, metrics),
             })))
         } else {
             Ok(None)
