@@ -25,7 +25,7 @@ pub struct Perf<'a> {
 impl<'a> Sampler<'a> for Perf<'a> {
     fn new(
         config: &'a Config,
-        recorder: &'a Recorder<AtomicU32>,
+        metrics: &'a Metrics<AtomicU32>,
     ) -> Result<Option<Box<Self>>, Error> {
         if config.perf().enabled() {
             let mut counters = HashMap::new();
@@ -54,7 +54,7 @@ impl<'a> Sampler<'a> for Perf<'a> {
             }
 
             Ok(Some(Box::new(Self {
-                common: Common::new(config, recorder),
+                common: Common::new(config, metrics),
                 counters,
             })))
         } else {

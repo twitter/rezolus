@@ -11,7 +11,7 @@ use crate::samplers::{Common, Sampler};
 
 use failure::Error;
 use logger::*;
-use metrics::{AtomicU32, Percentile, Recorder};
+use metrics::{AtomicU32, Percentile, Metrics};
 use time;
 
 use std::collections::HashMap;
@@ -143,10 +143,10 @@ impl<'a> Rezolus<'a> {
 impl<'a> Sampler<'a> for Rezolus<'a> {
     fn new(
         config: &'a Config,
-        recorder: &'a Recorder<AtomicU32>,
+        metrics: &'a Metrics<AtomicU32>,
     ) -> Result<Option<Box<Self>>, Error> {
         Ok(Some(Box::new(Rezolus {
-            common: Common::new(config, recorder),
+            common: Common::new(config, metrics),
         })))
     }
 

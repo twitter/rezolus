@@ -25,7 +25,7 @@ pub struct Container<'a> {
 impl<'a> Sampler<'a> for Container<'a> {
     fn new(
         config: &'a Config,
-        recorder: &'a Recorder<AtomicU32>,
+        metrics: &'a Metrics<AtomicU32>,
     ) -> Result<Option<Box<Self>>, Error> {
         if config.container().enabled() {
             let mut cgroup = None;
@@ -44,7 +44,7 @@ impl<'a> Sampler<'a> for Container<'a> {
             }
             if cgroup.is_some() {
                 Ok(Some(Box::new(Container {
-                    common: Common::new(config, recorder),
+                    common: Common::new(config, metrics),
                     cgroup,
                     nanos_per_tick: crate::common::nanos_per_tick(),
                 })))

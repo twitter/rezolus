@@ -40,7 +40,7 @@ impl<'a> Memcache<'a> {
 impl<'a> Sampler<'a> for Memcache<'a> {
     fn new(
         config: &'a Config,
-        recorder: &'a Recorder<AtomicU32>,
+        metrics: &'a Metrics<AtomicU32>,
     ) -> Result<Option<Box<Self>>, Error> {
         let endpoint = config.memcache().unwrap();
         let mut addrs = endpoint.to_socket_addrs().unwrap_or_else(|_| {
@@ -60,7 +60,7 @@ impl<'a> Sampler<'a> for Memcache<'a> {
         };
         Ok(Some(Box::new(Memcache {
             address,
-            common: Common::new(config, recorder),
+            common: Common::new(config, metrics),
             stream,
         })))
     }
@@ -112,13 +112,13 @@ impl<'a> Sampler<'a> for Memcache<'a> {
                                 }
                                 _ => {
                                     if !self.common.initialized() {
-                                        self.common.recorder().add_channel(
+                                        self.common.metrics().add_channel(
                                             name.to_string(),
                                             Source::Gauge,
                                             None,
                                         );
                                         self.common
-                                            .recorder()
+                                            .metrics()
                                             .add_output(name.to_string(), Output::Counter);
                                     }
                                     if let Ok(value) =

@@ -93,7 +93,7 @@ impl<'a> Block<'a> {
 impl<'a> Sampler<'a> for Block<'a> {
     fn new(
         config: &'a Config,
-        recorder: &'a Recorder<AtomicU32>,
+        metrics: &'a Metrics<AtomicU32>,
     ) -> Result<Option<Box<Self>>, Error> {
         debug!("initializing");
         // load the code and compile
@@ -112,7 +112,7 @@ impl<'a> Sampler<'a> for Block<'a> {
 
         Ok(Some(Box::new(Self {
             bpf,
-            common: Common::new(config, recorder),
+            common: Common::new(config, metrics),
         })))
     }
 

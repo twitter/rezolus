@@ -15,12 +15,12 @@ use std::io::Write;
 
 pub struct StatsLog {
     file: File,
-    recorder: Recorder<AtomicU32>,
+    metrics: Metrics<AtomicU32>,
     count_label: Option<String>,
 }
 
 impl StatsLog {
-    pub fn new(file: &str, recorder: Recorder<AtomicU32>, count_label: Option<&str>) -> Self {
+    pub fn new(file: &str, metrics: Metrics<AtomicU32>, count_label: Option<&str>) -> Self {
         let file = OpenOptions::new()
             .create(true)
             .append(true)
@@ -28,13 +28,13 @@ impl StatsLog {
             .expect("Failed to open file");
         Self {
             file,
-            recorder,
+            metrics,
             count_label: count_label.map(std::string::ToString::to_string),
         }
     }
 
     pub fn print(&mut self) {
-        let current = self.recorder.readings();
+        let current = self.metrics.readings();
         let mut data = Vec::new();
         for reading in current {
             let label = reading.label();
