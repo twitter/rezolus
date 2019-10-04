@@ -6,12 +6,12 @@ mod statistics;
 
 use self::statistics::Statistic;
 use crate::common::*;
-use crate::config::Config;
+use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
 use failure::Error;
 use logger::*;
-use metrics::{AtomicU32, Percentile, Metrics};
+use metrics::{AtomicU32, Metrics, Percentile};
 use time;
 
 use std::collections::HashMap;
@@ -164,6 +164,10 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
         self.memory_usage();
         self.cpu_usage();
         Ok(())
+    }
+
+    fn interval(&self) -> usize {
+        self.common().config().interval()
     }
 
     fn register(&mut self) {

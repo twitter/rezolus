@@ -11,12 +11,15 @@ use atomics::*;
 pub struct Disk {
     #[serde(default = "default_enabled")]
     enabled: AtomicBool,
+    #[serde(default = "default_interval")]
+    interval: AtomicOption<AtomicUsize>,
 }
 
 impl Default for Disk {
     fn default() -> Disk {
         Disk {
             enabled: default_enabled(),
+            interval: default_interval(),
         }
     }
 }
@@ -25,8 +28,16 @@ fn default_enabled() -> AtomicBool {
     AtomicBool::new(false)
 }
 
-impl Disk {
-    pub fn enabled(&self) -> bool {
+fn default_interval() -> AtomicOption<AtomicUsize> {
+    AtomicOption::none()
+}
+
+impl SamplerConfig for Disk {
+    fn enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
+    }
+
+    fn interval(&self) -> Option<usize> {
+        self.interval.load(Ordering::Relaxed)
     }
 }

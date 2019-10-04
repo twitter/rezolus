@@ -12,6 +12,8 @@ use atomics::*;
 pub struct Perf {
     #[serde(default = "default_enabled")]
     enabled: AtomicBool,
+    #[serde(default = "default_interval")]
+    interval: AtomicOption<AtomicUsize>,
     #[serde(default = "default_statistics")]
     statistics: Vec<Statistic>,
 }
@@ -20,6 +22,7 @@ impl Default for Perf {
     fn default() -> Perf {
         Perf {
             enabled: default_enabled(),
+            interval: default_interval(),
             statistics: default_statistics(),
         }
     }
@@ -27,6 +30,10 @@ impl Default for Perf {
 
 fn default_enabled() -> AtomicBool {
     AtomicBool::new(false)
+}
+
+fn default_interval() -> AtomicOption<AtomicUsize> {
+    AtomicOption::none()
 }
 
 fn default_statistics() -> Vec<Statistic> {
@@ -54,11 +61,17 @@ fn default_statistics() -> Vec<Statistic> {
     ]
 }
 
-impl Perf {
-    pub fn enabled(&self) -> bool {
+impl SamplerConfig for Perf {
+    fn enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
     }
 
+    fn interval(&self) -> Option<usize> {
+        self.interval.load(Ordering::Relaxed)
+    }
+}
+
+impl Perf {
     pub fn statistics(&self) -> &[Statistic] {
         &self.statistics
     }

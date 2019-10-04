@@ -11,7 +11,7 @@ pub use self::entry::Entry;
 pub(crate) use self::statistics::Statistic;
 
 use crate::common::*;
-use crate::config::Config;
+use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
 use failure::Error;
@@ -103,6 +103,14 @@ impl<'a> Sampler<'a> for Disk<'a> {
         self.register();
         self.record(time, current.values().sum());
         Ok(())
+    }
+
+    fn interval(&self) -> usize {
+        self.common()
+            .config()
+            .disk()
+            .interval()
+            .unwrap_or(self.common().config().interval())
     }
 
     fn register(&mut self) {

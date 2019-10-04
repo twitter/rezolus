@@ -11,12 +11,15 @@ use atomics::*;
 pub struct Container {
     #[serde(default = "default_enabled")]
     enabled: AtomicBool,
+    #[serde(default = "default_interval")]
+    interval: AtomicOption<AtomicUsize>,
 }
 
 impl Default for Container {
     fn default() -> Self {
         Self {
             enabled: default_enabled(),
+            interval: default_interval(),
         }
     }
 }
@@ -25,8 +28,16 @@ fn default_enabled() -> AtomicBool {
     AtomicBool::new(false)
 }
 
-impl Container {
-    pub fn enabled(&self) -> bool {
+fn default_interval() -> AtomicOption<AtomicUsize> {
+    AtomicOption::none()
+}
+
+impl SamplerConfig for Container {
+    fn enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
+    }
+
+    fn interval(&self) -> Option<usize> {
+        self.interval.load(Ordering::Relaxed)
     }
 }

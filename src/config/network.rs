@@ -14,6 +14,8 @@ pub struct Network {
     enabled: AtomicBool,
     #[serde(default = "default_interface_statistics")]
     interface_statistics: Vec<InterfaceStatistic>,
+    #[serde(default = "default_interval")]
+    interval: AtomicOption<AtomicUsize>,
     #[serde(default = "default_protocol_statistics")]
     protocol_statistics: Vec<ProtocolStatistic>,
 }
@@ -23,6 +25,7 @@ impl Default for Network {
         Network {
             enabled: default_enabled(),
             interface_statistics: default_interface_statistics(),
+            interval: default_interval(),
             protocol_statistics: default_protocol_statistics(),
         }
     }
@@ -30,6 +33,10 @@ impl Default for Network {
 
 fn default_enabled() -> AtomicBool {
     AtomicBool::new(false)
+}
+
+fn default_interval() -> AtomicOption<AtomicUsize> {
+    AtomicOption::none()
 }
 
 fn default_interface_statistics() -> Vec<InterfaceStatistic> {
@@ -63,11 +70,17 @@ fn default_protocol_statistics() -> Vec<ProtocolStatistic> {
     ]
 }
 
-impl Network {
-    pub fn enabled(&self) -> bool {
+impl SamplerConfig for Network {
+    fn enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
     }
 
+    fn interval(&self) -> Option<usize> {
+        self.interval.load(Ordering::Relaxed)
+    }
+}
+
+impl Network {
     pub fn interface_statistics(&self) -> &[InterfaceStatistic] {
         &self.interface_statistics
     }

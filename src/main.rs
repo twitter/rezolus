@@ -201,10 +201,10 @@ fn main() {
                             sampler.deregister();
                         } else {
                             stats.sequential_timeouts = 0;
-                            timer.add(token, config.interval());
+                            timer.add(token, sampler.interval());
                         }
                     } else {
-                        timer.add(token, config.interval());
+                        timer.add(token, sampler.interval());
                     }
                 }
                 Err(_) => {

@@ -6,7 +6,7 @@ mod statistics;
 
 use self::statistics::Statistic;
 use crate::common::*;
-use crate::config::Config;
+use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
 use failure::Error;
@@ -88,6 +88,14 @@ impl<'a> Sampler<'a> for Softnet<'a> {
             self.common.record_counter(&statistic, time, value);
         }
         Ok(())
+    }
+
+    fn interval(&self) -> usize {
+        self.common()
+            .config()
+            .softnet()
+            .interval()
+            .unwrap_or(self.common().config().interval())
     }
 
     fn register(&mut self) {

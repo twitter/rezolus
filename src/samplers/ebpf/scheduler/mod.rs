@@ -6,7 +6,7 @@ mod statistics;
 
 use self::statistics::Statistic;
 use crate::common::{MICROSECOND, PERCENTILES, SECOND};
-use crate::config::Config;
+use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
 use bcc;
@@ -71,6 +71,14 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
             }
         }
         Ok(())
+    }
+
+    fn interval(&self) -> usize {
+        self.common()
+            .config()
+            .ebpf()
+            .interval()
+            .unwrap_or(self.common().config().interval())
     }
 
     fn register(&mut self) {
