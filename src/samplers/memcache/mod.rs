@@ -3,7 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::common::*;
-use crate::config::Config;
+use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
 use failure::Error;
@@ -140,6 +140,10 @@ impl<'a> Sampler<'a> for Memcache<'a> {
             self.reconnect();
         }
         Ok(())
+    }
+
+    fn interval(&self) -> usize {
+        self.common().config().interval()
     }
 
     fn register(&mut self) {

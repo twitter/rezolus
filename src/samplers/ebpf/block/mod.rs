@@ -6,7 +6,7 @@ mod statistics;
 
 use self::statistics::{Direction, Statistic};
 use crate::common::{BILLION, MICROSECOND, MILLION, PERCENTILES};
-use crate::config::Config;
+use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
 use bcc;
@@ -140,6 +140,14 @@ impl<'a> Sampler<'a> for Block<'a> {
             self.report_statistic(statistic);
         }
         Ok(())
+    }
+
+    fn interval(&self) -> usize {
+        self.common()
+            .config()
+            .ebpf()
+            .interval()
+            .unwrap_or(self.common().config().interval())
     }
 
     fn register(&mut self) {

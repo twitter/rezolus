@@ -33,21 +33,21 @@ use metrics::*;
 /// The `Sampler` will perform the necessary actions to update the telemetry and
 /// record updated values into the metrics `Recorder`
 pub trait Sampler<'a> {
-    fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error>
+    fn new(config: &'a Config, metrics: &'a Metrics<AtomicU32>) -> Result<Option<Box<Self>>, Error>
     where
         Self: Sized;
 
     /// Return a reference to the `Common` struct
     fn common(&self) -> &Common<'a>;
 
+    /// Return the name of the `Sampler`
+    fn name(&self) -> String;
+
     /// Perform required sampling steps and send stats to the `Recorder`
     fn sample(&mut self) -> Result<(), ()>;
 
-    /// Return the name of the `Sampler`
-    fn name(&self) -> String;
+    /// Return the current configured interval in milliseconds for the `Sampler`
+    fn interval(&self) -> usize;
 
     /// Register any metrics that the `Sampler` will report
     fn register(&mut self);

@@ -170,3 +170,8 @@ impl Config {
         }
     }
 }
+
+pub trait SamplerConfig {
+    fn enabled(&self) -> bool;
+    fn interval(&self) -> Option<usize>;
+}

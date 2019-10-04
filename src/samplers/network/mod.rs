@@ -10,7 +10,7 @@ pub use self::interface::*;
 
 use self::statistics::InterfaceStatistic;
 use crate::common::*;
-use crate::config::Config;
+use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
 use failure::Error;
@@ -112,6 +112,14 @@ impl<'a> Sampler<'a> for Network<'a> {
         }
 
         Ok(())
+    }
+
+    fn interval(&self) -> usize {
+        self.common()
+            .config()
+            .network()
+            .interval()
+            .unwrap_or(self.common().config().interval())
     }
 
     fn register(&mut self) {

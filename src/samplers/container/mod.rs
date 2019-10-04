@@ -6,7 +6,7 @@ mod statistics;
 
 use self::statistics::Statistic;
 use crate::common::*;
-use crate::config::Config;
+use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
 use failure::*;
@@ -54,6 +54,14 @@ impl<'a> Sampler<'a> for Container<'a> {
         } else {
             Ok(None)
         }
+    }
+
+    fn interval(&self) -> usize {
+        self.common()
+            .config()
+            .container()
+            .interval()
+            .unwrap_or(self.common().config().interval())
     }
 
     fn common(&self) -> &Common<'a> {

@@ -6,7 +6,7 @@ pub mod statistics;
 
 use self::statistics::*;
 use crate::common::*;
-use crate::config::Config;
+use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
 use failure::Error;
@@ -97,6 +97,14 @@ impl<'a> Sampler<'a> for Perf<'a> {
             }
         }
         Ok(())
+    }
+
+    fn interval(&self) -> usize {
+        self.common()
+            .config()
+            .perf()
+            .interval()
+            .unwrap_or(self.common().config().interval())
     }
 
     fn register(&mut self) {
