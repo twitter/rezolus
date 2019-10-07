@@ -43,10 +43,6 @@ impl<'a> Network<'a> {
                     trace!("Ignore NIC: bad prefix: {}", name);
                     continue;
                 }
-                if !net::is_nic_active(name) {
-                    trace!("Ignore NIC: inactive: {}", name);
-                    continue;
-                }
                 if let Ok(speed) = file::file_as_u64(format!("/sys/class/net/{}/speed", name)) {
                     trace!("Monitoring NIC: {} speed: {} mbps", name, speed);
                     let bytes_secondly = (speed * 1_000_000) / 8;
