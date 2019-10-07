@@ -5,19 +5,17 @@
 mod statistics;
 
 use self::statistics::Statistic;
+use super::map_from_table;
 use crate::common::{MICROSECOND, PERCENTILES, SECOND};
 use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
 use bcc;
 use bcc::core::BPF;
-use bcc::table::Table;
 use failure::*;
 use logger::*;
 use metrics::*;
 use time;
-
-use std::collections::HashMap;
 
 pub struct Xfs<'a> {
     bpf: BPF,
@@ -80,7 +78,7 @@ impl<'a> Sampler<'a> for Xfs<'a> {
         ] {
             trace!("sampling {}", statistic);
             let mut table = self.bpf.table(&statistic.table_name());
-            for (&value, &count) in &map_from_table(&mut table) {
+            for (&value, &count) in &map_from_table(&mut table, MICROSECOND) {
                 self.common
                     .record_distribution(statistic, time, value, count);
             }
@@ -126,25 +124,4 @@ impl<'a> Sampler<'a> for Xfs<'a> {
             self.common.set_initialized(false);
         }
     }
-}
-
-fn map_from_table(table: &mut Table) -> HashMap<u64, u32> {
-    let mut current = HashMap::new();
-    for mut entry in table.iter() {
-        let mut key = [0; 4];
-        key.copy_from_slice(&entry.key);
-        let key = u32::from_ne_bytes(key);
-
-        let mut value = [0; 8];
-        value.copy_from_slice(&entry.value);
-        let value = u64::from_ne_bytes(value);
-
-        if let Some(key) = super::key_to_value(key as u64) {
-            current.insert(key * MICROSECOND, value as u32);
-        }
-
-        // clear the source counter
-        let _ = table.set(&mut entry.key, &mut [0_u8; 8]);
-    }
-    current
 }

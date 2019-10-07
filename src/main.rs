@@ -2,6 +2,9 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+#[macro_use]
+extern crate logger;
+
 mod common;
 mod config;
 mod samplers;
@@ -11,7 +14,8 @@ use crate::common::*;
 use crate::config::Config;
 use crate::samplers::*;
 
-use logger::*;
+use atomics::{AtomicBool, AtomicPrimitive, Ordering};
+use logger::Logger;
 use metrics::{Metrics, Reading};
 use slab::Slab;
 use timer::Wheel;
@@ -53,6 +57,15 @@ fn main() {
     );
     debug!("host cores: {}", hardware_threads().unwrap_or(1));
 
+    // initialize signal handler
+    let runnable = Arc::new(AtomicBool::new(true));
+    let r = runnable.clone();
+    ctrlc::set_handler(move || {
+        r.store(false, Ordering::SeqCst);
+    })
+    .expect("Failed to set handler for SIGINT / SIGTERM");
+
+    // initialize metrics
     let metrics = Metrics::new();
     let mut samplers = Slab::<(Box<dyn Sampler>, Stats)>::new();
     let mut timer = Wheel::<usize>::new(1000);
@@ -170,7 +183,7 @@ fn main() {
     let mut first_run = true;
     let mut t0 = time::precise_time_ns();
 
-    loop {
+    while runnable.load(Ordering::Relaxed) {
         let t1 = time::precise_time_ns();
         let ticks = (t1 - t0) / 1000000;
         t0 += ticks * 1000000;

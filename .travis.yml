@@ -16,6 +16,7 @@ matrix:
         - cargo test --verbose
         - cargo build --release --verbose
         - cargo test --release --verbose
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
     - os: linux
       rust: nightly
       env: TYPE=ebpf RUST_BACKTRACE=1
@@ -42,15 +43,16 @@ matrix:
         - cargo build --release --features ebpf
         - cargo test --release --features ebpf
         - cargo run --release --features ebpf -- --version
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
     - os: linux
-      rust: nightly
+      rust: stable
       env: TYPE=rustfmt RUST_BACKTRACE=1
       script:
-        - rustup component add rustfmt
-        - cargo fmt -- --check
+        - rustup component add rustfmt --toolchain stable
+        - cargo +stable fmt -- --check
     - os: linux
-      rust: nightly
+      rust: stable
       env: TYPE=clippy RUST_BACKTRACE=1
       script:
-        - rustup component add clippy
-        - cargo clippy
+        - rustup component add clippy --toolchain stable
+        - cargo +stable clippy
