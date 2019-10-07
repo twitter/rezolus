@@ -1,12 +1,15 @@
 # [Unreleased]
 ## Added
 - Container sampler to use within an application container for telemetry
+- Allow for per-sampler collection intervals
 
 ## Fixed
 - Allows memcache sampler to reconnect to the cache instance which helps to make
   the sampler more resilient to transient errors
 - Softnet sampler now disabled by default to be consistent with other samplers
 - Updates bcc version to pull-in bugfixes
+- Fixes an issue where network percentiles may be reported incorrectly if the
+  primary NIC has an operstate of `unknown`
 
 # [1.0.1] - 2019-08-22
 ## Fixed
