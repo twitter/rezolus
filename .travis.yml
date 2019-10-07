@@ -42,7 +42,7 @@ matrix:
         - cargo build --release --features ebpf
         - cargo test --release --features ebpf
         - cargo run --release --features ebpf -- --version
-        - timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
     - os: linux
       rust: nightly
       env: TYPE=rustfmt RUST_BACKTRACE=1
