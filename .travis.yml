@@ -51,8 +51,8 @@ matrix:
         - rustup component add rustfmt --toolchain stable
         - cargo +stable fmt -- --check
     - os: linux
-      rust: stable
+      rust: nightly
       env: TYPE=clippy RUST_BACKTRACE=1
       script:
-        - rustup component add clippy --toolchain stable
-        - cargo +stable clippy
+        - rustup component add clippy --toolchain nightly
+        - cargo +nightly clippy
