@@ -3,9 +3,6 @@ os: linux
 dist: xenial
 sudo: required
 matrix:
-  allow_failures:
-    - env: TYPE=rustfmt RUST_BACKTRACE=1
-    - env: TYPE=clippy RUST_BACKTRACE=1
   fast_finish: true
   include:
     - os: linux
@@ -56,4 +53,4 @@ matrix:
       script:
         - rustup toolchain install nightly-2019-10-04
         - rustup component add clippy --toolchain nightly-2019-10-04
-        - cargo +nightly-2019-10-04 clippy
+        - cargo +nightly-2019-10-04 clippy --features ebpf

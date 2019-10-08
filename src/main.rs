@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+#![deny(clippy::all)]
+
 #[macro_use]
 extern crate logger;
 
@@ -36,6 +38,7 @@ impl Default for Stats {
     }
 }
 
+#[allow(clippy::cognitive_complexity)]
 fn main() {
     // get config
     let config = Config::new();
@@ -185,8 +188,8 @@ fn main() {
 
     while runnable.load(Ordering::Relaxed) {
         let t1 = time::precise_time_ns();
-        let ticks = (t1 - t0) / 1000000;
-        t0 += ticks * 1000000;
+        let ticks = (t1 - t0) / MILLISECOND;
+        t0 += ticks * MILLISECOND;
         let to_sample = timer.tick(ticks as usize);
         trace!(
             "ticked: {} ms and sampling: {} samplers",

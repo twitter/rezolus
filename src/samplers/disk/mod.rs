@@ -110,7 +110,7 @@ impl<'a> Sampler<'a> for Disk<'a> {
             .config()
             .disk()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn register(&mut self) {

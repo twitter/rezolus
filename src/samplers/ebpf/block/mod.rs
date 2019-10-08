@@ -114,7 +114,7 @@ impl<'a> Sampler<'a> for Block<'a> {
             .config()
             .ebpf()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn register(&mut self) {

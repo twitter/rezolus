@@ -91,6 +91,7 @@ impl<'a> Common<'a> {
         self.metrics.delete_channel(name.to_string())
     }
 
+    #[allow(dead_code)]
     pub fn record_distribution(&self, label: &dyn ToString, time: u64, value: u64, count: u32) {
         self.metrics.record(
             label.to_string(),
@@ -108,6 +109,7 @@ impl<'a> Common<'a> {
             .record(label.to_string(), Measurement::Gauge { time, value });
     }
 
+    #[allow(dead_code)]
     pub fn register_distribution(
         &self,
         label: &dyn ToString,
