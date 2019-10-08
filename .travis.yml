@@ -54,5 +54,6 @@ matrix:
       rust: nightly
       env: TYPE=clippy RUST_BACKTRACE=1
       script:
-        - rustup component add clippy --toolchain nightly
-        - cargo +nightly clippy
+        - rustup toolchain install nightly-2019-10-04
+        - rustup component add clippy --toolchain nightly-2019-10-04
+        - cargo +nightly-2019-10-04 clippy
