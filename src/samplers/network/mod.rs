@@ -94,7 +94,7 @@ impl<'a> Sampler<'a> for Network<'a> {
             let sum: u64 = self
                 .interfaces
                 .iter()
-                .map(|i| i.get_statistic(&statistic).unwrap_or(0))
+                .map(|i| i.get_statistic(*statistic).unwrap_or(0))
                 .sum();
             self.common.record_counter(&statistic, time, sum);
         }
@@ -102,7 +102,7 @@ impl<'a> Sampler<'a> for Network<'a> {
         // protocol statistics
         if let Ok(protocol) = protocol::Protocol::new() {
             for statistic in self.common.config().network().protocol_statistics() {
-                let value = *protocol.get(statistic).unwrap_or(&0);
+                let value = *protocol.get(*statistic).unwrap_or(&0);
                 self.common.record_counter(statistic, time, value);
             }
         }
@@ -115,7 +115,7 @@ impl<'a> Sampler<'a> for Network<'a> {
             .config()
             .network()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn register(&mut self) {

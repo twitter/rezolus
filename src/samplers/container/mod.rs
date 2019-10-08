@@ -36,10 +36,8 @@ impl<'a> Sampler<'a> for Container<'a> {
             for line in f.lines() {
                 let line = line.unwrap();
                 let parts: Vec<&str> = line.split(':').collect();
-                if parts.len() == 3 {
-                    if parts[1] == "cpu,cpuacct" {
-                        cgroup = Some(parts[2].to_string());
-                    }
+                if parts.len() == 3 && parts[1] == "cpu,cpuacct" {
+                    cgroup = Some(parts[2].to_string());
                 }
             }
             if cgroup.is_some() {
@@ -61,7 +59,7 @@ impl<'a> Sampler<'a> for Container<'a> {
             .config()
             .container()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn common(&self) -> &Common<'a> {

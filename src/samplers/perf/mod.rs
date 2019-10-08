@@ -104,7 +104,7 @@ impl<'a> Sampler<'a> for Perf<'a> {
             .config()
             .perf()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn register(&mut self) {

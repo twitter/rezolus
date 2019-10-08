@@ -19,7 +19,7 @@ impl Protocol {
         Ok(Self { data })
     }
 
-    pub fn get(&self, statistic: &ProtocolStatistic) -> Option<&u64> {
+    pub fn get(&self, statistic: ProtocolStatistic) -> Option<&u64> {
         if let Some(inner) = self.data.get(statistic.protocol()) {
             inner.get(statistic.name())
         } else {

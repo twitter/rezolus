@@ -5,7 +5,8 @@
 mod statistics;
 
 use self::statistics::{Direction, Statistic};
-use crate::common::{BILLION, MICROSECOND, MILLION, PERCENTILES};
+use super::map_from_table;
+use crate::common::{BILLION, MICROSECOND, MILLION, PERCENTILES, UNITY};
 use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
@@ -15,8 +16,6 @@ use failure::*;
 use logger::*;
 use metrics::*;
 use time;
-
-use std::collections::HashMap;
 
 pub struct Block<'a> {
     bpf: BPF,
@@ -37,54 +36,22 @@ impl<'a> Block<'a> {
 
     fn report_latency(&mut self, table: &str, label: &str) {
         let time = time::precise_time_ns();
-        let mut current = HashMap::new();
-        let mut data = self.bpf.table(table);
+        let mut table = self.bpf.table(table);
 
-        for mut entry in data.iter() {
-            let mut key = [0; 4];
-            key.copy_from_slice(&entry.key);
-            let key = u32::from_ne_bytes(key);
-
-            let mut value = [0; 8];
-            value.copy_from_slice(&entry.value);
-            let value = u64::from_ne_bytes(value);
-
-            if let Some(key) = super::key_to_value(key as u64) {
-                current.insert(key * MICROSECOND, value as u32);
-            }
-
-            // clear the source counter
-            let _ = data.set(&mut entry.key, &mut [0_u8; 8]);
-        }
         self.register();
-        for (&value, &count) in &current {
+
+        for (&value, &count) in &map_from_table(&mut table, MICROSECOND) {
             self.common.record_distribution(&label, time, value, count);
         }
     }
 
     fn report_size(&mut self, table: &str, label: &str) {
         let time = time::precise_time_ns();
-        let mut current = HashMap::new();
-        let mut data = self.bpf.table(table);
+        let mut table = self.bpf.table(table);
 
-        for mut entry in data.iter() {
-            let mut key = [0; 4];
-            key.copy_from_slice(&entry.key);
-            let key = u32::from_ne_bytes(key);
-
-            let mut value = [0; 8];
-            value.copy_from_slice(&entry.value);
-            let value = u64::from_ne_bytes(value);
-
-            if let Some(key) = super::key_to_value(key as u64) {
-                current.insert(key, value as u32);
-            }
-
-            // clear the source counter
-            let _ = data.set(&mut entry.key, &mut [0_u8; 8]);
-        }
         self.register();
-        for (&value, &count) in &current {
+
+        for (&value, &count) in &map_from_table(&mut table, UNITY) {
             self.common.record_distribution(&label, time, value, count);
         }
     }
@@ -147,7 +114,7 @@ impl<'a> Sampler<'a> for Block<'a> {
             .config()
             .ebpf()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn register(&mut self) {

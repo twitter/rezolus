@@ -29,7 +29,7 @@ impl std::fmt::Display for Statistic {
 }
 
 impl Statistic {
-    pub fn field_number(&self) -> usize {
+    pub fn field_number(self) -> usize {
         match self {
             Statistic::Processed => 0,
             Statistic::Dropped => 1,

@@ -26,6 +26,7 @@ use std::io::Read;
 use std::net::{SocketAddr, ToSocketAddrs};
 
 use clap::{App, Arg};
+use logger::Level;
 use serde_derive::*;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
