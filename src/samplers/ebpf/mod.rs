@@ -5,11 +5,13 @@
 mod block;
 mod ext4;
 mod scheduler;
+mod tcp;
 mod xfs;
 
 pub use self::block::Block;
 pub use self::ext4::Ext4;
 pub use self::scheduler::Scheduler;
+pub use self::tcp::Tcp;
 pub use self::xfs::Xfs;
 
 use bcc::table::Table;
