@@ -121,6 +121,12 @@ fn main() {
                     timer.add(token, config.interval());
                 }
             }
+            if config.ebpf().tcp() {
+                if let Ok(Some(s)) = ebpf::Tcp::new(&config, &metrics) {
+                    let token = samplers.insert((s, Stats::default()));
+                    timer.add(token, config.interval());
+                }
+            }
             if config.ebpf().xfs() {
                 if let Ok(Some(s)) = ebpf::Xfs::new(&config, &metrics) {
                     let token = samplers.insert((s, Stats::default()));
