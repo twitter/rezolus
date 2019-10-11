@@ -141,12 +141,10 @@ impl<'a> Sampler<'a> for Cpu<'a> {
 
     fn deregister(&mut self) {
         trace!("deregister {}", self.name());
-        if self.common.initialized() {
-            for statistic in self.common.config().cpu().statistics() {
-                self.common.delete_channel(&statistic);
-            }
-            self.common.set_initialized(false);
+        for statistic in self.common.config().cpu().statistics() {
+            self.common.delete_channel(&statistic);
         }
+        self.common.set_initialized(false);
     }
 }
 

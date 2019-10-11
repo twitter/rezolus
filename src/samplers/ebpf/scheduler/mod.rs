@@ -90,9 +90,7 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
 
     fn deregister(&mut self) {
         debug!("deregister {}", self.name());
-        if self.common.initialized() {
-            self.common.delete_channel(&Statistic::RunqueueLatency);
-            self.common.set_initialized(false);
-        }
+        self.common.delete_channel(&Statistic::RunqueueLatency);
+        self.common.set_initialized(false);
     }
 }

@@ -111,17 +111,15 @@ impl<'a> Sampler<'a> for Xfs<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            trace!("deregister {}", self.name());
-            for statistic in &[
-                Statistic::Fsync,
-                Statistic::Open,
-                Statistic::Read,
-                Statistic::Write,
-            ] {
-                self.common.delete_channel(statistic);
-            }
-            self.common.set_initialized(false);
+        trace!("deregister {}", self.name());
+        for statistic in &[
+            Statistic::Fsync,
+            Statistic::Open,
+            Statistic::Read,
+            Statistic::Write,
+        ] {
+            self.common.delete_channel(statistic);
         }
+        self.common.set_initialized(false);
     }
 }

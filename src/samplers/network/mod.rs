@@ -148,15 +148,13 @@ impl<'a> Sampler<'a> for Network<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            trace!("deregister {}", self.name());
-            for statistic in self.common.config().network().interface_statistics() {
-                self.common.delete_channel(statistic);
-            }
-            for statistic in self.common.config().network().protocol_statistics() {
-                self.common.delete_channel(statistic);
-            }
-            self.common.set_initialized(false);
+        trace!("deregister {}", self.name());
+        for statistic in self.common.config().network().interface_statistics() {
+            self.common.delete_channel(statistic);
         }
+        for statistic in self.common.config().network().protocol_statistics() {
+            self.common.delete_channel(statistic);
+        }
+        self.common.set_initialized(false);
     }
 }

@@ -147,21 +147,19 @@ impl<'a> Sampler<'a> for Block<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            trace!("deregister {}", self.name());
-            for statistic in &[
-                Statistic::Size(Direction::Read),
-                Statistic::Size(Direction::Write),
-                Statistic::Latency(Direction::Read),
-                Statistic::Latency(Direction::Write),
-                Statistic::DeviceLatency(Direction::Read),
-                Statistic::DeviceLatency(Direction::Write),
-                Statistic::QueueLatency(Direction::Read),
-                Statistic::QueueLatency(Direction::Write),
-            ] {
-                self.common.delete_channel(statistic);
-            }
-            self.common.set_initialized(false);
+        trace!("deregister {}", self.name());
+        for statistic in &[
+            Statistic::Size(Direction::Read),
+            Statistic::Size(Direction::Write),
+            Statistic::Latency(Direction::Read),
+            Statistic::Latency(Direction::Write),
+            Statistic::DeviceLatency(Direction::Read),
+            Statistic::DeviceLatency(Direction::Write),
+            Statistic::QueueLatency(Direction::Read),
+            Statistic::QueueLatency(Direction::Write),
+        ] {
+            self.common.delete_channel(statistic);
         }
+        self.common.set_initialized(false);
     }
 }

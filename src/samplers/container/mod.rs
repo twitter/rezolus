@@ -134,15 +134,13 @@ impl<'a> Sampler<'a> for Container<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            for statistic in &[
-                Statistic::CpuSystem,
-                Statistic::CpuTotal,
-                Statistic::CpuUser,
-            ] {
-                self.common.delete_channel(statistic);
-            }
-            self.common.set_initialized(false);
+        for statistic in &[
+            Statistic::CpuSystem,
+            Statistic::CpuTotal,
+            Statistic::CpuUser,
+        ] {
+            self.common.delete_channel(statistic);
         }
+        self.common.set_initialized(false);
     }
 }
