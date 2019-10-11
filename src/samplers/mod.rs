@@ -4,6 +4,7 @@
 
 pub(crate) mod container;
 pub(crate) mod cpu;
+pub(crate) mod cpuidle;
 pub(crate) mod disk;
 #[cfg(feature = "ebpf")]
 pub(crate) mod ebpf;
@@ -16,6 +17,7 @@ pub(crate) mod softnet;
 
 pub use self::container::Container;
 pub use self::cpu::Cpu;
+pub use self::cpuidle::CpuIdle;
 pub use self::disk::Disk;
 pub use self::memcache::Memcache;
 pub use self::network::Network;

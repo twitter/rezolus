@@ -89,6 +89,10 @@ fn main() {
             let token = samplers.insert((s, Stats::default()));
             timer.add(token, config.interval());
         }
+        if let Ok(Some(s)) = samplers::CpuIdle::new(&config, &metrics) {
+            let token = samplers.insert((s, Stats::default()));
+            timer.add(token, config.interval());
+        }
         if let Ok(Some(s)) = samplers::Disk::new(&config, &metrics) {
             let token = samplers.insert((s, Stats::default()));
             timer.add(token, config.interval());
