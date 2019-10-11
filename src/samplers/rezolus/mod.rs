@@ -186,16 +186,14 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            trace!("deregister {}", self.name());
-            for label in self.gauges() {
-                self.common.delete_channel(&label);
-            }
-            for label in self.counters() {
-                self.common.delete_channel(&label);
-            }
-            self.common.set_initialized(false);
+        trace!("deregister {}", self.name());
+        for label in self.gauges() {
+            self.common.delete_channel(&label);
         }
+        for label in self.counters() {
+            self.common.delete_channel(&label);
+        }
+        self.common.set_initialized(false);
     }
 }
 

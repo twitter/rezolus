@@ -24,7 +24,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "atomics"
 version = "0.3.0"
-source = "git+https://github.com/twitter/rpc-perf#8810bb31f0ed270b8084a42c2f3b6ca07eb99b9f"
+source = "git+https://github.com/twitter/rpc-perf#3b26cde9f319428787615d83a2413f96cbd5ec40"
 dependencies = [
  "serde 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -181,7 +181,7 @@ dependencies = [
 [[package]]
 name = "datastructures"
 version = "0.4.0"
-source = "git+https://github.com/twitter/rpc-perf#8810bb31f0ed270b8084a42c2f3b6ca07eb99b9f"
+source = "git+https://github.com/twitter/rpc-perf#3b26cde9f319428787615d83a2413f96cbd5ec40"
 dependencies = [
  "atomics 0.3.0 (git+https://github.com/twitter/rpc-perf)",
  "logger 0.1.0 (git+https://github.com/twitter/rpc-perf)",
@@ -309,7 +309,7 @@ dependencies = [
 [[package]]
 name = "logger"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rpc-perf#8810bb31f0ed270b8084a42c2f3b6ca07eb99b9f"
+source = "git+https://github.com/twitter/rpc-perf#3b26cde9f319428787615d83a2413f96cbd5ec40"
 dependencies = [
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -330,8 +330,8 @@ dependencies = [
 
 [[package]]
 name = "metrics"
-version = "0.4.0"
-source = "git+https://github.com/twitter/rpc-perf#8810bb31f0ed270b8084a42c2f3b6ca07eb99b9f"
+version = "0.4.1"
+source = "git+https://github.com/twitter/rpc-perf#3b26cde9f319428787615d83a2413f96cbd5ec40"
 dependencies = [
  "datastructures 0.4.0 (git+https://github.com/twitter/rpc-perf)",
  "evmap 7.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -669,7 +669,7 @@ dependencies = [
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "json 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "logger 0.1.0 (git+https://github.com/twitter/rpc-perf)",
- "metrics 0.4.0 (git+https://github.com/twitter/rpc-perf)",
+ "metrics 0.4.1 (git+https://github.com/twitter/rpc-perf)",
  "perfcnt 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 1.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -854,7 +854,7 @@ dependencies = [
 [[package]]
 name = "timer"
 version = "0.1.2"
-source = "git+https://github.com/twitter/rpc-perf#8810bb31f0ed270b8084a42c2f3b6ca07eb99b9f"
+source = "git+https://github.com/twitter/rpc-perf#3b26cde9f319428787615d83a2413f96cbd5ec40"
 dependencies = [
  "logger 0.1.0 (git+https://github.com/twitter/rpc-perf)",
 ]
@@ -1053,7 +1053,7 @@ dependencies = [
 "checksum logger 0.1.0 (git+https://github.com/twitter/rpc-perf)" = "<none>"
 "checksum matches 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "7ffc5c5338469d4d3ea17d269fa8ea3512ad247247c30bd2df69e68309ed0a08"
 "checksum memchr 2.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "88579771288728879b57485cc7d6b07d648c9f0141eb955f8ab7f9d45394468e"
-"checksum metrics 0.4.0 (git+https://github.com/twitter/rpc-perf)" = "<none>"
+"checksum metrics 0.4.1 (git+https://github.com/twitter/rpc-perf)" = "<none>"
 "checksum mmap 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "0bc85448a6006dd2ba26a385a564a8a0f1f2c7e78c70f1a70b2e0f4af286b823"
 "checksum nix 0.14.1 (registry+https://github.com/rust-lang/crates.io-index)" = "6c722bee1037d430d0f8e687bbdbf222f27cc6e4e68d5caf630857bb2b6dbdce"
 "checksum nom 4.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "2ad2a91a8e869eeb30b9cb3119ae87773a8f4ae617f41b1eb9c154b2905f7bd6"

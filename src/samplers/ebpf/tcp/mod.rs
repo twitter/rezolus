@@ -91,12 +91,10 @@ impl<'a> Sampler<'a> for Tcp<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            trace!("deregister {}", self.name());
-            for statistic in &[Statistic::ConnectLatency] {
-                self.common.delete_channel(statistic);
-            }
-            self.common.set_initialized(false);
+        trace!("deregister {}", self.name());
+        for statistic in &[Statistic::ConnectLatency] {
+            self.common.delete_channel(statistic);
         }
+        self.common.set_initialized(false);
     }
 }
