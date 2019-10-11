@@ -2,6 +2,8 @@
 ## Added
 - Container sampler to use within an application container for telemetry
 - Allow for per-sampler collection intervals
+- Adds a TCP eBPF sampler which provides latencies for establishing active TCP
+  connections
 
 ## Fixed
 - Allows memcache sampler to reconnect to the cache instance which helps to make
