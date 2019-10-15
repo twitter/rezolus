@@ -11,9 +11,23 @@ by:
 * `/maximum/offset_ms` - the offset into the minute at which the maximum
   occurred
 
+## Container
+
+Instruments the container Rezolus is running within. Providing enhanced
+telemetry for containerized environments like Mesos by running as a sidecar
+process.
+
+* `container/cpu/system` - the amount of time, in nanoseconds, the container has
+  spent in kernel-space
+* `container/cpu/total` - the amount of time, in nanoseconds, the container has
+  been running
+* `container/cpu/user` - the amount of time, in nanoseconds, the container has
+  spent in user-space
+
 ## CPU
 
-The following are taken from `/proc/stat`
+Provides system-wide CPU utilization telemetry. The following are taken from
+`/proc/stat`
 
 * `cpu/user` - the amount of time, in nanoseconds, spent in user-space
 * `cpu/nice` - the amount of time, in nanoseconds, spent on lower-priority
@@ -27,9 +41,20 @@ The following are taken from `/proc/stat`
 * `cpu/guest_nice` - the amount of time, in nanoseconds, running a low-priority
   guest VM
 
+## CPU Idle
+
+Provides system-wide telemetry for CPU idle states. The following are taken from
+`/sys/devices/system/cpu/...`
+
+* `cpuidle/state0` - the number of nanoseconds the CPUs have spent in State 0
+* `cpuidle/state1` - the number of nanoseconds the CPUs have spent in State 1
+* `cpuidle/state2` - the number of nanoseconds the CPUs have spent in State 2
+* `cpuidle/state3` - the number of nanoseconds the CPUs have spent in State 3
+
 ## Disk
 
-The following are taken from `/sys/class/block/...`
+Provides system-wide telemetry for block storage. The following are taken from
+`/sys/class/block/...`
 
 * `disk/bandwidth/read` - the number of bytes read from disk
 * `disk/bandwidth/write` - the number of bytes written to disk
@@ -52,7 +77,7 @@ All of the following subsections are eBPF telemetry
 
 ### Block
 
-Captures telemetry about block IO
+Captures system-wide telemetry about block IO
 
 * `block/device_latency/read` - distribution of device latency for read
 * `block/device_latency/write` - distribution of device latency for write
@@ -66,7 +91,7 @@ Captures telemetry about block IO
 
 ### EXT4
 
-Capture filesystem latency for EXT4
+Capture system-wide filesystem latency for EXT4
 
 * `ext4/read` - distribution of latency for read operations in nanoseconds
 * `ext4/write` - distribution of latency for write operations in nanoseconds
@@ -75,14 +100,14 @@ Capture filesystem latency for EXT4
 
 ### Scheduler
 
-Captures scheduler telemetry
+Captures system-wide scheduler telemetry
 
 * `scheduler/runqueue_latency_ns` - distribution of the amount of time in
   nanoseconds that runnable tasks are waiting to be scheduled onto a core
 
 ### XFS
 
-Capture filesystem latency for XFS
+Capture system-wide filesystem latency for XFS
 
 * `xfs/read` - distribution of latency for read operations in nanoseconds
 * `xfs/write` - distribution of latency for write operations in nanoseconds
@@ -91,7 +116,7 @@ Capture filesystem latency for XFS
 
 ## Network
 
-Capture telemetry for network interfaces and protocols. Reads from
+Capture system-wide telemetry for network interfaces and protocols. Reads from
 `/sys/class/net/...`, `/proc/net/snmp`, and `/proc/net/netstat`
 
 ### Interface telemetry
@@ -150,7 +175,8 @@ Capture telemetry for network interfaces and protocols. Reads from
 
 ## Perf
 
-The following telemetry is gathered from the perf events subsystem
+The following telemetry is gathered from the perf events subsystem and provides
+a view into hardware and software performance system-wide
 
 * `perf/cache/dtlb/read/references` - `dtlb_loads` total number of read
   references to the dTLB
@@ -189,7 +215,8 @@ The following telemetry is gathered from the perf events subsystem
 
 ## Softnet
 
-This telemetry is gathered from `/proc/net/softnet_stat`
+Provides system-wide telemetry about packet processing gathered from
+`/proc/net/softnet_stat`
 
 * `softnet/processed` - total number of packets processed by the kernel network
   stack
