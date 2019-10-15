@@ -31,7 +31,8 @@ enabled = true
 # see docs/METRICS.md for a list of statistics that can be configured 
 statistics = ["user", "system", "idle", "irq", "softirq"]
 
-
+[cpuidle]
+enabled = true
 
 # settings for basic disk telemetry
 [disk]

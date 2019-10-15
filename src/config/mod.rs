@@ -4,6 +4,7 @@
 
 mod container;
 mod cpu;
+mod cpuidle;
 mod disk;
 mod ebpf;
 mod general;
@@ -13,6 +14,7 @@ mod softnet;
 
 use self::container::Container;
 use self::cpu::Cpu;
+use self::cpuidle::CpuIdle;
 use self::disk::Disk;
 use self::ebpf::Ebpf;
 use self::general::General;
@@ -39,6 +41,8 @@ pub struct Config {
     container: Container,
     #[serde(default)]
     cpu: Cpu,
+    #[serde(default)]
+    cpuidle: CpuIdle,
     #[serde(default)]
     disk: Disk,
     #[serde(default)]
@@ -125,6 +129,10 @@ impl Config {
 
     pub fn cpu(&self) -> &Cpu {
         &self.cpu
+    }
+
+    pub fn cpuidle(&self) -> &CpuIdle {
+        &self.cpuidle
     }
 
     pub fn disk(&self) -> &Disk {
