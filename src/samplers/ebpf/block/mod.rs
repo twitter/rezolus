@@ -17,12 +17,14 @@ use logger::*;
 use metrics::*;
 use time;
 
-pub struct Block<'a> {
+use std::sync::Arc;
+
+pub struct Block {
     bpf: BPF,
-    common: Common<'a>,
+    common: Common,
 }
 
-impl<'a> Block<'a> {
+impl Block {
     fn report_statistic(&mut self, statistic: &Statistic) {
         match statistic {
             Statistic::Size(_) => {
@@ -57,11 +59,8 @@ impl<'a> Block<'a> {
     }
 }
 
-impl<'a> Sampler<'a> for Block<'a> {
-    fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+impl Sampler for Block {
+    fn new(config: Arc<Config>, metrics: Metrics<AtomicU32>) -> Result<Option<Box<Self>>, Error> {
         debug!("initializing");
         // load the code and compile
         let code = include_str!("bpf.c");
@@ -80,10 +79,10 @@ impl<'a> Sampler<'a> for Block<'a> {
         Ok(Some(Box::new(Self {
             bpf,
             common: Common::new(config, metrics),
-        })))
+        }) as Box<dyn Sampler>))
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 

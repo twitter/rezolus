@@ -17,16 +17,15 @@ use logger::*;
 use metrics::*;
 use time;
 
-pub struct Xfs<'a> {
+use std::sync::Arc;
+
+pub struct Xfs {
     bpf: BPF,
-    common: Common<'a>,
+    common: Common,
 }
 
-impl<'a> Sampler<'a> for Xfs<'a> {
-    fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+impl Sampler for Xfs {
+    fn new(config: Arc<Config>, metrics: Metrics<AtomicU32>) -> Result<Option<Box<Self>>, Error> {
         debug!("initializing");
         // load the code and compile
         let code = include_str!("bpf.c").to_string();
@@ -54,10 +53,10 @@ impl<'a> Sampler<'a> for Xfs<'a> {
         Ok(Some(Box::new(Self {
             bpf,
             common: Common::new(config, metrics),
-        })))
+        }) as Box<dyn Sampler>))
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 

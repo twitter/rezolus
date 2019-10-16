@@ -14,8 +14,10 @@ use logger::*;
 use metrics::*;
 use time;
 
-pub struct CpuIdle<'a> {
-    common: Common<'a>,
+use std::sync::Arc;
+
+pub struct CpuIdle {
+    common: Common,
     cores: u64,
 }
 
@@ -25,22 +27,22 @@ fn get_cpuidle_usage(cpu: u64, state: &Statistic) -> Result<u64, ()> {
     file_as_u64(filename).map(|x| x * 1000)
 }
 
-impl<'a> Sampler<'a> for CpuIdle<'a> {
+impl Sampler for CpuIdle {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         if config.cpuidle().enabled() {
             Ok(Some(Box::new(CpuIdle {
                 common: Common::new(config, metrics),
                 cores: crate::common::hardware_threads().unwrap_or(1),
-            })))
+            }) as Box<dyn Sampler>))
         } else {
             Ok(None)
         }
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 

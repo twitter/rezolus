@@ -17,16 +17,15 @@ use logger::*;
 use metrics::*;
 use time;
 
-pub struct Scheduler<'a> {
+use std::sync::Arc;
+
+pub struct Scheduler {
     bpf: BPF,
-    common: Common<'a>,
+    common: Common,
 }
 
-impl<'a> Sampler<'a> for Scheduler<'a> {
-    fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+impl Sampler for Scheduler {
+    fn new(config: Arc<Config>, metrics: Metrics<AtomicU32>) -> Result<Option<Box<Self>>, Error> {
         debug!("initializing");
         // load the code and compile
         let code = include_str!("bpf.c");
@@ -44,10 +43,10 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
         Ok(Some(Box::new(Self {
             bpf,
             common: Common::new(config, metrics),
-        })))
+        }) as Box<dyn Sampler>))
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 

@@ -15,18 +15,19 @@ use metrics::*;
 use time;
 
 use std::io::{BufRead, BufReader};
+use std::sync::Arc;
 
-pub struct Container<'a> {
-    common: Common<'a>,
+pub struct Container {
+    common: Common,
     cgroup: Option<String>,
     nanos_per_tick: u64,
 }
 
-impl<'a> Sampler<'a> for Container<'a> {
+impl Sampler for Container {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         if config.container().enabled() {
             let mut cgroup = None;
             let path = format!("/proc/{}/cgroup", std::process::id());
@@ -45,7 +46,7 @@ impl<'a> Sampler<'a> for Container<'a> {
                     common: Common::new(config, metrics),
                     cgroup,
                     nanos_per_tick: crate::common::nanos_per_tick(),
-                })))
+                }) as Box<dyn Sampler>))
             } else {
                 Err(format_err!("failed to find cgroup"))
             }
@@ -62,7 +63,7 @@ impl<'a> Sampler<'a> for Container<'a> {
             .unwrap_or_else(|| self.common().config().interval())
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 

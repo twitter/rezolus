@@ -17,6 +17,7 @@ use time;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::sync::Arc;
 
 const PROC_STAT: &str = "/proc/stat";
 
@@ -33,8 +34,8 @@ pub const PERCENTILES: &[Percentile] = &[
     Percentile::Maximum,
 ];
 
-pub struct Cpu<'a> {
-    common: Common<'a>,
+pub struct Cpu {
+    common: Common,
     nanos_per_tick: u64,
 }
 
@@ -81,22 +82,22 @@ fn parse_proc_stat<T: BufRead>(reader: &mut T) -> ProcStat {
     ret
 }
 
-impl<'a> Sampler<'a> for Cpu<'a> {
+impl Sampler for Cpu {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         if config.cpu().enabled() {
             Ok(Some(Box::new(Cpu {
                 common: Common::new(config, metrics),
                 nanos_per_tick: crate::common::nanos_per_tick(),
-            })))
+            }) as Box<dyn Sampler>))
         } else {
             Ok(None)
         }
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 

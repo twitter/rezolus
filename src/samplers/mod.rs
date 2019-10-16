@@ -31,16 +31,21 @@ use crate::config::Config;
 use failure::Error;
 use metrics::*;
 
+use std::sync::Arc;
+
 /// `Sampler`s are used to get samples of a particular subsystem or component
 /// The `Sampler` will perform the necessary actions to update the telemetry and
 /// record updated values into the metrics `Recorder`
-pub trait Sampler<'a> {
-    fn new(config: &'a Config, metrics: &'a Metrics<AtomicU32>) -> Result<Option<Box<Self>>, Error>
+pub trait Sampler {
+    fn new(
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error>
     where
         Self: Sized;
 
     /// Return a reference to the `Common` struct
-    fn common(&self) -> &Common<'a>;
+    fn common(&self) -> &Common;
 
     /// Return the name of the `Sampler`
     fn name(&self) -> String;
@@ -58,14 +63,14 @@ pub trait Sampler<'a> {
     fn deregister(&mut self);
 }
 
-pub struct Common<'a> {
-    config: &'a Config,
+pub struct Common {
+    config: Arc<Config>,
     initialized: AtomicBool,
-    metrics: &'a Metrics<AtomicU32>,
+    metrics: Metrics<AtomicU32>,
 }
 
-impl<'a> Common<'a> {
-    pub fn new(config: &'a Config, metrics: &'a Metrics<AtomicU32>) -> Self {
+impl Common {
+    pub fn new(config: Arc<Config>, metrics: Metrics<AtomicU32>) -> Self {
         Self {
             config,
             initialized: AtomicBool::new(false),
@@ -73,8 +78,8 @@ impl<'a> Common<'a> {
         }
     }
 
-    pub fn config(&self) -> &'a Config {
-        self.config
+    pub fn config(&self) -> &Config {
+        &self.config
     }
 
     pub fn initialized(&self) -> bool {
@@ -85,8 +90,8 @@ impl<'a> Common<'a> {
         self.initialized.store(value, Ordering::SeqCst);
     }
 
-    pub fn metrics(&self) -> &'a Metrics<AtomicU32> {
-        self.metrics
+    pub fn metrics(&self) -> &Metrics<AtomicU32> {
+        &self.metrics
     }
 
     pub fn delete_channel(&self, name: &dyn ToString) {

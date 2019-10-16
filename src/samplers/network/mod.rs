@@ -20,16 +20,17 @@ use time;
 use walkdir;
 
 use std::collections::HashSet;
+use std::sync::Arc;
 
 const REFRESH: u64 = 60_000_000_000;
 
-pub struct Network<'a> {
-    common: Common<'a>,
+pub struct Network {
+    common: Common,
     interfaces: HashSet<Interface>,
     last_refreshed: u64,
 }
 
-impl<'a> Network<'a> {
+impl Network {
     fn get_interfaces(&self) -> HashSet<Interface> {
         let mut interfaces = HashSet::default();
         for entry in walkdir::WalkDir::new("/sys/class/net/")
@@ -56,23 +57,23 @@ impl<'a> Network<'a> {
     }
 }
 
-impl<'a> Sampler<'a> for Network<'a> {
+impl Sampler for Network {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         if config.network().enabled() {
             Ok(Some(Box::new(Self {
                 common: Common::new(config, metrics),
                 interfaces: HashSet::new(),
                 last_refreshed: 0,
-            })))
+            }) as Box<dyn Sampler>))
         } else {
             Ok(None)
         }
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 
