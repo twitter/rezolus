@@ -15,14 +15,15 @@ use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 
 use std::str;
+use std::sync::Arc;
 
-pub struct Memcache<'a> {
+pub struct Memcache {
     address: SocketAddr,
-    common: Common<'a>,
+    common: Common,
     stream: Option<TcpStream>,
 }
 
-impl<'a> Memcache<'a> {
+impl Memcache {
     fn reconnect(&mut self) {
         if self.stream.is_none() {
             let stream = match TcpStream::connect(self.address) {
@@ -37,11 +38,11 @@ impl<'a> Memcache<'a> {
     }
 }
 
-impl<'a> Sampler<'a> for Memcache<'a> {
+impl Sampler for Memcache {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         let endpoint = config.memcache().unwrap();
         let mut addrs = endpoint.to_socket_addrs().unwrap_or_else(|_| {
             println!("ERROR: endpoint address is malformed: {}", endpoint);
@@ -62,10 +63,10 @@ impl<'a> Sampler<'a> for Memcache<'a> {
             address,
             common: Common::new(config, metrics),
             stream,
-        })))
+        }) as Box<dyn Sampler>))
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 

@@ -3,6 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 #![deny(clippy::all)]
+#![allow(clippy::new_ret_no_self)]
 
 #[macro_use]
 extern crate logger;
@@ -73,66 +74,40 @@ fn main() {
     let mut samplers = Slab::<(Box<dyn Sampler>, Stats)>::new();
     let mut timer = Wheel::<usize>::new(1000);
 
+    let config = Arc::new(config);
+
     // register samplers
     if config.memcache().is_some() {
         info!("memcache proxy mode");
-        if let Ok(Some(s)) = samplers::Memcache::new(&config, &metrics) {
+        if let Ok(Some(s)) = samplers::Memcache::new(config.clone(), metrics.clone()) {
             let token = samplers.insert((s, Stats::default()));
             timer.add(token, config.interval());
         }
     } else {
-        if let Ok(Some(s)) = samplers::Container::new(&config, &metrics) {
-            let token = samplers.insert((s, Stats::default()));
-            timer.add(token, config.interval());
-        }
-        if let Ok(Some(s)) = samplers::Cpu::new(&config, &metrics) {
-            let token = samplers.insert((s, Stats::default()));
-            timer.add(token, config.interval());
-        }
-        if let Ok(Some(s)) = samplers::CpuIdle::new(&config, &metrics) {
-            let token = samplers.insert((s, Stats::default()));
-            timer.add(token, config.interval());
-        }
-        if let Ok(Some(s)) = samplers::Disk::new(&config, &metrics) {
-            let token = samplers.insert((s, Stats::default()));
-            timer.add(token, config.interval());
-        }
-        if let Ok(Some(s)) = samplers::Rezolus::new(&config, &metrics) {
-            let token = samplers.insert((s, Stats::default()));
-            timer.add(token, config.interval());
-        }
-        if let Ok(Some(s)) = samplers::Network::new(&config, &metrics) {
-            let token = samplers.insert((s, Stats::default()));
-            timer.add(token, config.interval());
+        for sampler in vec![
+            samplers::Container::new(config.clone(), metrics.clone()),
+            samplers::Cpu::new(config.clone(), metrics.clone()),
+            samplers::CpuIdle::new(config.clone(), metrics.clone()),
+            samplers::Disk::new(config.clone(), metrics.clone()),
+            samplers::Network::new(config.clone(), metrics.clone()),
+            samplers::Rezolus::new(config.clone(), metrics.clone()),
+            samplers::Softnet::new(config.clone(), metrics.clone()),
+        ] {
+            if let Ok(Some(s)) = sampler {
+                let token = samplers.insert((s, Stats::default()));
+                timer.add(token, config.interval());
+            }
         }
         #[cfg(feature = "ebpf")]
         {
-            if config.ebpf().block() {
-                if let Ok(Some(s)) = ebpf::Block::new(&config, &metrics) {
-                    let token = samplers.insert((s, Stats::default()));
-                    timer.add(token, config.interval());
-                }
-            }
-            if config.ebpf().ext4() {
-                if let Ok(Some(s)) = ebpf::Ext4::new(&config, &metrics) {
-                    let token = samplers.insert((s, Stats::default()));
-                    timer.add(token, config.interval());
-                }
-            }
-            if config.ebpf().scheduler() {
-                if let Ok(Some(s)) = ebpf::Scheduler::new(&config, &metrics) {
-                    let token = samplers.insert((s, Stats::default()));
-                    timer.add(token, config.interval());
-                }
-            }
-            if config.ebpf().tcp() {
-                if let Ok(Some(s)) = ebpf::Tcp::new(&config, &metrics) {
-                    let token = samplers.insert((s, Stats::default()));
-                    timer.add(token, config.interval());
-                }
-            }
-            if config.ebpf().xfs() {
-                if let Ok(Some(s)) = ebpf::Xfs::new(&config, &metrics) {
+            for sampler in vec![
+                ebpf::Block::new(config.clone(), metrics.clone()),
+                ebpf::Ext4::new(config.clone(), metrics.clone()),
+                ebpf::Scheduler::new(config.clone(), metrics.clone()),
+                ebpf::Tcp::new(config.clone(), metrics.clone()),
+                ebpf::Xfs::new(config.clone(), metrics.clone()),
+            ] {
+                if let Ok(Some(s)) = sampler {
                     let token = samplers.insert((s, Stats::default()));
                     timer.add(token, config.interval());
                 }
@@ -140,14 +115,10 @@ fn main() {
         }
         #[cfg(feature = "perf")]
         {
-            if let Ok(Some(s)) = samplers::Perf::new(&config, &metrics) {
+            if let Ok(Some(s)) = samplers::Perf::new(config.clone(), metrics.clone()) {
                 let token = samplers.insert((s, Stats::default()));
                 timer.add(token, config.interval());
             }
-        }
-        if let Ok(Some(s)) = samplers::Softnet::new(&config, &metrics) {
-            let token = samplers.insert((s, Stats::default()));
-            timer.add(token, config.interval());
         }
     }
 
