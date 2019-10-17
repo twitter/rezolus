@@ -25,7 +25,10 @@ pub struct Scheduler {
 }
 
 impl Sampler for Scheduler {
-    fn new(config: Arc<Config>, metrics: Metrics<AtomicU32>) -> Result<Option<Box<Self>>, Error> {
+    fn new(
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         debug!("initializing");
         // load the code and compile
         let code = include_str!("bpf.c");
