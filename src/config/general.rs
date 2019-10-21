@@ -23,6 +23,8 @@ pub struct General {
     #[serde(default = "default_max_timeouts")]
     max_timeouts: AtomicUsize,
     stats_log: Option<String>,
+    #[serde(default = "default_fault_tolerant")]
+    fault_tolerant: AtomicBool,
 }
 
 impl General {
@@ -61,6 +63,10 @@ impl General {
     pub fn stats_log(&self) -> Option<String> {
         self.stats_log.clone()
     }
+
+    pub fn fault_tolerant(&self) -> bool {
+        self.fault_tolerant.load(Ordering::Relaxed)
+    }
 }
 
 impl Default for General {
@@ -74,6 +80,7 @@ impl Default for General {
             max_timeouts: default_max_timeouts(),
             stats_log: None,
             memcache: None,
+            fault_tolerant: default_fault_tolerant(),
         }
     }
 }
@@ -92,6 +99,10 @@ fn default_timeout() -> AtomicUsize {
 
 fn default_max_timeouts() -> AtomicUsize {
     AtomicUsize::new(5)
+}
+
+fn default_fault_tolerant() -> AtomicBool {
+    AtomicBool::new(true)
 }
 
 #[derive(Clone, Deserialize, Debug)]

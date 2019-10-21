@@ -29,37 +29,41 @@ impl Sampler for Ext4 {
         config: Arc<Config>,
         metrics: Metrics<AtomicU32>,
     ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        debug!("initializing");
-        // load the code and compile
-        let code = include_str!("bpf.c").to_string();
-        let addr = "0x".to_string() + &super::symbol_lookup("ext4_file_operations").unwrap();
-        let code = code.replace("EXT4_FILE_OPERATIONS", &addr);
-        let mut bpf = BPF::new(&code)?;
+        if config.ebpf().ext4() {
+            debug!("initializing");
+            // load the code and compile
+            let code = include_str!("bpf.c").to_string();
+            let addr = "0x".to_string() + &super::symbol_lookup("ext4_file_operations").unwrap();
+            let code = code.replace("EXT4_FILE_OPERATIONS", &addr);
+            let mut bpf = BPF::new(&code)?;
 
-        // load + attach kprobes!
+            // load + attach kprobes!
 
-        let generic_file_read_iter_entry = bpf.load_kprobe("trace_read_entry")?;
-        let ext4_file_write_iter_entry = bpf.load_kprobe("trace_entry")?;
-        let ext4_file_open_entry = bpf.load_kprobe("trace_entry")?;
-        let ext4_sync_file_entry = bpf.load_kprobe("trace_entry")?;
-        let generic_file_read_iter_return = bpf.load_kprobe("trace_read_return")?;
-        let ext4_file_write_iter_return = bpf.load_kprobe("trace_write_return")?;
-        let ext4_file_open_return = bpf.load_kprobe("trace_open_return")?;
-        let ext4_sync_file_return = bpf.load_kprobe("trace_fsync_return")?;
+            let generic_file_read_iter_entry = bpf.load_kprobe("trace_read_entry")?;
+            let ext4_file_write_iter_entry = bpf.load_kprobe("trace_entry")?;
+            let ext4_file_open_entry = bpf.load_kprobe("trace_entry")?;
+            let ext4_sync_file_entry = bpf.load_kprobe("trace_entry")?;
+            let generic_file_read_iter_return = bpf.load_kprobe("trace_read_return")?;
+            let ext4_file_write_iter_return = bpf.load_kprobe("trace_write_return")?;
+            let ext4_file_open_return = bpf.load_kprobe("trace_open_return")?;
+            let ext4_sync_file_return = bpf.load_kprobe("trace_fsync_return")?;
 
-        bpf.attach_kprobe("generic_file_read_iter", generic_file_read_iter_entry)?;
-        bpf.attach_kprobe("ext4_file_write_iter", ext4_file_write_iter_entry)?;
-        bpf.attach_kprobe("ext4_file_open", ext4_file_open_entry)?;
-        bpf.attach_kprobe("ext4_sync_file", ext4_sync_file_entry)?;
-        bpf.attach_kretprobe("generic_file_read_iter", generic_file_read_iter_return)?;
-        bpf.attach_kretprobe("ext4_file_write_iter", ext4_file_write_iter_return)?;
-        bpf.attach_kretprobe("ext4_file_open", ext4_file_open_return)?;
-        bpf.attach_kretprobe("ext4_sync_file", ext4_sync_file_return)?;
+            bpf.attach_kprobe("generic_file_read_iter", generic_file_read_iter_entry)?;
+            bpf.attach_kprobe("ext4_file_write_iter", ext4_file_write_iter_entry)?;
+            bpf.attach_kprobe("ext4_file_open", ext4_file_open_entry)?;
+            bpf.attach_kprobe("ext4_sync_file", ext4_sync_file_entry)?;
+            bpf.attach_kretprobe("generic_file_read_iter", generic_file_read_iter_return)?;
+            bpf.attach_kretprobe("ext4_file_write_iter", ext4_file_write_iter_return)?;
+            bpf.attach_kretprobe("ext4_file_open", ext4_file_open_return)?;
+            bpf.attach_kretprobe("ext4_sync_file", ext4_sync_file_return)?;
 
-        Ok(Some(Box::new(Self {
-            bpf,
-            common: Common::new(config, metrics),
-        }) as Box<dyn Sampler>))
+            Ok(Some(Box::new(Self {
+                bpf,
+                common: Common::new(config, metrics),
+            }) as Box<dyn Sampler>))
+        } else {
+            Ok(None)
+        }
     }
 
     fn common(&self) -> &Common {
