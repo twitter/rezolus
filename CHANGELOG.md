@@ -1,4 +1,10 @@
 # [Unreleased]
+## Added
+- Configuration flag to disable fault tolerance, enabling proper smoke tests of
+  sampler initialization in CI
+
+## Fixed
+- Fixes build issue when `perf` feature is disabled
 
 # [1.1.0] - 2019-10-15
 ## Added
