@@ -51,7 +51,7 @@ matrix:
         - cargo test --verbose --no-default-features
         - cargo build --release --verbose --no-default-features
         - cargo test --release --verbose --no-default-features
-        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
+        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
     - os: linux
       rust: nightly
       env: TYPE=no-default RUST_BACKTRACE=1
@@ -60,7 +60,7 @@ matrix:
         - cargo test --verbose --no-default-features
         - cargo build --release --verbose --no-default-features
         - cargo test --release --verbose --no-default-features
-        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
+        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
     - os: linux
       rust: stable
       env: TYPE=rustfmt RUST_BACKTRACE=1
