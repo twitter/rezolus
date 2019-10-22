@@ -151,6 +151,7 @@ impl Config {
         &self.network
     }
 
+    #[cfg(feature = "perf")]
     pub fn perf(&self) -> &Perf {
         &self.perf
     }
