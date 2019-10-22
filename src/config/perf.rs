@@ -84,7 +84,7 @@ impl SamplerConfig for Perf {
     }
 }
 
-#[cfg(feauture = "perf")]
+#[cfg(feature = "perf")]
 impl Perf {
     pub fn statistics(&self) -> &[Statistic] {
         &self.statistics
