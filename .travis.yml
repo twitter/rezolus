@@ -14,6 +14,7 @@ matrix:
         - cargo build --release --verbose
         - cargo test --release --verbose
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - os: linux
       rust: nightly
       env: TYPE=ebpf RUST_BACKTRACE=1
@@ -41,6 +42,7 @@ matrix:
         - cargo test --release --features ebpf
         - cargo run --release --features ebpf -- --version
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - os: linux
       rust: stable
       env: TYPE=no-default RUST_BACKTRACE=1

@@ -29,24 +29,28 @@ impl Sampler for Tcp {
         config: Arc<Config>,
         metrics: Metrics<AtomicU32>,
     ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        debug!("initializing");
-        // load the code and compile
-        let code = include_str!("bpf.c").to_string();
-        let mut bpf = BPF::new(&code)?;
+        if config.ebpf().tcp() {
+            debug!("initializing");
+            // load the code and compile
+            let code = include_str!("bpf.c").to_string();
+            let mut bpf = BPF::new(&code)?;
 
-        // load + attach kprobes!
-        let tcp_v4_connect = bpf.load_kprobe("trace_connect")?;
-        let tcp_v6_connect = bpf.load_kprobe("trace_connect")?;
-        let tcp_rcv_state_process = bpf.load_kprobe("trace_tcp_rcv_state_process")?;
+            // load + attach kprobes!
+            let tcp_v4_connect = bpf.load_kprobe("trace_connect")?;
+            let tcp_v6_connect = bpf.load_kprobe("trace_connect")?;
+            let tcp_rcv_state_process = bpf.load_kprobe("trace_tcp_rcv_state_process")?;
 
-        bpf.attach_kprobe("tcp_v4_connect", tcp_v4_connect)?;
-        bpf.attach_kprobe("tcp_v6_connect", tcp_v6_connect)?;
-        bpf.attach_kprobe("tcp_rcv_state_process", tcp_rcv_state_process)?;
+            bpf.attach_kprobe("tcp_v4_connect", tcp_v4_connect)?;
+            bpf.attach_kprobe("tcp_v6_connect", tcp_v6_connect)?;
+            bpf.attach_kprobe("tcp_rcv_state_process", tcp_rcv_state_process)?;
 
-        Ok(Some(Box::new(Self {
-            bpf,
-            common: Common::new(config, metrics),
-        }) as Box<dyn Sampler>))
+            Ok(Some(Box::new(Self {
+                bpf,
+                common: Common::new(config, metrics),
+            }) as Box<dyn Sampler>))
+        } else {
+            Ok(None)
+        }
     }
 
     fn common(&self) -> &Common {

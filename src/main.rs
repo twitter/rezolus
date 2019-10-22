@@ -79,9 +79,17 @@ fn main() {
     // register samplers
     if config.memcache().is_some() {
         info!("memcache proxy mode");
-        if let Ok(Some(s)) = samplers::Memcache::new(config.clone(), metrics.clone()) {
-            let token = samplers.insert((s, Stats::default()));
-            timer.add(token, config.interval());
+        match samplers::Memcache::new(config.clone(), metrics.clone()) {
+            Ok(Some(s)) => {
+                let token = samplers.insert((s, Stats::default()));
+                timer.add(token, config.interval());
+            }
+            Ok(None) => {}
+            Err(e) => {
+                if !config.fault_tolerant() {
+                    fatal!("Error initializing: {}", e);
+                }
+            }
         }
     } else {
         for sampler in vec![
@@ -93,9 +101,17 @@ fn main() {
             samplers::Rezolus::new(config.clone(), metrics.clone()),
             samplers::Softnet::new(config.clone(), metrics.clone()),
         ] {
-            if let Ok(Some(s)) = sampler {
-                let token = samplers.insert((s, Stats::default()));
-                timer.add(token, config.interval());
+            match sampler {
+                Ok(Some(s)) => {
+                    let token = samplers.insert((s, Stats::default()));
+                    timer.add(token, config.interval());
+                }
+                Ok(None) => {}
+                Err(e) => {
+                    if !config.fault_tolerant() {
+                        fatal!("Error initializing: {}", e);
+                    }
+                }
             }
         }
         #[cfg(feature = "ebpf")]
@@ -107,17 +123,33 @@ fn main() {
                 ebpf::Tcp::new(config.clone(), metrics.clone()),
                 ebpf::Xfs::new(config.clone(), metrics.clone()),
             ] {
-                if let Ok(Some(s)) = sampler {
-                    let token = samplers.insert((s, Stats::default()));
-                    timer.add(token, config.interval());
+                match sampler {
+                    Ok(Some(s)) => {
+                        let token = samplers.insert((s, Stats::default()));
+                        timer.add(token, config.interval());
+                    }
+                    Ok(None) => {}
+                    Err(e) => {
+                        if !config.fault_tolerant() {
+                            fatal!("Error initializing: {}", e);
+                        }
+                    }
                 }
             }
         }
         #[cfg(feature = "perf")]
         {
-            if let Ok(Some(s)) = samplers::Perf::new(config.clone(), metrics.clone()) {
-                let token = samplers.insert((s, Stats::default()));
-                timer.add(token, config.interval());
+            match samplers::Perf::new(config.clone(), metrics.clone()) {
+                Ok(Some(s)) => {
+                    let token = samplers.insert((s, Stats::default()));
+                    timer.add(token, config.interval());
+                }
+                Ok(None) => {}
+                Err(e) => {
+                    if !config.fault_tolerant() {
+                        fatal!("Error initializing: {}", e);
+                    }
+                }
             }
         }
     }
