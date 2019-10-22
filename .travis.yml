@@ -45,6 +45,24 @@ matrix:
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - os: linux
       rust: stable
+      env: TYPE=no-default RUST_BACKTRACE=1
+      script:
+        - cargo build --verbose --no-default-features
+        - cargo test --verbose --no-default-features
+        - cargo build --release --verbose --no-default-features
+        - cargo test --release --verbose --no-default-features
+        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
+    - os: linux
+      rust: nightly
+      env: TYPE=no-default RUST_BACKTRACE=1
+      script:
+        - cargo build --verbose --no-default-features
+        - cargo test --verbose --no-default-features
+        - cargo build --release --verbose --no-default-features
+        - cargo test --release --verbose --no-default-features
+        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
+    - os: linux
+      rust: stable
       env: TYPE=rustfmt RUST_BACKTRACE=1
       script:
         - rustup component add rustfmt --toolchain stable

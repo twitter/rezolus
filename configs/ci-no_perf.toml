@@ -1,0 +1,30 @@
+# This config is used to validate Rezolus in CI environments. The main
+# difference between it and the example is that faults in sampler initialization
+# will result in errors as opposed to being silently handled and that perf
+# configuration is removed
+
+[general]
+listen = "0.0.0.0:4242"
+fault_tolerant = false
+
+[cpu]
+enabled = true
+
+[cpuidle]
+enabled = true
+
+[disk]
+enabled = true
+
+[ebpf]
+block = true
+ext4 = true
+scheduler = true
+tcp = true
+xfs = false
+
+[network]
+enabled = true
+
+[softnet]
+enabled = true

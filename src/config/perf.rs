@@ -3,7 +3,13 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::config::*;
+
+#[cfg(feature = "perf")]
 use crate::samplers::perf::statistics::Statistic;
+
+#[derive(Clone, Copy, Deserialize, Hash, Debug, PartialEq, Eq)]
+#[cfg(not(feature = "perf"))]
+pub enum Statistic {}
 
 use atomics::*;
 
@@ -36,6 +42,7 @@ fn default_interval() -> AtomicOption<AtomicUsize> {
     AtomicOption::none()
 }
 
+#[cfg(feature = "perf")]
 fn default_statistics() -> Vec<Statistic> {
     vec![
         Statistic::CacheMisses,
@@ -61,6 +68,11 @@ fn default_statistics() -> Vec<Statistic> {
     ]
 }
 
+#[cfg(not(feature = "perf"))]
+fn default_statistics() -> Vec<Statistic> {
+    vec![]
+}
+
 impl SamplerConfig for Perf {
     fn enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
@@ -71,6 +83,7 @@ impl SamplerConfig for Perf {
     }
 }
 
+#[cfg(feature = "perf")]
 impl Perf {
     pub fn statistics(&self) -> &[Statistic] {
         &self.statistics
