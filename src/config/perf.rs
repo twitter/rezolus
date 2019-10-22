@@ -68,7 +68,6 @@ fn default_statistics() -> Vec<Statistic> {
     ]
 }
 
-
 #[cfg(not(feature = "perf"))]
 fn default_statistics() -> Vec<Statistic> {
     vec![]
