@@ -29,24 +29,28 @@ impl Sampler for Scheduler {
         config: Arc<Config>,
         metrics: Metrics<AtomicU32>,
     ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        debug!("initializing");
-        // load the code and compile
-        let code = include_str!("bpf.c");
-        let mut bpf = BPF::new(code)?;
+        if config.ebpf().scheduler() {
+            debug!("initializing");
+            // load the code and compile
+            let code = include_str!("bpf.c");
+            let mut bpf = BPF::new(code)?;
 
-        // load + attach kprobes!
-        let trace_run = bpf.load_kprobe("trace_run")?;
-        let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup")?;
-        let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task")?;
+            // load + attach kprobes!
+            let trace_run = bpf.load_kprobe("trace_run")?;
+            let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup")?;
+            let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task")?;
 
-        bpf.attach_kprobe("finish_task_switch", trace_run)?;
-        bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task)?;
-        bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)?;
+            bpf.attach_kprobe("finish_task_switch", trace_run)?;
+            bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task)?;
+            bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)?;
 
-        Ok(Some(Box::new(Self {
-            bpf,
-            common: Common::new(config, metrics),
-        }) as Box<dyn Sampler>))
+            Ok(Some(Box::new(Self {
+                bpf,
+                common: Common::new(config, metrics),
+            }) as Box<dyn Sampler>))
+        } else {
+            Ok(None)
+        }
     }
 
     fn common(&self) -> &Common {

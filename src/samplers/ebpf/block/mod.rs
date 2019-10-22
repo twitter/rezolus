@@ -64,25 +64,29 @@ impl Sampler for Block {
         config: Arc<Config>,
         metrics: Metrics<AtomicU32>,
     ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        debug!("initializing");
-        // load the code and compile
-        let code = include_str!("bpf.c");
-        let mut bpf = BPF::new(code)?;
-        // load + attach kprobes!
-        let trace_pid_start = bpf.load_kprobe("trace_pid_start")?;
-        let trace_req_start = bpf.load_kprobe("trace_req_start")?;
-        let trace_mq_req_start = bpf.load_kprobe("trace_req_start")?;
-        let do_count = bpf.load_kprobe("do_count")?;
+        if config.ebpf().block() {
+            debug!("initializing");
+            // load the code and compile
+            let code = include_str!("bpf.c");
+            let mut bpf = BPF::new(code)?;
+            // load + attach kprobes!
+            let trace_pid_start = bpf.load_kprobe("trace_pid_start")?;
+            let trace_req_start = bpf.load_kprobe("trace_req_start")?;
+            let trace_mq_req_start = bpf.load_kprobe("trace_req_start")?;
+            let do_count = bpf.load_kprobe("do_count")?;
 
-        bpf.attach_kprobe("blk_account_io_start", trace_pid_start)?;
-        bpf.attach_kprobe("blk_start_request", trace_req_start)?;
-        bpf.attach_kprobe("blk_mq_start_request", trace_mq_req_start)?;
-        bpf.attach_kprobe("blk_account_io_completion", do_count)?;
+            bpf.attach_kprobe("blk_account_io_start", trace_pid_start)?;
+            bpf.attach_kprobe("blk_start_request", trace_req_start)?;
+            bpf.attach_kprobe("blk_mq_start_request", trace_mq_req_start)?;
+            bpf.attach_kprobe("blk_account_io_completion", do_count)?;
 
-        Ok(Some(Box::new(Self {
-            bpf,
-            common: Common::new(config, metrics),
-        }) as Box<dyn Sampler>))
+            Ok(Some(Box::new(Self {
+                bpf,
+                common: Common::new(config, metrics),
+            }) as Box<dyn Sampler>))
+        } else {
+            Ok(None)
+        }
     }
 
     fn common(&self) -> &Common {

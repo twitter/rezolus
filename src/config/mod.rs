@@ -164,6 +164,10 @@ impl Config {
         &self.ebpf
     }
 
+    pub fn fault_tolerant(&self) -> bool {
+        self.general().fault_tolerant()
+    }
+
     fn load_from_file(filename: &str) -> Config {
         let mut file = std::fs::File::open(filename).expect("failed to open workload file");
         let mut content = String::new();

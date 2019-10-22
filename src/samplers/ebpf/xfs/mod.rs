@@ -29,34 +29,38 @@ impl Sampler for Xfs {
         config: Arc<Config>,
         metrics: Metrics<AtomicU32>,
     ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        debug!("initializing");
-        // load the code and compile
-        let code = include_str!("bpf.c").to_string();
-        let mut bpf = BPF::new(&code)?;
+        if config.ebpf().xfs() {
+            debug!("initializing");
+            // load the code and compile
+            let code = include_str!("bpf.c").to_string();
+            let mut bpf = BPF::new(&code)?;
 
-        // load + attach kprobes!
-        let read_entry = bpf.load_kprobe("trace_entry")?;
-        let write_entry = bpf.load_kprobe("trace_entry")?;
-        let open_entry = bpf.load_kprobe("trace_entry")?;
-        let fsync_entry = bpf.load_kprobe("trace_entry")?;
-        let read_return = bpf.load_kprobe("trace_read_return")?;
-        let write_return = bpf.load_kprobe("trace_write_return")?;
-        let open_return = bpf.load_kprobe("trace_open_return")?;
-        let fsync_return = bpf.load_kprobe("trace_fsync_return")?;
+            // load + attach kprobes!
+            let read_entry = bpf.load_kprobe("trace_entry")?;
+            let write_entry = bpf.load_kprobe("trace_entry")?;
+            let open_entry = bpf.load_kprobe("trace_entry")?;
+            let fsync_entry = bpf.load_kprobe("trace_entry")?;
+            let read_return = bpf.load_kprobe("trace_read_return")?;
+            let write_return = bpf.load_kprobe("trace_write_return")?;
+            let open_return = bpf.load_kprobe("trace_open_return")?;
+            let fsync_return = bpf.load_kprobe("trace_fsync_return")?;
 
-        bpf.attach_kprobe("xfs_file_read_iter", read_entry)?;
-        bpf.attach_kprobe("xfs_file_write_iter", write_entry)?;
-        bpf.attach_kprobe("xfs_file_open", open_entry)?;
-        bpf.attach_kprobe("xfs_file_fsync", fsync_entry)?;
-        bpf.attach_kretprobe("xfs_file_read_iter", read_return)?;
-        bpf.attach_kretprobe("xfs_file_write_iter", write_return)?;
-        bpf.attach_kretprobe("xfs_file_open", open_return)?;
-        bpf.attach_kretprobe("xfs_file_fsync", fsync_return)?;
+            bpf.attach_kprobe("xfs_file_read_iter", read_entry)?;
+            bpf.attach_kprobe("xfs_file_write_iter", write_entry)?;
+            bpf.attach_kprobe("xfs_file_open", open_entry)?;
+            bpf.attach_kprobe("xfs_file_fsync", fsync_entry)?;
+            bpf.attach_kretprobe("xfs_file_read_iter", read_return)?;
+            bpf.attach_kretprobe("xfs_file_write_iter", write_return)?;
+            bpf.attach_kretprobe("xfs_file_open", open_return)?;
+            bpf.attach_kretprobe("xfs_file_fsync", fsync_return)?;
 
-        Ok(Some(Box::new(Self {
-            bpf,
-            common: Common::new(config, metrics),
-        }) as Box<dyn Sampler>))
+            Ok(Some(Box::new(Self {
+                bpf,
+                common: Common::new(config, metrics),
+            }) as Box<dyn Sampler>))
+        } else {
+            Ok(None)
+        }
     }
 
     fn common(&self) -> &Common {
