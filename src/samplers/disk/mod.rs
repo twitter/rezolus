@@ -22,16 +22,17 @@ use time;
 use walkdir::WalkDir;
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 const REFRESH: u64 = 60_000_000_000;
 
-pub struct Disk<'a> {
-    common: Common<'a>,
+pub struct Disk {
+    common: Common,
     devices: Vec<Device>,
     last_refreshed: u64,
 }
 
-impl<'a> Disk<'a> {
+impl Disk {
     /// send deltas to the stats library
     fn record(&self, time: u64, reading: Entry) {
         self.common
@@ -64,23 +65,23 @@ impl<'a> Disk<'a> {
     }
 }
 
-impl<'a> Sampler<'a> for Disk<'a> {
+impl Sampler for Disk {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         if config.disk().enabled() {
             Ok(Some(Box::new(Self {
                 common: Common::new(config, metrics),
                 devices: Vec::new(),
                 last_refreshed: 0,
-            })))
+            }) as Box<dyn Sampler>))
         } else {
             Ok(None)
         }
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 
@@ -110,7 +111,7 @@ impl<'a> Sampler<'a> for Disk<'a> {
             .config()
             .disk()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn register(&mut self) {
@@ -131,17 +132,15 @@ impl<'a> Sampler<'a> for Disk<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            trace!("deregister {}", self.name());
-            for statistic in &[
-                Statistic::BandwidthRead,
-                Statistic::BandwidthWrite,
-                Statistic::OperationsRead,
-                Statistic::OperationsWrite,
-            ] {
-                self.common.delete_channel(statistic);
-            }
-            self.common.set_initialized(false);
+        trace!("deregister {}", self.name());
+        for statistic in &[
+            Statistic::BandwidthRead,
+            Statistic::BandwidthWrite,
+            Statistic::OperationsRead,
+            Statistic::OperationsWrite,
+        ] {
+            self.common.delete_channel(statistic);
         }
+        self.common.set_initialized(false);
     }
 }

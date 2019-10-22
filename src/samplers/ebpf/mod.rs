@@ -5,13 +5,18 @@
 mod block;
 mod ext4;
 mod scheduler;
+mod tcp;
 mod xfs;
 
 pub use self::block::Block;
 pub use self::ext4::Ext4;
 pub use self::scheduler::Scheduler;
+pub use self::tcp::Tcp;
 pub use self::xfs::Xfs;
 
+use bcc::table::Table;
+
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
@@ -51,6 +56,47 @@ pub fn symbol_lookup(name: &str) -> Option<String> {
     }
 
     None
+}
+
+pub fn map_from_table(table: &mut Table, key_scale: u64) -> HashMap<u64, u32> {
+    let mut current = HashMap::new();
+
+    trace!("transferring data to userspace");
+    for (id, mut entry) in table.iter().enumerate() {
+        let mut key = [0; 4];
+        if key.len() != entry.key.len() {
+            // log and skip processing if the key length is unexpected
+            debug!(
+                "unexpected length of the entry's key, entry id: {} key length: {}",
+                id,
+                entry.key.len()
+            );
+            continue;
+        }
+        key.copy_from_slice(&entry.key);
+        let key = u32::from_ne_bytes(key);
+
+        let mut value = [0; 8];
+        if value.len() != entry.value.len() {
+            // log and skip processing if the value length is unexpected
+            debug!(
+                "unexpected length of the entry's value, entry id: {} value length: {}",
+                id,
+                entry.value.len()
+            );
+            continue;
+        }
+        value.copy_from_slice(&entry.value);
+        let value = u64::from_ne_bytes(value);
+
+        if let Some(key) = key_to_value(key as u64) {
+            current.insert(key * key_scale, value as u32);
+        }
+
+        // clear the source counter
+        let _ = table.set(&mut entry.key, &mut [0_u8; 8]);
+    }
+    current
 }
 
 #[cfg(test)]

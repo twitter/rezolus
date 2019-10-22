@@ -20,16 +20,17 @@ use time;
 use walkdir;
 
 use std::collections::HashSet;
+use std::sync::Arc;
 
 const REFRESH: u64 = 60_000_000_000;
 
-pub struct Network<'a> {
-    common: Common<'a>,
+pub struct Network {
+    common: Common,
     interfaces: HashSet<Interface>,
     last_refreshed: u64,
 }
 
-impl<'a> Network<'a> {
+impl Network {
     fn get_interfaces(&self) -> HashSet<Interface> {
         let mut interfaces = HashSet::default();
         for entry in walkdir::WalkDir::new("/sys/class/net/")
@@ -56,23 +57,23 @@ impl<'a> Network<'a> {
     }
 }
 
-impl<'a> Sampler<'a> for Network<'a> {
+impl Sampler for Network {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         if config.network().enabled() {
             Ok(Some(Box::new(Self {
                 common: Common::new(config, metrics),
                 interfaces: HashSet::new(),
                 last_refreshed: 0,
-            })))
+            }) as Box<dyn Sampler>))
         } else {
             Ok(None)
         }
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 
@@ -94,7 +95,7 @@ impl<'a> Sampler<'a> for Network<'a> {
             let sum: u64 = self
                 .interfaces
                 .iter()
-                .map(|i| i.get_statistic(&statistic).unwrap_or(0))
+                .map(|i| i.get_statistic(*statistic).unwrap_or(0))
                 .sum();
             self.common.record_counter(&statistic, time, sum);
         }
@@ -102,7 +103,7 @@ impl<'a> Sampler<'a> for Network<'a> {
         // protocol statistics
         if let Ok(protocol) = protocol::Protocol::new() {
             for statistic in self.common.config().network().protocol_statistics() {
-                let value = *protocol.get(statistic).unwrap_or(&0);
+                let value = *protocol.get(*statistic).unwrap_or(&0);
                 self.common.record_counter(statistic, time, value);
             }
         }
@@ -115,7 +116,7 @@ impl<'a> Sampler<'a> for Network<'a> {
             .config()
             .network()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn register(&mut self) {
@@ -148,15 +149,13 @@ impl<'a> Sampler<'a> for Network<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            trace!("deregister {}", self.name());
-            for statistic in self.common.config().network().interface_statistics() {
-                self.common.delete_channel(statistic);
-            }
-            for statistic in self.common.config().network().protocol_statistics() {
-                self.common.delete_channel(statistic);
-            }
-            self.common.set_initialized(false);
+        trace!("deregister {}", self.name());
+        for statistic in self.common.config().network().interface_statistics() {
+            self.common.delete_channel(statistic);
         }
+        for statistic in self.common.config().network().protocol_statistics() {
+            self.common.delete_channel(statistic);
+        }
+        self.common.set_initialized(false);
     }
 }

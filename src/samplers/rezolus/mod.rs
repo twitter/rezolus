@@ -16,9 +16,10 @@ use time;
 
 use std::collections::HashMap;
 use std::path::Path;
+use std::sync::Arc;
 
-pub struct Rezolus<'a> {
-    common: Common<'a>,
+pub struct Rezolus {
+    common: Common,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -90,7 +91,7 @@ fn parse_process_stats<P: AsRef<Path>>(path: P) -> HashMap<ProcessStat, u64> {
     result
 }
 
-impl<'a> Rezolus<'a> {
+impl Rezolus {
     pub fn gauges(&self) -> Vec<String> {
         vec![
             Statistic::MemoryResident.to_string(),
@@ -140,17 +141,17 @@ impl<'a> Rezolus<'a> {
     }
 }
 
-impl<'a> Sampler<'a> for Rezolus<'a> {
+impl Sampler for Rezolus {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         Ok(Some(Box::new(Rezolus {
             common: Common::new(config, metrics),
-        })))
+        }) as Box<dyn Sampler>))
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 
@@ -186,16 +187,14 @@ impl<'a> Sampler<'a> for Rezolus<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            trace!("deregister {}", self.name());
-            for label in self.gauges() {
-                self.common.delete_channel(&label);
-            }
-            for label in self.counters() {
-                self.common.delete_channel(&label);
-            }
-            self.common.set_initialized(false);
+        trace!("deregister {}", self.name());
+        for label in self.gauges() {
+            self.common.delete_channel(&label);
         }
+        for label in self.counters() {
+            self.common.delete_channel(&label);
+        }
+        self.common.set_initialized(false);
     }
 }
 

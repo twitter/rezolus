@@ -48,6 +48,7 @@ pub const CONTAINER_REFRESH: u64 = MINUTE;
 pub const HTTP_TIMEOUT: u64 = 500 * MILLISECOND;
 pub const POLL_DELAY: u64 = 50 * MILLISECOND;
 pub const SECTOR_SIZE: u64 = 512; //bytes per sector
+pub const UNITY: u64 = 1;
 
 // reported percentiles
 pub const PERCENTILES: &[Percentile] = &[

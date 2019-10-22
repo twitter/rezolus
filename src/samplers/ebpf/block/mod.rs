@@ -5,7 +5,8 @@
 mod statistics;
 
 use self::statistics::{Direction, Statistic};
-use crate::common::{BILLION, MICROSECOND, MILLION, PERCENTILES};
+use super::map_from_table;
+use crate::common::{BILLION, MICROSECOND, MILLION, PERCENTILES, UNITY};
 use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
@@ -16,14 +17,14 @@ use logger::*;
 use metrics::*;
 use time;
 
-use std::collections::HashMap;
+use std::sync::Arc;
 
-pub struct Block<'a> {
+pub struct Block {
     bpf: BPF,
-    common: Common<'a>,
+    common: Common,
 }
 
-impl<'a> Block<'a> {
+impl Block {
     fn report_statistic(&mut self, statistic: &Statistic) {
         match statistic {
             Statistic::Size(_) => {
@@ -37,64 +38,32 @@ impl<'a> Block<'a> {
 
     fn report_latency(&mut self, table: &str, label: &str) {
         let time = time::precise_time_ns();
-        let mut current = HashMap::new();
-        let mut data = self.bpf.table(table);
+        let mut table = self.bpf.table(table);
 
-        for mut entry in data.iter() {
-            let mut key = [0; 4];
-            key.copy_from_slice(&entry.key);
-            let key = u32::from_ne_bytes(key);
-
-            let mut value = [0; 8];
-            value.copy_from_slice(&entry.value);
-            let value = u64::from_ne_bytes(value);
-
-            if let Some(key) = super::key_to_value(key as u64) {
-                current.insert(key * MICROSECOND, value as u32);
-            }
-
-            // clear the source counter
-            let _ = data.set(&mut entry.key, &mut [0_u8; 8]);
-        }
         self.register();
-        for (&value, &count) in &current {
+
+        for (&value, &count) in &map_from_table(&mut table, MICROSECOND) {
             self.common.record_distribution(&label, time, value, count);
         }
     }
 
     fn report_size(&mut self, table: &str, label: &str) {
         let time = time::precise_time_ns();
-        let mut current = HashMap::new();
-        let mut data = self.bpf.table(table);
+        let mut table = self.bpf.table(table);
 
-        for mut entry in data.iter() {
-            let mut key = [0; 4];
-            key.copy_from_slice(&entry.key);
-            let key = u32::from_ne_bytes(key);
-
-            let mut value = [0; 8];
-            value.copy_from_slice(&entry.value);
-            let value = u64::from_ne_bytes(value);
-
-            if let Some(key) = super::key_to_value(key as u64) {
-                current.insert(key, value as u32);
-            }
-
-            // clear the source counter
-            let _ = data.set(&mut entry.key, &mut [0_u8; 8]);
-        }
         self.register();
-        for (&value, &count) in &current {
+
+        for (&value, &count) in &map_from_table(&mut table, UNITY) {
             self.common.record_distribution(&label, time, value, count);
         }
     }
 }
 
-impl<'a> Sampler<'a> for Block<'a> {
+impl Sampler for Block {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         debug!("initializing");
         // load the code and compile
         let code = include_str!("bpf.c");
@@ -113,10 +82,10 @@ impl<'a> Sampler<'a> for Block<'a> {
         Ok(Some(Box::new(Self {
             bpf,
             common: Common::new(config, metrics),
-        })))
+        }) as Box<dyn Sampler>))
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 
@@ -147,7 +116,7 @@ impl<'a> Sampler<'a> for Block<'a> {
             .config()
             .ebpf()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn register(&mut self) {
@@ -180,21 +149,19 @@ impl<'a> Sampler<'a> for Block<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            trace!("deregister {}", self.name());
-            for statistic in &[
-                Statistic::Size(Direction::Read),
-                Statistic::Size(Direction::Write),
-                Statistic::Latency(Direction::Read),
-                Statistic::Latency(Direction::Write),
-                Statistic::DeviceLatency(Direction::Read),
-                Statistic::DeviceLatency(Direction::Write),
-                Statistic::QueueLatency(Direction::Read),
-                Statistic::QueueLatency(Direction::Write),
-            ] {
-                self.common.delete_channel(statistic);
-            }
-            self.common.set_initialized(false);
+        trace!("deregister {}", self.name());
+        for statistic in &[
+            Statistic::Size(Direction::Read),
+            Statistic::Size(Direction::Write),
+            Statistic::Latency(Direction::Read),
+            Statistic::Latency(Direction::Write),
+            Statistic::DeviceLatency(Direction::Read),
+            Statistic::DeviceLatency(Direction::Write),
+            Statistic::QueueLatency(Direction::Read),
+            Statistic::QueueLatency(Direction::Write),
+        ] {
+            self.common.delete_channel(statistic);
         }
+        self.common.set_initialized(false);
     }
 }

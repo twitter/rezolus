@@ -20,6 +20,8 @@ pub struct Ebpf {
     #[serde(default = "default")]
     scheduler: AtomicBool,
     #[serde(default = "default")]
+    tcp: AtomicBool,
+    #[serde(default = "default")]
     xfs: AtomicBool,
 }
 
@@ -31,6 +33,7 @@ impl Default for Ebpf {
             ext4: default(),
             interval: default_interval(),
             scheduler: default(),
+            tcp: default(),
             xfs: default(),
         }
     }
@@ -46,7 +49,7 @@ fn default_interval() -> AtomicOption<AtomicUsize> {
 
 impl SamplerConfig for Ebpf {
     fn enabled(&self) -> bool {
-        self.block() || self.ext4() || self.scheduler() || self.xfs()
+        self.block() || self.ext4() || self.scheduler() || self.tcp() || self.xfs()
     }
 
     fn interval(&self) -> Option<usize> {
@@ -68,6 +71,11 @@ impl Ebpf {
     #[allow(dead_code)]
     pub fn scheduler(&self) -> bool {
         self.all.load(Ordering::Relaxed) || self.scheduler.load(Ordering::Relaxed)
+    }
+
+    #[allow(dead_code)]
+    pub fn tcp(&self) -> bool {
+        self.all.load(Ordering::Relaxed) || self.tcp.load(Ordering::Relaxed)
     }
 
     #[allow(dead_code)]

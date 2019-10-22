@@ -18,11 +18,12 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
+use std::sync::Arc;
 
 const SOFTNET_STAT: &str = "/proc/net/softnet_stat";
 
-pub struct Softnet<'a> {
-    common: Common<'a>,
+pub struct Softnet {
+    common: Common,
 }
 
 pub fn read_softnet_stat<P: AsRef<Path>>(path: P) -> HashMap<Statistic, u64> {
@@ -57,21 +58,21 @@ pub fn read_softnet_stat<P: AsRef<Path>>(path: P) -> HashMap<Statistic, u64> {
     result
 }
 
-impl<'a> Sampler<'a> for Softnet<'a> {
+impl Sampler for Softnet {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         if config.softnet().enabled() {
             Ok(Some(Box::new(Self {
                 common: Common::new(config, metrics),
-            })))
+            }) as Box<dyn Sampler>))
         } else {
             Ok(None)
         }
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 
@@ -95,7 +96,7 @@ impl<'a> Sampler<'a> for Softnet<'a> {
             .config()
             .softnet()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn register(&mut self) {
@@ -111,14 +112,12 @@ impl<'a> Sampler<'a> for Softnet<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            trace!("deregister {}", self.name());
-            let data = read_softnet_stat(SOFTNET_STAT);
-            for statistic in data.keys() {
-                self.common.delete_channel(statistic);
-            }
-            self.common.set_initialized(false);
+        trace!("deregister {}", self.name());
+        let data = read_softnet_stat(SOFTNET_STAT);
+        for statistic in data.keys() {
+            self.common.delete_channel(statistic);
         }
+        self.common.set_initialized(false);
     }
 }
 

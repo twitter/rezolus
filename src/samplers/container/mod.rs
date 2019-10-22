@@ -15,18 +15,19 @@ use metrics::*;
 use time;
 
 use std::io::{BufRead, BufReader};
+use std::sync::Arc;
 
-pub struct Container<'a> {
-    common: Common<'a>,
+pub struct Container {
+    common: Common,
     cgroup: Option<String>,
     nanos_per_tick: u64,
 }
 
-impl<'a> Sampler<'a> for Container<'a> {
+impl Sampler for Container {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         if config.container().enabled() {
             let mut cgroup = None;
             let path = format!("/proc/{}/cgroup", std::process::id());
@@ -36,10 +37,8 @@ impl<'a> Sampler<'a> for Container<'a> {
             for line in f.lines() {
                 let line = line.unwrap();
                 let parts: Vec<&str> = line.split(':').collect();
-                if parts.len() == 3 {
-                    if parts[1] == "cpu,cpuacct" {
-                        cgroup = Some(parts[2].to_string());
-                    }
+                if parts.len() == 3 && parts[1] == "cpu,cpuacct" {
+                    cgroup = Some(parts[2].to_string());
                 }
             }
             if cgroup.is_some() {
@@ -47,7 +46,7 @@ impl<'a> Sampler<'a> for Container<'a> {
                     common: Common::new(config, metrics),
                     cgroup,
                     nanos_per_tick: crate::common::nanos_per_tick(),
-                })))
+                }) as Box<dyn Sampler>))
             } else {
                 Err(format_err!("failed to find cgroup"))
             }
@@ -61,10 +60,10 @@ impl<'a> Sampler<'a> for Container<'a> {
             .config()
             .container()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 
@@ -136,15 +135,13 @@ impl<'a> Sampler<'a> for Container<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            for statistic in &[
-                Statistic::CpuSystem,
-                Statistic::CpuTotal,
-                Statistic::CpuUser,
-            ] {
-                self.common.delete_channel(statistic);
-            }
-            self.common.set_initialized(false);
+        for statistic in &[
+            Statistic::CpuSystem,
+            Statistic::CpuTotal,
+            Statistic::CpuUser,
+        ] {
+            self.common.delete_channel(statistic);
         }
+        self.common.set_initialized(false);
     }
 }

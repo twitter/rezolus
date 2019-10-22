@@ -16,17 +16,18 @@ use perfcnt::{AbstractPerfCounter, PerfCounter};
 use time;
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
-pub struct Perf<'a> {
-    common: Common<'a>,
+pub struct Perf {
+    common: Common,
     counters: HashMap<Statistic, Vec<PerfCounter>>,
 }
 
-impl<'a> Sampler<'a> for Perf<'a> {
+impl Sampler for Perf {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         if config.perf().enabled() {
             let mut counters = HashMap::new();
             let cores = hardware_threads().unwrap_or(1);
@@ -56,13 +57,13 @@ impl<'a> Sampler<'a> for Perf<'a> {
             Ok(Some(Box::new(Self {
                 common: Common::new(config, metrics),
                 counters,
-            })))
+            }) as Box<dyn Sampler>))
         } else {
             Ok(None)
         }
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 
@@ -104,7 +105,7 @@ impl<'a> Sampler<'a> for Perf<'a> {
             .config()
             .perf()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn register(&mut self) {
@@ -119,12 +120,10 @@ impl<'a> Sampler<'a> for Perf<'a> {
     }
 
     fn deregister(&mut self) {
-        if self.common.initialized() {
-            trace!("deregister {}", self.name());
-            for statistic in self.counters.keys() {
-                self.common.delete_channel(statistic);
-            }
-            self.common.set_initialized(false);
+        trace!("deregister {}", self.name());
+        for statistic in self.counters.keys() {
+            self.common.delete_channel(statistic);
         }
+        self.common.set_initialized(false);
     }
 }

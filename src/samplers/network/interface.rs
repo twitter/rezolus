@@ -38,7 +38,7 @@ impl Interface {
         self.bandwidth_bytes
     }
 
-    pub fn get_statistic(&self, statistic: &InterfaceStatistic) -> Result<u64, ()> {
+    pub fn get_statistic(&self, statistic: InterfaceStatistic) -> Result<u64, ()> {
         if let Some(name) = &self.name {
             net::read_network_stat(&name, statistic.name())
         } else {

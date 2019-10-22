@@ -4,6 +4,7 @@
 
 mod container;
 mod cpu;
+mod cpuidle;
 mod disk;
 mod ebpf;
 mod general;
@@ -13,6 +14,7 @@ mod softnet;
 
 use self::container::Container;
 use self::cpu::Cpu;
+use self::cpuidle::CpuIdle;
 use self::disk::Disk;
 use self::ebpf::Ebpf;
 use self::general::General;
@@ -26,6 +28,7 @@ use std::io::Read;
 use std::net::{SocketAddr, ToSocketAddrs};
 
 use clap::{App, Arg};
+use logger::Level;
 use serde_derive::*;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -38,6 +41,8 @@ pub struct Config {
     container: Container,
     #[serde(default)]
     cpu: Cpu,
+    #[serde(default)]
+    cpuidle: CpuIdle,
     #[serde(default)]
     disk: Disk,
     #[serde(default)]
@@ -126,6 +131,10 @@ impl Config {
         &self.cpu
     }
 
+    pub fn cpuidle(&self) -> &CpuIdle {
+        &self.cpuidle
+    }
+
     pub fn disk(&self) -> &Disk {
         &self.disk
     }
@@ -142,6 +151,7 @@ impl Config {
         &self.network
     }
 
+    #[cfg(feature = "perf")]
     pub fn perf(&self) -> &Perf {
         &self.perf
     }

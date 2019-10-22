@@ -3,9 +3,6 @@ os: linux
 dist: xenial
 sudo: required
 matrix:
-  allow_failures:
-    - env: TYPE=rustfmt RUST_BACKTRACE=1
-    - env: TYPE=clippy RUST_BACKTRACE=1
   fast_finish: true
   include:
     - os: linux
@@ -16,6 +13,7 @@ matrix:
         - cargo test --verbose
         - cargo build --release --verbose
         - cargo test --release --verbose
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
     - os: linux
       rust: nightly
       env: TYPE=ebpf RUST_BACKTRACE=1
@@ -42,15 +40,35 @@ matrix:
         - cargo build --release --features ebpf
         - cargo test --release --features ebpf
         - cargo run --release --features ebpf -- --version
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+    - os: linux
+      rust: stable
+      env: TYPE=no-default RUST_BACKTRACE=1
+      script:
+        - cargo build --verbose --no-default-features
+        - cargo test --verbose --no-default-features
+        - cargo build --release --verbose --no-default-features
+        - cargo test --release --verbose --no-default-features
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
     - os: linux
       rust: nightly
+      env: TYPE=no-default RUST_BACKTRACE=1
+      script:
+        - cargo build --verbose --no-default-features
+        - cargo test --verbose --no-default-features
+        - cargo build --release --verbose --no-default-features
+        - cargo test --release --verbose --no-default-features
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+    - os: linux
+      rust: stable
       env: TYPE=rustfmt RUST_BACKTRACE=1
       script:
-        - rustup component add rustfmt
-        - cargo fmt -- --check
+        - rustup component add rustfmt --toolchain stable
+        - cargo +stable fmt -- --check
     - os: linux
       rust: nightly
       env: TYPE=clippy RUST_BACKTRACE=1
       script:
-        - rustup component add clippy
-        - cargo clippy
+        - rustup toolchain install nightly-2019-10-04
+        - rustup component add clippy --toolchain nightly-2019-10-04
+        - cargo +nightly-2019-10-04 clippy --features ebpf

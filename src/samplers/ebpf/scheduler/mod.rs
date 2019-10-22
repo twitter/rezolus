@@ -5,30 +5,30 @@
 mod statistics;
 
 use self::statistics::Statistic;
+use super::map_from_table;
 use crate::common::{MICROSECOND, PERCENTILES, SECOND};
 use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
 use bcc;
 use bcc::core::BPF;
-use bcc::table::Table;
 use failure::*;
 use logger::*;
 use metrics::*;
 use time;
 
-use std::collections::HashMap;
+use std::sync::Arc;
 
-pub struct Scheduler<'a> {
+pub struct Scheduler {
     bpf: BPF,
-    common: Common<'a>,
+    common: Common,
 }
 
-impl<'a> Sampler<'a> for Scheduler<'a> {
+impl Sampler for Scheduler {
     fn new(
-        config: &'a Config,
-        metrics: &'a Metrics<AtomicU32>,
-    ) -> Result<Option<Box<Self>>, Error> {
+        config: Arc<Config>,
+        metrics: Metrics<AtomicU32>,
+    ) -> Result<Option<Box<dyn Sampler>>, Error> {
         debug!("initializing");
         // load the code and compile
         let code = include_str!("bpf.c");
@@ -46,10 +46,10 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
         Ok(Some(Box::new(Self {
             bpf,
             common: Common::new(config, metrics),
-        })))
+        }) as Box<dyn Sampler>))
     }
 
-    fn common(&self) -> &Common<'a> {
+    fn common(&self) -> &Common {
         &self.common
     }
 
@@ -65,7 +65,7 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
         for statistic in &[Statistic::RunqueueLatency] {
             trace!("sampling {}", statistic);
             let mut table = self.bpf.table(&statistic.table_name());
-            for (&value, &count) in &map_from_table(&mut table) {
+            for (&value, &count) in &map_from_table(&mut table, MICROSECOND) {
                 self.common
                     .record_distribution(statistic, time, value, count);
             }
@@ -78,7 +78,7 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
             .config()
             .ebpf()
             .interval()
-            .unwrap_or(self.common().config().interval())
+            .unwrap_or_else(|| self.common().config().interval())
     }
 
     fn register(&mut self) {
@@ -92,32 +92,7 @@ impl<'a> Sampler<'a> for Scheduler<'a> {
 
     fn deregister(&mut self) {
         debug!("deregister {}", self.name());
-        if self.common.initialized() {
-            self.common.delete_channel(&Statistic::RunqueueLatency);
-            self.common.set_initialized(false);
-        }
+        self.common.delete_channel(&Statistic::RunqueueLatency);
+        self.common.set_initialized(false);
     }
-}
-
-fn map_from_table(table: &mut Table) -> HashMap<u64, u32> {
-    let mut current = HashMap::new();
-
-    trace!("transferring data to userspace");
-    for mut entry in table.iter() {
-        let mut key = [0; 4];
-        key.copy_from_slice(&entry.key);
-        let key = u32::from_ne_bytes(key);
-
-        let mut value = [0; 8];
-        value.copy_from_slice(&entry.value);
-        let value = u64::from_ne_bytes(value);
-
-        if let Some(key) = super::key_to_value(key as u64) {
-            current.insert(key * MICROSECOND, value as u32);
-        }
-
-        // clear the source counter
-        let _ = table.set(&mut entry.key, &mut [0_u8; 8]);
-    }
-    current
 }
