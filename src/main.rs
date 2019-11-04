@@ -119,6 +119,7 @@ fn main() {
             for sampler in vec![
                 ebpf::Block::new(config.clone(), metrics.clone()),
                 ebpf::Ext4::new(config.clone(), metrics.clone()),
+                ebpf::Network::new(config.clone(), metrics.clone()),
                 ebpf::Scheduler::new(config.clone(), metrics.clone()),
                 ebpf::Tcp::new(config.clone(), metrics.clone()),
                 ebpf::Xfs::new(config.clone(), metrics.clone()),

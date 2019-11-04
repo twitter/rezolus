@@ -54,8 +54,14 @@ block = true
 # enable or disable collection for ext4
 ext4 = true
 
+# enable or disable collection for network
+network = true
+
 # enable or disable collection for scheduler
 scheduler = true
+
+# enable or disable collection for tcp
+tcp = true
 
 # enable or disable collection for xfs
 xfs = true

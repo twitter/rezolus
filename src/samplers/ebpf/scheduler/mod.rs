@@ -6,7 +6,7 @@ mod statistics;
 
 use self::statistics::Statistic;
 use super::map_from_table;
-use crate::common::{MICROSECOND, PERCENTILES, SECOND};
+use crate::common::*;
 use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
