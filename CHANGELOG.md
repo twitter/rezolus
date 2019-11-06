@@ -1,4 +1,6 @@
 # [Unreleased]
+
+# [1.2.0] - 2019-11-06
 ## Added
 - Configuration flag to disable fault tolerance, enabling proper smoke tests of
   sampler initialization in CI
@@ -31,7 +33,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v1.1.0...HEAD
-[1.0.1]: https://github.com/twitter/rezolus/compare/v1.0.1...v1.1.0
+[Unreleased]: https://github.com/twitter/rezolus/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/twitter/rezolus/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/twitter/rezolus/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/twitter/rezolus/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/twitter/rezolus/releases/tag/v1.0.0
