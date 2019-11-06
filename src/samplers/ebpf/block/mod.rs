@@ -6,7 +6,7 @@ mod statistics;
 
 use self::statistics::{Direction, Statistic};
 use super::map_from_table;
-use crate::common::{BILLION, MICROSECOND, MILLION, PERCENTILES, UNITY};
+use crate::common::*;
 use crate::config::*;
 use crate::samplers::{Common, Sampler};
 
@@ -53,7 +53,7 @@ impl Block {
 
         self.register();
 
-        for (&value, &count) in &map_from_table(&mut table, UNITY) {
+        for (&value, &count) in &map_from_table(&mut table, BYTE) {
             self.common.record_distribution(&label, time, value, count);
         }
     }
@@ -131,11 +131,7 @@ impl Sampler for Block {
                 Statistic::Size(Direction::Write),
             ] {
                 self.common
-                    .register_distribution(statistic, MILLION, 2, PERCENTILES);
-            }
-            for size in &["block/size/read", "block/size/write"] {
-                self.common
-                    .register_distribution(size, MILLION, 2, PERCENTILES);
+                    .register_distribution(statistic, MEGABYTE, 2, PERCENTILES);
             }
             for statistic in &[
                 Statistic::Latency(Direction::Read),
@@ -146,7 +142,7 @@ impl Sampler for Block {
                 Statistic::QueueLatency(Direction::Write),
             ] {
                 self.common
-                    .register_distribution(statistic, BILLION, 2, PERCENTILES);
+                    .register_distribution(statistic, SECOND, 2, PERCENTILES);
             }
             self.common.set_initialized(true);
         }

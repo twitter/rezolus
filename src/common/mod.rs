@@ -22,14 +22,23 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const NAME: &str = env!("CARGO_PKG_NAME");
 
 // units
+pub const ONE: u64 = 1;
 pub const THOUSAND: u64 = 1_000;
 pub const MILLION: u64 = 1_000_000;
 pub const BILLION: u64 = 1_000_000_000;
 pub const TRILLION: u64 = 1_000_000_000_000;
+
+// time units
+pub const NANOSECOND: u64 = ONE;
 pub const MICROSECOND: u64 = THOUSAND; // 1US in NS
 pub const MILLISECOND: u64 = MILLION; // 1MS in NS
 pub const SECOND: u64 = BILLION; // 1S in NS
 pub const MINUTE: u64 = 60 * SECOND;
+
+// size units
+pub const BYTE: u64 = ONE;
+pub const KILOBYTE: u64 = THOUSAND;
+pub const MEGABYTE: u64 = MILLION;
 pub const GIGABYTE: u64 = BILLION;
 pub const TERABYTE: u64 = TRILLION;
 
@@ -48,7 +57,6 @@ pub const CONTAINER_REFRESH: u64 = MINUTE;
 pub const HTTP_TIMEOUT: u64 = 500 * MILLISECOND;
 pub const POLL_DELAY: u64 = 50 * MILLISECOND;
 pub const SECTOR_SIZE: u64 = 512; //bytes per sector
-pub const UNITY: u64 = 1;
 
 // reported percentiles
 pub const PERCENTILES: &[Percentile] = &[

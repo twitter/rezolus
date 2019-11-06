@@ -2,6 +2,7 @@
 ## Added
 - Configuration flag to disable fault tolerance, enabling proper smoke tests of
   sampler initialization in CI
+- Network eBPF sampler which provides packet size distribution
 
 ## Fixed
 - Fixes build issue when `perf` feature is disabled

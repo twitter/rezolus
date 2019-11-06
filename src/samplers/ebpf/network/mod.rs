@@ -19,30 +19,28 @@ use time;
 
 use std::sync::Arc;
 
-pub struct Tcp {
+pub struct Network {
     bpf: BPF,
     common: Common,
 }
 
-impl Sampler for Tcp {
+impl Sampler for Network {
     fn new(
         config: Arc<Config>,
         metrics: Metrics<AtomicU32>,
     ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        if config.ebpf().tcp() {
+        if config.ebpf().network() {
             debug!("initializing");
             // load the code and compile
             let code = include_str!("bpf.c").to_string();
             let mut bpf = BPF::new(&code)?;
 
             // load + attach kprobes!
-            let tcp_v4_connect = bpf.load_kprobe("trace_connect")?;
-            let tcp_v6_connect = bpf.load_kprobe("trace_connect")?;
-            let tcp_rcv_state_process = bpf.load_kprobe("trace_tcp_rcv_state_process")?;
+            let trace_transmit = bpf.load_tracepoint("trace_transmit")?;
+            bpf.attach_tracepoint("net", "net_dev_queue", trace_transmit)?;
 
-            bpf.attach_kprobe("tcp_v4_connect", tcp_v4_connect)?;
-            bpf.attach_kprobe("tcp_v6_connect", tcp_v6_connect)?;
-            bpf.attach_kprobe("tcp_rcv_state_process", tcp_rcv_state_process)?;
+            let trace_receive = bpf.load_tracepoint("trace_receive")?;
+            bpf.attach_tracepoint("net", "netif_rx", trace_receive)?;
 
             Ok(Some(Box::new(Self {
                 bpf,
@@ -58,7 +56,7 @@ impl Sampler for Tcp {
     }
 
     fn name(&self) -> String {
-        "ebpf::tcp".to_string()
+        "ebpf::network".to_string()
     }
 
     fn sample(&mut self) -> Result<(), ()> {
@@ -66,10 +64,10 @@ impl Sampler for Tcp {
         trace!("sampling {}", self.name());
         let time = time::precise_time_ns();
         self.register();
-        for statistic in &[Statistic::ConnectLatency] {
+        for statistic in &[Statistic::ReceiveSize, Statistic::TransmitSize] {
             trace!("sampling {}", statistic);
             let mut table = self.bpf.table(&statistic.table_name());
-            for (&value, &count) in &map_from_table(&mut table, MICROSECOND) {
+            for (&value, &count) in &map_from_table(&mut table, BYTE) {
                 self.common
                     .record_distribution(statistic, time, value, count);
             }
@@ -88,9 +86,9 @@ impl Sampler for Tcp {
     fn register(&mut self) {
         if !self.common.initialized() {
             trace!("register {}", self.name());
-            for statistic in &[Statistic::ConnectLatency] {
+            for statistic in &[Statistic::ReceiveSize, Statistic::TransmitSize] {
                 self.common
-                    .register_distribution(statistic, SECOND, 2, PERCENTILES);
+                    .register_distribution(statistic, MEGABYTE, 2, PERCENTILES);
             }
             self.common.set_initialized(true);
         }
@@ -98,7 +96,7 @@ impl Sampler for Tcp {
 
     fn deregister(&mut self) {
         trace!("deregister {}", self.name());
-        for statistic in &[Statistic::ConnectLatency] {
+        for statistic in &[Statistic::ReceiveSize, Statistic::TransmitSize] {
             self.common.delete_channel(statistic);
         }
         self.common.set_initialized(false);

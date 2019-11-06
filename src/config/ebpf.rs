@@ -18,6 +18,8 @@ pub struct Ebpf {
     #[serde(default = "default_interval")]
     interval: AtomicOption<AtomicUsize>,
     #[serde(default = "default")]
+    network: AtomicBool,
+    #[serde(default = "default")]
     scheduler: AtomicBool,
     #[serde(default = "default")]
     tcp: AtomicBool,
@@ -32,6 +34,7 @@ impl Default for Ebpf {
             block: default(),
             ext4: default(),
             interval: default_interval(),
+            network: default(),
             scheduler: default(),
             tcp: default(),
             xfs: default(),
@@ -66,6 +69,11 @@ impl Ebpf {
     #[allow(dead_code)]
     pub fn ext4(&self) -> bool {
         self.all.load(Ordering::Relaxed) || self.ext4.load(Ordering::Relaxed)
+    }
+
+    #[allow(dead_code)]
+    pub fn network(&self) -> bool {
+        self.all.load(Ordering::Relaxed) || self.network.load(Ordering::Relaxed)
     }
 
     #[allow(dead_code)]

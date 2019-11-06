@@ -98,12 +98,26 @@ Capture system-wide filesystem latency for EXT4
 * `ext4/fsync` - distribution of latency for fsync operations in nanoseconds
 * `ext4/open` - distribution of latency for open operations in nanoseconds
 
+### Network
+
+Provides additional system-wide telemetry for networking
+
+* `network/receive/size` - distribution of received packet sizes in bytes
+* `network/transmit/size` - distribution of transmitted packet sizes in bytes
+
 ### Scheduler
 
 Captures system-wide scheduler telemetry
 
 * `scheduler/runqueue_latency_ns` - distribution of the amount of time in
   nanoseconds that runnable tasks are waiting to be scheduled onto a core
+
+### TCP
+
+Captures additional system-wide telemetry for TCP
+
+* `network/tcp/connect/latency` - distribution of latency for establishing
+active (outbound) connections
 
 ### XFS
 

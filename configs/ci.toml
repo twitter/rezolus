@@ -19,6 +19,7 @@ enabled = true
 [ebpf]
 block = true
 ext4 = true
+network = true
 scheduler = true
 tcp = true
 xfs = false
