@@ -134,6 +134,22 @@ cargo build --release && \
 sudo target/release/rezolus --config configs/example.toml
 ```
 
+#### Building with eBPF enabled
+
+eBPF support requires a build time flag to enable eBPF. There are a few additional requirements:
+
+1. Ensure that [bcc toolchain](https://github.com/iovisor/bcc/blob/master/INSTALL.md) is installed.
+1. Follow the previously listed steps for building, but include `--features ebpf` when calling `cargo build`.
+1. When running, you will require sudo for eBPF to work. Depending on your cargo setup it might be easier to build a binary and run that with `sudo`.
+
+### Viewing metrics from the example config
+
+Once rezolus is running, you can view the metrics via curl and `jq` for parsing the JSON:
+
+```bash
+curl http://localhost:4242/get | jq .
+```
+
 ## Support
 
 Create a [new issue](https://github.com/twitter/rezolus/issues/new) on GitHub.
