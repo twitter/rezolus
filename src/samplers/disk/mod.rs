@@ -124,11 +124,19 @@ impl Sampler for Disk {
             trace!("register {}", self.name());
             self.devices = self.get_devices();
             self.last_refreshed = time::precise_time_ns();
-            for statistic in &[Statistic::BandwidthDiscard, Statistic::BandwidthRead, Statistic::BandwidthWrite] {
+            for statistic in &[
+                Statistic::BandwidthDiscard,
+                Statistic::BandwidthRead,
+                Statistic::BandwidthWrite,
+            ] {
                 self.common
                     .register_counter(statistic, TRILLION, 3, PERCENTILES);
             }
-            for statistic in &[Statistic::OperationsDiscard, Statistic::OperationsRead, Statistic::OperationsWrite] {
+            for statistic in &[
+                Statistic::OperationsDiscard,
+                Statistic::OperationsRead,
+                Statistic::OperationsWrite,
+            ] {
                 self.common
                     .register_counter(statistic, BILLION, 3, PERCENTILES);
             }
