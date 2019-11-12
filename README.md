@@ -144,10 +144,10 @@ eBPF support requires a build time flag to enable eBPF. There are a few addition
 
 ### Viewing metrics from the example config
 
-Once rezolus is running, you can view the metrics via curl and `jq` for parsing the JSON:
+Once rezolus is running, you can view the metrics in a human readable format via the following:
 
 ```bash
-curl http://localhost:4242/get | jq .
+curl http://localhost:4242/vars
 ```
 
 ## Support
