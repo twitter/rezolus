@@ -108,6 +108,8 @@ performance counters.
 
 The rest of the guide assumes you've chosen to install the toolchain via rustup.
 
+**NOTE:** Rezolus is intended to be built and deployed on Linux systems.
+
 #### Install the nightly toolchain
 ```bash
 rustup toolchain install nightly
@@ -129,10 +131,60 @@ cargo build --release
 # run the optimized binary and display help
 cargo run --release -- --help
 
-# run the optimized binary with the example config
+# run the optimized binary with the example config (needs sudo for perf_events)
 cargo build --release && \
 sudo target/release/rezolus --config configs/example.toml
+
+# metrics can be viewed in human-readable form with curl
+curl --silent http://localhost:4242/vars
 ```
+
+### Building with eBPF Support
+
+By default, eBPF support is not compiled in. If you wish to produce a build with
+eBPF support enabled, follow the steps below:
+
+#### Prerequisites
+
+eBPF support requires that we link against the [BPF Compiler Collection]. You
+may either use the version provided by your distribution, or can build BCC and
+install from source. It is critical to know which version of BCC you have
+installed. Rezolus supports multiple versions by utilizing different feature
+flags at build time.
+
+#### Building
+
+As mentioned above, we provide different feature flags to map to various
+supported BCC versions. The `ebpf` feature will map to the newest version
+supported by the [rust-bcc] project. For most users, this will be the right flag
+to use. However, if you must link against an older BCC version, you will need
+to use a more specific form of the feature flag. These version-specific flags
+take the form of `ebpf_v0_10_0` with the BCC version being reflected in the name
+of the feature. You can find a complete list of the feature flags in the
+[cargo manifest] for this project.
+
+```bash
+# create an optimized release build with eBPF support
+cargo build --release --features ebpf
+sudo target/release/rezolus --config configs/example.toml
+
+# metrics can be viewed in human-readable form with curl
+curl --silent http://localhost:4242/vars
+```
+
+### HTTP Exposition
+
+Rezolus exposes metrics over HTTP, with different paths corresponding to
+different exposition formats.
+
+* human-readable: `/vars`
+* JSON: `/vars.json`, `/metrics.json`, `/admin/metrics.json`
+* Prometheus: `/metrics`
+
+**NOTE:** currently, JSON exposition is provided by default for any other path.
+This behavior may change in the future and should not be relied on.
+
+Additionally, you can get the running version on the root-level path `/`
 
 ## Support
 
@@ -163,5 +215,8 @@ https://www.apache.org/licenses/LICENSE-2.0
 Please report sensitive security issues via Twitter's bug-bounty program
 (https://hackerone.com/twitter) rather than GitHub.
 
+[cargo manifest]: https://github.com/twitter/rezolus/blob/master/Cargo.toml
 [contributors]: https://github.com/twitter/rezolus/graphs/contributors?type=a
+[rust-bcc]: https://github.com/rust-bpf/rust-bcc
+[BPF Compiler Collection]: https://github.com/iovisor/bcc
 [Open Source Code of Conduct]: https://github.com/twitter/code-of-conduct/blob/master/code-of-conduct.md
