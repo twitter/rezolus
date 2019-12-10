@@ -1,13 +1,13 @@
 language: rust
-os: linux
-dist: xenial
 sudo: required
 matrix:
   fast_finish: true
   include:
-    - os: linux
+    - name: "default: xenial / nightly"
+      os: linux
+      dist: xenial
       rust: nightly
-      env: TYPE=default RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - cargo build --verbose
         - cargo test --verbose
@@ -15,21 +15,83 @@ matrix:
         - cargo test --release --verbose
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - os: linux
+    - name: "ebpf: xenial / nightly / llvm 8.0 / bcc 0.10.0"
+      os: linux
+      dist: xenial
       rust: nightly
       env: TYPE=ebpf RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" | sudo tee -a /etc/apt/sources.list
         - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-8-dev libelf-dev libllvm8 libz-dev lldb-8 llvm-8 llvm-8-dev llvm-8-runtime
         - git clone https://github.com/iovisor/bcc || true
         - cd bcc
         - git checkout master
         - git pull
         - git checkout remotes/origin/tag_v0.10.0
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features ebpf_v0_10_0
+        - cargo test --features ebpf_v0_10_0
+        - cargo build --release --features ebpf_v0_10_0
+        - cargo test --release --features ebpf_v0_10_0
+        - cargo run --release --features ebpf_v0_10_0 -- --version
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+    - name: "ebpf: xenial / nightly / llvm 8.0 / bcc 0.11.0"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: TYPE=ebpf RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-8-dev libelf-dev libllvm8 libz-dev lldb-8 llvm-8 llvm-8-dev llvm-8-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features ebpf
+        - cargo test --features ebpf
+        - cargo build --release --features ebpf_v0_11_0
+        - cargo test --release --features ebpf_v0_11_0
+        - cargo run --release --features ebpf_v0_11_0 -- --version
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+    - name: "ebpf: xenial / nightly / llvm 8.0 / bcc latest"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: TYPE=ebpf RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-8-dev libelf-dev libllvm8 libz-dev lldb-8 llvm-8 llvm-8-dev llvm-8-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
         - mkdir -p _build
         - cd _build
         - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
@@ -43,7 +105,189 @@ matrix:
         - cargo run --release --features ebpf -- --version
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - os: linux
+    - name: "ebpf: xenial / nightly / llvm 9.0 / bcc 0.10.0"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: TYPE=ebpf RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-9-dev libelf-dev libllvm9 libz-dev lldb-9 llvm-9 llvm-9-dev llvm-9-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout remotes/origin/tag_v0.10.0
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features ebpf_v0_10_0
+        - cargo test --features ebpf_v0_10_0
+        - cargo build --release --features ebpf_v0_10_0
+        - cargo test --release --features ebpf_v0_10_0
+        - cargo run --release --features ebpf_v0_10_0 -- --version
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+    - name: "ebpf: xenial / nightly / llvm 9.0 / bcc 0.11.0"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: TYPE=ebpf RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-9-dev libelf-dev libllvm9 libz-dev lldb-9 llvm-9 llvm-9-dev llvm-9-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features ebpf
+        - cargo test --features ebpf
+        - cargo build --release --features ebpf_v0_11_0
+        - cargo test --release --features ebpf_v0_11_0
+        - cargo run --release --features ebpf_v0_11_0 -- --version
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+    - name: "ebpf: xenial / nightly / llvm 9.0 / bcc latest"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: TYPE=ebpf RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-9-dev libelf-dev libllvm9 libz-dev lldb-9 llvm-9 llvm-9-dev llvm-9-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features ebpf
+        - cargo test --features ebpf
+        - cargo build --release --features ebpf
+        - cargo test --release --features ebpf
+        - cargo run --release --features ebpf -- --version
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+    - name: "ebpf: xenial / nightly / llvm 10.0 / bcc 0.10.0"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: TYPE=ebpf RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout remotes/origin/tag_v0.10.0
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features ebpf_v0_10_0
+        - cargo test --features ebpf_v0_10_0
+        - cargo build --release --features ebpf_v0_10_0
+        - cargo test --release --features ebpf_v0_10_0
+        - cargo run --release --features ebpf_v0_10_0 -- --version
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+    - name: "ebpf: xenial / nightly / llvm 10.0 / bcc 0.11.0"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: TYPE=ebpf RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features ebpf
+        - cargo test --features ebpf
+        - cargo build --release --features ebpf_v0_11_0
+        - cargo test --release --features ebpf_v0_11_0
+        - cargo run --release --features ebpf_v0_11_0 -- --version
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+    - name: "ebpf: xenial / nightly / llvm 10.0 / bcc latest"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: TYPE=ebpf RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features ebpf
+        - cargo test --features ebpf
+        - cargo build --release --features ebpf
+        - cargo test --release --features ebpf
+        - cargo run --release --features ebpf -- --version
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+    - name: "no-default: xenial / stable"
+      os: linux
+      dist: xenial
       rust: stable
       env: TYPE=no-default RUST_BACKTRACE=1
       script:
@@ -52,7 +296,9 @@ matrix:
         - cargo build --release --verbose --no-default-features
         - cargo test --release --verbose --no-default-features
         - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
-    - os: linux
+    - name: "no-default: xenial / nightly"
+      os: linux
+      dist: xenial
       rust: nightly
       env: TYPE=no-default RUST_BACKTRACE=1
       script:
@@ -61,13 +307,17 @@ matrix:
         - cargo build --release --verbose --no-default-features
         - cargo test --release --verbose --no-default-features
         - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
-    - os: linux
+    - name: "rustfmt"
+      os: linux
+      dist: xenial
       rust: stable
       env: TYPE=rustfmt RUST_BACKTRACE=1
       script:
         - rustup component add rustfmt --toolchain stable
         - cargo +stable fmt -- --check
-    - os: linux
+    - name: "clippy"
+      os: linux
+      dist: xenial
       rust: nightly
       env: TYPE=clippy RUST_BACKTRACE=1
       script:
