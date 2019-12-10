@@ -15,6 +15,18 @@ matrix:
         - cargo test --release --verbose
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+    - name: "default: bionic / nightly"
+      os: linux
+      dist: bionic
+      rust: nightly
+      env: RUST_BACKTRACE=1
+      script:
+        - cargo build --verbose
+        - cargo test --verbose
+        - cargo build --release --verbose
+        - cargo test --release --verbose
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "ebpf: xenial / nightly / llvm 8.0 / bcc 0.10.0"
       os: linux
       dist: xenial
@@ -195,14 +207,14 @@ matrix:
         - cargo run --release --features ebpf -- --version
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: xenial / nightly / llvm 10.0 / bcc 0.10.0"
+    - name: "ebpf: bionic / nightly / llvm 10.0 / bcc 0.10.0"
       os: linux
-      dist: xenial
+      dist: bionic
       rust: nightly
       env: TYPE=ebpf RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main" | sudo tee -a /etc/apt/sources.list
+        - echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main" | sudo tee -a /etc/apt/sources.list
         - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
@@ -225,14 +237,14 @@ matrix:
         - cargo run --release --features ebpf_v0_10_0 -- --version
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: xenial / nightly / llvm 10.0 / bcc 0.11.0"
+    - name: "ebpf: bionic / nightly / llvm 10.0 / bcc 0.11.0"
       os: linux
-      dist: xenial
+      dist: bionic
       rust: nightly
       env: TYPE=ebpf RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main" | sudo tee -a /etc/apt/sources.list
+        - echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main" | sudo tee -a /etc/apt/sources.list
         - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
@@ -255,14 +267,14 @@ matrix:
         - cargo run --release --features ebpf_v0_11_0 -- --version
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: xenial / nightly / llvm 10.0 / bcc latest"
+    - name: "ebpf: bionic / nightly / llvm 10.0 / bcc latest"
       os: linux
-      dist: xenial
+      dist: bionic
       rust: nightly
       env: TYPE=ebpf RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main" | sudo tee -a /etc/apt/sources.list
+        - echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main" | sudo tee -a /etc/apt/sources.list
         - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
@@ -296,6 +308,17 @@ matrix:
         - cargo build --release --verbose --no-default-features
         - cargo test --release --verbose --no-default-features
         - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
+    - name: "no-default: bionic / stable"
+      os: linux
+      dist: bionic
+      rust: stable
+      env: TYPE=no-default RUST_BACKTRACE=1
+      script:
+        - cargo build --verbose --no-default-features
+        - cargo test --verbose --no-default-features
+        - cargo build --release --verbose --no-default-features
+        - cargo test --release --verbose --no-default-features
+        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
     - name: "no-default: xenial / nightly"
       os: linux
       dist: xenial
@@ -307,9 +330,20 @@ matrix:
         - cargo build --release --verbose --no-default-features
         - cargo test --release --verbose --no-default-features
         - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
+    - name: "no-default: bionic / nightly"
+      os: linux
+      dist: bionic
+      rust: nightly
+      env: TYPE=no-default RUST_BACKTRACE=1
+      script:
+        - cargo build --verbose --no-default-features
+        - cargo test --verbose --no-default-features
+        - cargo build --release --verbose --no-default-features
+        - cargo test --release --verbose --no-default-features
+        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
     - name: "rustfmt"
       os: linux
-      dist: xenial
+      dist: bionic
       rust: stable
       env: TYPE=rustfmt RUST_BACKTRACE=1
       script:
@@ -317,7 +351,7 @@ matrix:
         - cargo +stable fmt -- --check
     - name: "clippy"
       os: linux
-      dist: xenial
+      dist: bionic
       rust: nightly
       env: TYPE=clippy RUST_BACKTRACE=1
       script:
