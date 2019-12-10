@@ -31,7 +31,7 @@ matrix:
       os: linux
       dist: xenial
       rust: nightly
-      env: TYPE=ebpf RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
         - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" | sudo tee -a /etc/apt/sources.list
@@ -61,7 +61,7 @@ matrix:
       os: linux
       dist: xenial
       rust: nightly
-      env: TYPE=ebpf RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
         - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" | sudo tee -a /etc/apt/sources.list
@@ -91,7 +91,7 @@ matrix:
       os: linux
       dist: xenial
       rust: nightly
-      env: TYPE=ebpf RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
         - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" | sudo tee -a /etc/apt/sources.list
@@ -121,7 +121,7 @@ matrix:
       os: linux
       dist: xenial
       rust: nightly
-      env: TYPE=ebpf RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
         - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" | sudo tee -a /etc/apt/sources.list
@@ -151,7 +151,7 @@ matrix:
       os: linux
       dist: xenial
       rust: nightly
-      env: TYPE=ebpf RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
         - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" | sudo tee -a /etc/apt/sources.list
@@ -181,7 +181,7 @@ matrix:
       os: linux
       dist: xenial
       rust: nightly
-      env: TYPE=ebpf RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
         - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" | sudo tee -a /etc/apt/sources.list
@@ -211,7 +211,7 @@ matrix:
       os: linux
       dist: bionic
       rust: nightly
-      env: TYPE=ebpf RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
         - echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main" | sudo tee -a /etc/apt/sources.list
@@ -241,7 +241,7 @@ matrix:
       os: linux
       dist: bionic
       rust: nightly
-      env: TYPE=ebpf RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
         - echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main" | sudo tee -a /etc/apt/sources.list
@@ -271,7 +271,7 @@ matrix:
       os: linux
       dist: bionic
       rust: nightly
-      env: TYPE=ebpf RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
         - echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main" | sudo tee -a /etc/apt/sources.list
@@ -301,7 +301,7 @@ matrix:
       os: linux
       dist: xenial
       rust: stable
-      env: TYPE=no-default RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - cargo build --verbose --no-default-features
         - cargo test --verbose --no-default-features
@@ -312,7 +312,7 @@ matrix:
       os: linux
       dist: bionic
       rust: stable
-      env: TYPE=no-default RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - cargo build --verbose --no-default-features
         - cargo test --verbose --no-default-features
@@ -323,7 +323,7 @@ matrix:
       os: linux
       dist: xenial
       rust: nightly
-      env: TYPE=no-default RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - cargo build --verbose --no-default-features
         - cargo test --verbose --no-default-features
@@ -334,7 +334,7 @@ matrix:
       os: linux
       dist: bionic
       rust: nightly
-      env: TYPE=no-default RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - cargo build --verbose --no-default-features
         - cargo test --verbose --no-default-features
@@ -345,7 +345,7 @@ matrix:
       os: linux
       dist: bionic
       rust: stable
-      env: TYPE=rustfmt RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - rustup component add rustfmt --toolchain stable
         - cargo +stable fmt -- --check
