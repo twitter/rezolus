@@ -218,7 +218,7 @@ matrix:
         - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
+        - sudo apt-get --yes install bison build-essential cmake flex libfl-dev git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
         - git clone https://github.com/iovisor/bcc || true
         - cd bcc
         - git checkout master
@@ -248,7 +248,7 @@ matrix:
         - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
+        - sudo apt-get --yes install bison build-essential cmake flex libfl-dev git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
         - git clone https://github.com/iovisor/bcc || true
         - cd bcc
         - git checkout master
@@ -278,7 +278,7 @@ matrix:
         - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
+        - sudo apt-get --yes install bison build-essential cmake flex libfl-dev git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
         - git clone https://github.com/iovisor/bcc || true
         - cd bcc
         - git checkout master
