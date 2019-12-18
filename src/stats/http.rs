@@ -208,7 +208,7 @@ impl Http {
                     if let Some(ref count_label) = self.count_label {
                         data.push(format!("\"{}/{}\": {}", label, count_label, value));
                     } else {
-                        data.push(format!("{}: {}", label, value));
+                        data.push(format!("\"{}\": {}", label, value));
                     }
                 }
                 Output::Percentile(percentile) => match percentile {
