@@ -1,5 +1,14 @@
 # [Unreleased]
 
+#[1.3.0] - 2019-12-19
+## Added
+- Support for bcc 0.11.0, making it the new default version
+- Block device telemetry now includes nvme devices and discard ops/bandwidth
+- Memcache sampler now logs successful connections
+
+## Fixed
+- JSON output was improperly formatted in memcache proxy mode
+
 # [1.2.0] - 2019-11-06
 ## Added
 - Configuration flag to disable fault tolerance, enabling proper smoke tests of
@@ -33,7 +42,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/twitter/rezolus/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/twitter/rezolus/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/twitter/rezolus/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/twitter/rezolus/compare/v1.0.0...v1.0.1
