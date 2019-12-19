@@ -53,7 +53,11 @@ impl Sampler for Memcache {
             println!("ERROR: failed to resolve address: {}", endpoint);
             std::process::exit(1);
         });
-        let mut sampler = Memcache { address, common: Common::new(config, metrics), stream: None};
+        let mut sampler = Memcache {
+            address,
+            common: Common::new(config, metrics),
+            stream: None,
+        };
         sampler.reconnect();
         Ok(Some(Box::new(sampler) as Box<dyn Sampler>))
     }
