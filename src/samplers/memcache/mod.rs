@@ -26,14 +26,15 @@ pub struct Memcache {
 impl Memcache {
     fn reconnect(&mut self) {
         if self.stream.is_none() {
-            let stream = match TcpStream::connect(self.address) {
-                Ok(stream) => Some(stream),
+            match TcpStream::connect(self.address) {
+                Ok(stream) => {
+                    info!("Successfully connected to memcache");
+                    self.stream = Some(stream);
+                }
                 Err(e) => {
                     error!("Failed to connect to memcache: {}", e);
-                    None
                 }
-            };
-            self.stream = stream;
+            }
         }
     }
 }
@@ -52,18 +53,13 @@ impl Sampler for Memcache {
             println!("ERROR: failed to resolve address: {}", endpoint);
             std::process::exit(1);
         });
-        let stream = match TcpStream::connect(address) {
-            Ok(stream) => Some(stream),
-            Err(e) => {
-                error!("Failed to connect to memcache: {}", e);
-                None
-            }
-        };
-        Ok(Some(Box::new(Memcache {
+        let mut sampler = Memcache {
             address,
             common: Common::new(config, metrics),
-            stream,
-        }) as Box<dyn Sampler>))
+            stream: None,
+        };
+        sampler.reconnect();
+        Ok(Some(Box::new(sampler) as Box<dyn Sampler>))
     }
 
     fn common(&self) -> &Common {
