@@ -8,6 +8,7 @@ mod cpuidle;
 mod disk;
 mod ebpf;
 mod general;
+mod kafka;
 mod network;
 mod perf;
 mod softnet;
@@ -18,6 +19,7 @@ use self::cpuidle::CpuIdle;
 use self::disk::Disk;
 use self::ebpf::Ebpf;
 use self::general::General;
+use self::kafka::Kafka;
 use self::network::Network;
 use self::perf::Perf;
 use self::softnet::Softnet;
@@ -49,6 +51,8 @@ pub struct Config {
     ebpf: Ebpf,
     #[serde(default)]
     general: General,
+    #[serde(default)]
+    kafka: Kafka,
     #[serde(default)]
     network: Network,
     #[serde(default)]
@@ -145,6 +149,10 @@ impl Config {
 
     pub fn interval(&self) -> usize {
         self.general().interval()
+    }
+
+    pub fn kafka(&self) -> &Kafka {
+        &self.kafka
     }
 
     pub fn network(&self) -> &Network {

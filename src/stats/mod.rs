@@ -5,8 +5,10 @@
 #![allow(dead_code)]
 
 mod http;
+mod kafka;
 
 pub use self::http::Http;
+pub use self::kafka::KafkaProducer;
 
 use metrics::*;
 
@@ -21,10 +23,7 @@ pub struct MetricsSnapshot {
 }
 
 impl MetricsSnapshot {
-    pub fn new(
-        metrics: Metrics<AtomicU32>,
-        count_label: Option<&str>,
-    ) -> Self {
+    pub fn new(metrics: Metrics<AtomicU32>, count_label: Option<&str>) -> Self {
         Self {
             metrics,
             snapshot: Vec::new(),
@@ -34,8 +33,8 @@ impl MetricsSnapshot {
     }
 
     pub fn refresh(&mut self) {
-            self.snapshot = self.metrics.readings();
-            self.refreshed = time::precise_time_ns();
+        self.snapshot = self.metrics.readings();
+        self.refreshed = time::precise_time_ns();
     }
 
     pub fn prometheus(&self) -> String {
