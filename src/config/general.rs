@@ -1,8 +1,9 @@
-// Copyright 2019 Twitter, Inc.
+// Copyright 2019-2020 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::config::*;
+use std::time::Duration;
 
 use atomics::*;
 
@@ -13,16 +14,14 @@ pub struct General {
     #[serde(with = "LevelDef")]
     #[serde(default = "default_logging_level")]
     logging: Level,
-    memcache: Option<String>,
     #[serde(default = "default_interval")]
     interval: AtomicUsize,
     #[serde(default = "default_window")]
     window: AtomicUsize,
-    #[serde(default = "default_timeout")]
-    timeout: AtomicUsize,
-    #[serde(default = "default_max_timeouts")]
-    max_timeouts: AtomicUsize,
-    stats_log: Option<String>,
+    // #[serde(default = "default_timeout")]
+    // timeout: AtomicUsize,
+    // #[serde(default = "default_max_timeouts")]
+    // max_timeouts: AtomicUsize,
     #[serde(default = "default_fault_tolerant")]
     fault_tolerant: AtomicBool,
 }
@@ -40,29 +39,27 @@ impl General {
         self.logging = level;
     }
 
+    /// interval in ms between samples if no sampler specific interval
     pub fn interval(&self) -> usize {
         self.interval.load(Ordering::Relaxed)
     }
 
+    /// window for histogram lookback
     pub fn window(&self) -> Duration {
         Duration::new(self.window.load(Ordering::Relaxed) as u64, 0)
     }
 
-    pub fn timeout(&self) -> usize {
-        self.timeout.load(Ordering::Relaxed)
-    }
+    // pub fn timeout(&self) -> usize {
+    //     self.timeout.load(Ordering::Relaxed)
+    // }
 
-    pub fn max_timeouts(&self) -> usize {
-        self.max_timeouts.load(Ordering::Relaxed)
-    }
+    // pub fn max_timeouts(&self) -> usize {
+    //     self.max_timeouts.load(Ordering::Relaxed)
+    // }
 
-    pub fn memcache(&self) -> Option<String> {
-        self.memcache.clone()
-    }
-
-    pub fn stats_log(&self) -> Option<String> {
-        self.stats_log.clone()
-    }
+    // pub fn memcache(&self) -> Option<String> {
+    //     self.memcache.clone()
+    // }
 
     pub fn fault_tolerant(&self) -> bool {
         self.fault_tolerant.load(Ordering::Relaxed)
@@ -76,10 +73,9 @@ impl Default for General {
             logging: default_logging_level(),
             interval: default_interval(),
             window: default_window(),
-            timeout: default_timeout(),
-            max_timeouts: default_max_timeouts(),
-            stats_log: None,
-            memcache: None,
+            // timeout: default_timeout(),
+            // max_timeouts: default_max_timeouts(),
+            // memcache: None,
             fault_tolerant: default_fault_tolerant(),
         }
     }
@@ -93,13 +89,13 @@ fn default_window() -> AtomicUsize {
     AtomicUsize::new(60)
 }
 
-fn default_timeout() -> AtomicUsize {
-    AtomicUsize::new(50)
-}
+// fn default_timeout() -> AtomicUsize {
+//     AtomicUsize::new(50)
+// }
 
-fn default_max_timeouts() -> AtomicUsize {
-    AtomicUsize::new(5)
-}
+// fn default_max_timeouts() -> AtomicUsize {
+//     AtomicUsize::new(5)
+// }
 
 fn default_fault_tolerant() -> AtomicBool {
     AtomicBool::new(true)

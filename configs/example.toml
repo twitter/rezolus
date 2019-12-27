@@ -4,140 +4,51 @@
 
 # settings that apply to the entire process
 [general]
-
 # socket address for the metrics endpoint
 listen = "0.0.0.0:4242"
 
-# integration period for histograms in seconds
-window = 60
-
-# default collection interval for each sampler in milliseconds
-interval = 1000
-
-# per-sampler timeout in milliseconds
-timeout = 50
-
-# per-sampler max for consecutive timeouts before disabling that sampler
-max_timeouts = 5
-
-
-
 # settings for basic cpu telemetry
 [cpu]
-
-# enable or disable collection
 enabled = true
 
-# see docs/METRICS.md for a list of statistics that can be configured 
-statistics = ["user", "system", "idle", "irq", "softirq"]
+# # settings for basic disk telemetry
+# [disk]
+# ebpf = true
+# enabled = true
 
-[cpuidle]
-enabled = true
+# [ext4]
+# ebpf = true
+# enabled = true
 
-# settings for basic disk telemetry
-[disk]
+# [memory]
+# enabled = true
+# percentiles = []
 
-# enable or disable collection
-enabled = true
+# # settings for network telemetry
+# [network]
+# ebpf = true
+# enabled = true
 
+# # settings for perf telemetry
+# [perf]
+# enabled = true
 
+# [rezolus]
+# enabled = true
 
-# settings for ebpf telemetry
-[ebpf]
+# # settings for softnet telemetry
+# [softnet]
+# enabled = true
 
-# enable or disable collection for all ebpf samplers
-all = true
+# # settings for tcp telemetry
+# [tcp]
+# ebpf = true
+# enabled = true
 
-# enable or disable collection for block io
-block = true
+# # settings for udp telemetry
+# [udp]
+# enabled = true
 
-# enable or disable collection for ext4
-ext4 = true
-
-# enable or disable collection for network
-network = true
-
-# enable or disable collection for scheduler
-scheduler = true
-
-# enable or disable collection for tcp
-tcp = true
-
-# enable or disable collection for xfs
-xfs = true
-
-
-
-# settings for network telemetry
-[network]
-# enable or disable collection
-enabled = true
-
-# see docs/METRICS.md for a list of interface statistics
-interface_statistics = [
-	"rx_bytes",
-	"rx_crc_errors",
-	"rx_dropped",
-	"rx_errors",
-	"rx_fifo_errors",
-	"rx_missed_errors",
-	"rx_packets",
-	"tx_bytes",
-	"tx_discards_phy",
-	"tx_dropped",
-	"tx_errors",
-	"tx_fifo_errors",
-	"tx_packets",
-]
-
-# see docs/METRICS.md for a list of protocol statistics
-protocol_statistics = [
-	"tcp_in_segs",
-	"tcp_out_segs",
-	"tcp_prune_called",
-	"tcp_rcv_collapsed",
-	"tcp_retrans_segs",
-	"udp_in_datagrams",
-	"udp_in_errors",
-	"udp_out_datagrams",
-]
-
-
-
-# settings for perf telemetry
-[perf]
-
-# enable or disable collection
-enabled = true
-
-# see docs/METRICS.md for a list of perf statistics
-statistics = [
-	"cache_misses",
-    "cache_references",
-    "context_switches",
-    "cpu_branch_instructions",
-    "cpu_branch_misses",
-    "cpu_cycles",
-    "cpu_instructions",
-    "cpu_migrations",
-    "cpu_ref_cycles",
-    "dtlb_loads",
-    "dtlb_load_misses",
-    "dtlb_stores",
-    "dtlb_store_misses",
-    "memory_loads",
-    "memory_load_misses",
-    "memory_stores",
-    "memory_store_misses",
-    "page_faults",
-    "stalled_cycles_backend",
-    "stalled_cycles_frontend",
-]
-
-
-
-# settings for softnet telemetry
-[softnet]
-
-# enable or disable collection
-enabled = true
+# [xfs]
+# ebpf = true
+# enabled = true

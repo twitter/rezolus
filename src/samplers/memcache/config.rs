@@ -1,0 +1,77 @@
+// Copyright 2019-2020 Twitter, Inc.
+// Licensed under the Apache License, Version 2.0
+// http://www.apache.org/licenses/LICENSE-2.0
+
+use super::stat::*;
+use crate::config::SamplerConfig;
+use metrics::Percentile;
+
+use atomics::*;
+use serde_derive::*;
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MemcacheConfig {
+    #[serde(default = "default_enabled")]
+    enabled: AtomicBool,
+    #[serde(default = "default_interval")]
+    interval: AtomicOption<AtomicUsize>,
+    #[serde(default = "default_percentiles")]
+    percentiles: Vec<Percentile>,
+    endpoint: Option<String>,
+}
+
+impl Default for MemcacheConfig {
+    fn default() -> Self {
+        Self {
+            enabled: default_enabled(),
+            interval: default_interval(),
+            percentiles: default_percentiles(),
+            endpoint: None,
+        }
+    }
+}
+
+fn default_enabled() -> AtomicBool {
+    AtomicBool::new(false)
+}
+
+fn default_interval() -> AtomicOption<AtomicUsize> {
+    AtomicOption::none()
+}
+
+fn default_percentiles() -> Vec<Percentile> {
+    vec![
+        Percentile::p1,
+        Percentile::p10,
+        Percentile::p50,
+        Percentile::p90,
+        Percentile::p99,
+    ]
+}
+
+impl MemcacheConfig {
+    pub fn endpoint(&self) -> Option<String> {
+        self.endpoint.clone()
+    }
+}
+
+impl SamplerConfig for MemcacheConfig {
+    type Statistic = MemcacheStatistic;
+
+    fn enabled(&self) -> bool {
+        self.enabled.load(Ordering::Relaxed)
+    }
+
+    fn interval(&self) -> Option<usize> {
+        self.interval.load(Ordering::Relaxed)
+    }
+
+    fn percentiles(&self) -> &[Percentile] {
+        &self.percentiles
+    }
+
+    fn statistics(&self) -> &[<Self as SamplerConfig>::Statistic] {
+        &[]
+    }
+}

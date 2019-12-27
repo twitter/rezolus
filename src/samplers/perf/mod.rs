@@ -1,65 +1,71 @@
-// Copyright 2019 Twitter, Inc.
+// Copyright 2019-2020 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-pub mod statistics;
-
-use self::statistics::*;
-use crate::common::*;
-use crate::config::*;
+use crate::config::{Config, SamplerConfig};
 use crate::samplers::{Common, Sampler};
-
-use failure::Error;
-use logger::*;
+use async_trait::async_trait;
+use chashmap::CHashMap;
 use metrics::*;
 use perfcnt::{AbstractPerfCounter, PerfCounter};
-use time;
-
-use std::collections::HashMap;
 use std::sync::Arc;
+use tokio::runtime::Handle;
+
+mod config;
+mod stat;
+
+pub use config::*;
+pub use stat::*;
 
 pub struct Perf {
     common: Common,
-    counters: HashMap<Statistic, Vec<PerfCounter>>,
+    counters: CHashMap<PerfStatistic, Vec<PerfCounter>>,
 }
 
+#[async_trait]
 impl Sampler for Perf {
-    fn new(
-        config: Arc<Config>,
-        metrics: Metrics<AtomicU32>,
-    ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        if config.perf().enabled() {
-            let mut counters = HashMap::new();
-            let cores = hardware_threads().unwrap_or(1);
-
-            for statistic in config.perf().statistics() {
-                let mut event_counters = Vec::new();
-                for core in 0..cores {
-                    match statistic
-                        .builder()
-                        .on_cpu(core as isize)
-                        .for_all_pids()
-                        .finish()
-                    {
-                        Ok(c) => event_counters.push(c),
-                        Err(e) => {
-                            debug!("Failed to create PerfCounter for {:?}: {}", statistic, e);
-                            break;
-                        }
+    type Statistic = PerfStatistic;
+    fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        let counters = CHashMap::new();
+        let cores = 1;
+        for statistic in config.perf().statistics().iter() {
+            let mut event_counters = Vec::new();
+            for core in 0..cores {
+                match statistic
+                    .builder()
+                    .on_cpu(core as isize)
+                    .for_all_pids()
+                    .finish()
+                {
+                    Ok(c) => event_counters.push(c),
+                    Err(e) => {
+                        debug!("Failed to create PerfCounter for {:?}: {}", statistic, e);
                     }
                 }
-                if event_counters.len() as u64 == cores {
-                    trace!("Initialized PerfCounters for {:?}", statistic);
-                    counters.insert(*statistic, event_counters);
-                }
             }
+            if event_counters.len() as u64 == cores {
+                trace!("Initialized PerfCounters for {:?}", statistic);
+                counters.insert(*statistic, event_counters);
+            }
+        }
 
-            Ok(Some(Box::new(Self {
-                common: Common::new(config, metrics),
-                counters,
-            }) as Box<dyn Sampler>))
+        Ok(Self {
+            common: Common::new(config, metrics),
+            counters,
+        })
+    }
+
+    fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
+        if let Ok(mut sampler) = Self::new(config.clone(), metrics) {
+            handle.spawn(async move {
+                loop {
+                    let _ = sampler.sample().await;
+                }
+            });
+        } else if !config.fault_tolerant() {
+            fatal!("failed to initialize sampler");
         } else {
-            Ok(None)
+            error!("failed to initialize sampler");
         }
     }
 
@@ -67,63 +73,59 @@ impl Sampler for Perf {
         &self.common
     }
 
-    fn name(&self) -> String {
-        "perf".to_string()
+    fn common_mut(&mut self) -> &mut Common {
+        &mut self.common
     }
 
-    fn sample(&mut self) -> Result<(), ()> {
-        trace!("sample {}", self.name());
-        let time = time::precise_time_ns();
-        let mut current = HashMap::new();
-        trace!("sampling: {} perf counters", self.counters.keys().count());
-        for (event, counters) in &mut self.counters {
-            let mut c = Vec::new();
-            for counter in counters {
-                let count = match counter.read() {
-                    Ok(c) => c,
-                    Err(e) => {
-                        debug!("Could not read perf counter for event {:?}: {}", event, e);
-                        0
-                    }
-                };
-                c.push(count);
+    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        self.common.config().perf()
+    }
+
+    async fn sample(&mut self) -> Result<(), std::io::Error> {
+        if !self.sampler_config().enabled() {
+            if let Some(ref mut delay) = self.delay() {
+                delay.tick().await;
             }
-            current.insert(*event, c);
+
+            return Ok(());
         }
+
+        debug!("sampling");
         self.register();
-        for statistic in self.counters.keys() {
-            if let Some(counter) = current.get(statistic) {
-                let value: u64 = counter.iter().sum();
-                self.common.record_counter(&statistic, time, value);
+
+        let time = time::precise_time_ns();
+        for stat in self.sampler_config().statistics() {
+            if let Some(mut counters) = self.counters.get_mut(stat) {
+                let mut value = 0;
+                for counter in counters.iter_mut() {
+                    let count = match counter.read() {
+                        Ok(c) => c,
+                        Err(e) => {
+                            debug!("Could not read perf counter for event {:?}: {}", stat, e);
+                            0
+                        }
+                    };
+                    value += count;
+                }
+                if value > 0 {
+                    debug!("recording value for: {:?}", stat);
+                }
+                self.metrics().record_counter(stat, time, value);
             }
         }
+
+        if let Some(ref mut delay) = self.delay() {
+            delay.tick().await;
+        }
+
         Ok(())
     }
 
-    fn interval(&self) -> usize {
-        self.common()
-            .config()
-            .perf()
-            .interval()
-            .unwrap_or_else(|| self.common().config().interval())
-    }
-
-    fn register(&mut self) {
-        if !self.common.initialized() {
-            trace!("register {}", self.name());
-            for statistic in self.counters.keys() {
-                self.common
-                    .register_counter(statistic, TRILLION, 3, PERCENTILES);
-            }
-            self.common.set_initialized(true);
-        }
-    }
-
-    fn deregister(&mut self) {
-        trace!("deregister {}", self.name());
-        for statistic in self.counters.keys() {
-            self.common.delete_channel(statistic);
-        }
-        self.common.set_initialized(false);
+    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
+        Some(Summary::histogram(
+            1_000_000_000_000,
+            3,
+            Some(self.general_config().window()),
+        ))
     }
 }

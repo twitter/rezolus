@@ -1,21 +1,25 @@
-// Copyright 2019 Twitter, Inc.
+// Copyright 2019-2020 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use crate::common::*;
 use crate::config::*;
-use crate::samplers::{Common, Sampler};
-
-use failure::Error;
-use logger::*;
+use crate::samplers::Common;
+use crate::Sampler;
+use async_trait::async_trait;
+use atomics::AtomicU32;
 use metrics::*;
-use time;
-
-use std::io::{Read, Write};
-use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
-
-use std::str;
+use std::net::SocketAddr;
+use std::net::ToSocketAddrs;
 use std::sync::Arc;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpStream;
+use tokio::runtime::Handle;
+
+mod config;
+pub use config::*;
+
+mod stat;
+pub use stat::*;
 
 pub struct Memcache {
     address: SocketAddr,
@@ -26,11 +30,16 @@ pub struct Memcache {
 impl Memcache {
     fn reconnect(&mut self) {
         if self.stream.is_none() {
-            match TcpStream::connect(self.address) {
-                Ok(stream) => {
-                    info!("Successfully connected to memcache");
-                    self.stream = Some(stream);
-                }
+            match std::net::TcpStream::connect(self.address) {
+                Ok(stream) => match TcpStream::from_std(stream) {
+                    Ok(stream) => {
+                        info!("Connected to memcache");
+                        self.stream = Some(stream)
+                    }
+                    Err(e) => {
+                        error!("Failed to create tokio TcpStream: {}", e);
+                    }
+                },
                 Err(e) => {
                     error!("Failed to connect to memcache: {}", e);
                 }
@@ -39,57 +48,83 @@ impl Memcache {
     }
 }
 
+#[async_trait]
 impl Sampler for Memcache {
-    fn new(
-        config: Arc<Config>,
-        metrics: Metrics<AtomicU32>,
-    ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        let endpoint = config.memcache().unwrap();
+    type Statistic = MemcacheStatistic;
+
+    fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        if config.memcache().endpoint().is_none() {
+            return Err(format_err!("no memcache endpoint configured"));
+        }
+        let endpoint = config.memcache().endpoint().unwrap();
         let mut addrs = endpoint.to_socket_addrs().unwrap_or_else(|_| {
-            println!("ERROR: endpoint address is malformed: {}", endpoint);
-            std::process::exit(1);
+            fatal!("ERROR: endpoint address is malformed: {}", endpoint);
         });
         let address = addrs.next().unwrap_or_else(|| {
-            println!("ERROR: failed to resolve address: {}", endpoint);
-            std::process::exit(1);
+            fatal!("ERROR: failed to resolve address: {}", endpoint);
         });
-        let mut sampler = Memcache {
+        let mut ret = Self {
             address,
             common: Common::new(config, metrics),
             stream: None,
         };
-        sampler.reconnect();
-        Ok(Some(Box::new(sampler) as Box<dyn Sampler>))
+        ret.reconnect();
+        Ok(ret)
+    }
+
+    fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
+        if let Ok(mut sampler) = Self::new(config.clone(), metrics) {
+            handle.spawn(async move {
+                loop {
+                    let _ = sampler.sample().await;
+                }
+            });
+        } else if !config.fault_tolerant() {
+            fatal!("failed to initialize sampler");
+        } else {
+            error!("failed to initialize sampler");
+        }
     }
 
     fn common(&self) -> &Common {
         &self.common
     }
 
-    fn name(&self) -> String {
-        "memcache".to_string()
+    fn common_mut(&mut self) -> &mut Common {
+        &mut self.common
     }
 
-    fn sample(&mut self) -> Result<(), ()> {
-        // gather current state
-        trace!("sampling memcache");
-        let time = time::precise_time_ns();
+    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        self.common.config().memcache()
+    }
+
+    async fn sample(&mut self) -> Result<(), std::io::Error> {
+        if !self.sampler_config().enabled() {
+            if let Some(ref mut delay) = self.delay() {
+                delay.tick().await;
+            }
+
+            return Ok(());
+        }
+
+        debug!("sampling");
         if let Some(ref mut stream) = self.stream {
-            stream.write_all(b"stats\r\n").unwrap();
+            stream.write_all(b"stats\r\n").await?;
             let mut buffer = [0_u8; 16355];
             loop {
-                let length = stream.peek(&mut buffer).unwrap();
+                let length = stream.peek(&mut buffer).await?;
                 if length > 0 {
-                    let stats = str::from_utf8(&buffer).unwrap().to_string();
+                    let stats = std::str::from_utf8(&buffer).unwrap().to_string();
                     let lines: Vec<&str> = stats.split("\r\n").collect();
                     if lines[lines.len() - 2] == "END" {
                         break;
                     }
                 }
             }
-            let length = stream.read(&mut buffer).unwrap();
+            let time = time::precise_time_ns();
+            let length = stream.read(&mut buffer).await?;
             if length > 0 {
-                let stats = str::from_utf8(&buffer).unwrap().to_string();
+                let stats = std::str::from_utf8(&buffer).unwrap().to_string();
                 let lines: Vec<&str> = stats.split("\r\n").collect();
                 for line in lines {
                     let parts: Vec<&str> = line.split_whitespace().collect();
@@ -98,37 +133,48 @@ impl Sampler for Memcache {
                             match *name {
                                 "data_read" | "data_written" | "cmd_total" | "conn_total"
                                 | "conn_yield" | "hotkey_bw" | "hotkey_qps" => {
-                                    if !self.common.initialized() {
-                                        self.common.register_counter(name, BILLION, 3, PERCENTILES);
-                                    }
                                     if let Ok(value) =
                                         value.parse::<f64>().map(|v| v.floor() as u64)
                                     {
-                                        self.common.record_counter(name, time, value);
+                                        let statistic = MemcacheStatistic::new((*name).to_string());
+                                        // these select metrics get histogram summaries and
+                                        // percentile output
+                                        self.common().metrics().register(
+                                            &statistic,
+                                            Some(Summary::histogram(
+                                                1_000_000_000,
+                                                3,
+                                                Some(self.general_config().window()),
+                                            )),
+                                        );
+                                        self.common()
+                                            .metrics()
+                                            .record_counter(&statistic, time, value);
+                                        if self.summary(&statistic).is_some() {
+                                            for percentile in self.sampler_config().percentiles() {
+                                                self.common().metrics().register_output(
+                                                    &statistic,
+                                                    Output::Percentile(*percentile),
+                                                );
+                                            }
+                                        }
                                     }
                                 }
                                 _ => {
-                                    if !self.common.initialized() {
-                                        self.common.metrics().add_channel(
-                                            name.to_string(),
-                                            Source::Gauge,
-                                            None,
-                                        );
-                                        self.common
-                                            .metrics()
-                                            .add_output(name.to_string(), Output::Counter);
-                                    }
                                     if let Ok(value) =
                                         value.parse::<f64>().map(|v| v.floor() as u64)
                                     {
-                                        self.common.record_gauge(name, time, value);
+                                        let statistic = MemcacheStatistic::new((*name).to_string());
+                                        // gauge type is used to pass-through raw metrics
+                                        self.common()
+                                            .metrics()
+                                            .record_gauge(&statistic, time, value);
                                     }
                                 }
                             }
                         }
                     }
                 }
-                self.common.set_initialized(true);
             } else {
                 error!("failed to get stats. disconnect");
                 self.stream = None;
@@ -136,18 +182,11 @@ impl Sampler for Memcache {
         } else {
             self.reconnect();
         }
+
+        if let Some(ref mut delay) = self.delay() {
+            delay.tick().await;
+        }
+
         Ok(())
-    }
-
-    fn interval(&self) -> usize {
-        self.common().config().interval()
-    }
-
-    fn register(&mut self) {
-        // this is handled in-line
-    }
-
-    fn deregister(&mut self) {
-        // this is not implemented
     }
 }

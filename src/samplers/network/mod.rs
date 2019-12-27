@@ -1,75 +1,81 @@
-// Copyright 2019 Twitter, Inc.
+// Copyright 2019-2020 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-pub(crate) mod interface;
-pub(crate) mod protocol;
-pub(crate) mod statistics;
+use crate::common::bpf::*;
+use crate::config::{Config, SamplerConfig};
+use crate::samplers::Common;
+use std::sync::Mutex;
+use tokio::runtime::Handle;
 
-pub use self::interface::*;
-
-use self::statistics::InterfaceStatistic;
-use crate::common::*;
-use crate::config::*;
-use crate::samplers::{Common, Sampler};
-
-use failure::Error;
-use logger::*;
+use crate::Sampler;
+use async_trait::async_trait;
+#[cfg(feature = "ebpf")]
+use bcc;
 use metrics::*;
-use time;
-use walkdir;
-
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Instant;
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, BufReader};
 
-const REFRESH: u64 = 60_000_000_000;
+mod config;
+mod stat;
 
+pub use config::*;
+pub use stat::*;
+
+#[allow(dead_code)]
 pub struct Network {
+    bpf: Option<Arc<Mutex<BPF>>>,
+    bpf_last: Arc<Mutex<Instant>>,
     common: Common,
-    interfaces: HashSet<Interface>,
-    last_refreshed: u64,
 }
 
-impl Network {
-    fn get_interfaces(&self) -> HashSet<Interface> {
-        let mut interfaces = HashSet::default();
-        for entry in walkdir::WalkDir::new("/sys/class/net/")
-            .max_depth(1)
-            .into_iter()
-            .filter_map(std::result::Result::ok)
-        {
-            if let Some(name) = entry.file_name().to_str().to_owned() {
-                trace!("Discovered NIC: {}", name);
-                if !name.starts_with("eth") && !name.starts_with("en") && !name.starts_with("em") {
-                    trace!("Ignore NIC: bad prefix: {}", name);
-                    continue;
-                }
-                if let Ok(speed) = file::file_as_u64(format!("/sys/class/net/{}/speed", name)) {
-                    trace!("Monitoring NIC: {} speed: {} mbps", name, speed);
-                    let bytes_secondly = (speed * 1_000_000) / 8;
-                    interfaces.insert(Interface::new(Some(name.to_owned()), Some(bytes_secondly)));
-                } else {
-                    trace!("Ignore NIC: unknown speed: {}", name);
-                }
-            }
-        }
-        interfaces
-    }
-}
-
+#[async_trait]
 impl Sampler for Network {
-    fn new(
-        config: Arc<Config>,
-        metrics: Metrics<AtomicU32>,
-    ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        if config.network().enabled() {
-            Ok(Some(Box::new(Self {
-                common: Common::new(config, metrics),
-                interfaces: HashSet::new(),
-                last_refreshed: 0,
-            }) as Box<dyn Sampler>))
+    type Statistic = NetworkStatistic;
+
+    fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        #[cfg(feature = "ebpf")]
+        let bpf = if config.disk().ebpf() {
+            debug!("initializing ebpf");
+            // load the code and compile
+            let code = include_str!("bpf.c");
+            let mut bpf = bcc::core::BPF::new(code)?;
+
+            // load + attach kprobes!
+            let trace_transmit = bpf.load_tracepoint("trace_transmit")?;
+            bpf.attach_tracepoint("net", "net_dev_queue", trace_transmit)?;
+            let trace_receive = bpf.load_tracepoint("trace_receive")?;
+            bpf.attach_tracepoint("net", "netif_rx", trace_receive)?;
+
+            Some(Arc::new(Mutex::new(BPF { inner: bpf })))
         } else {
-            Ok(None)
+            None
+        };
+
+        #[cfg(not(feature = "ebpf"))]
+        let bpf = None;
+
+        Ok(Self {
+            bpf,
+            bpf_last: Arc::new(Mutex::new(Instant::now())),
+            common: Common::new(config, metrics),
+        })
+    }
+
+    fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
+        if let Ok(mut sampler) = Self::new(config.clone(), metrics) {
+            handle.spawn(async move {
+                loop {
+                    let _ = sampler.sample().await;
+                }
+            });
+        } else if !config.fault_tolerant() {
+            fatal!("failed to initialize sampler");
+        } else {
+            error!("failed to initialize sampler");
         }
     }
 
@@ -77,85 +83,100 @@ impl Sampler for Network {
         &self.common
     }
 
-    fn name(&self) -> String {
-        "network".to_string()
+    fn common_mut(&mut self) -> &mut Common {
+        &mut self.common
     }
 
-    fn sample(&mut self) -> Result<(), ()> {
-        trace!("sample {}", self.name());
-        let time = time::precise_time_ns();
-        if (time - self.last_refreshed) >= REFRESH {
-            self.interfaces = self.get_interfaces();
-            self.last_refreshed = time;
+    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        self.common.config().network()
+    }
+
+    async fn sample(&mut self) -> Result<(), std::io::Error> {
+        if !self.sampler_config().enabled() {
+            if let Some(ref mut delay) = self.delay() {
+                delay.tick().await;
+            }
+
+            return Ok(());
         }
+
+        debug!("sampling");
         self.register();
 
-        // interface statistics
-        for statistic in self.common.config().network().interface_statistics() {
-            let sum: u64 = self
-                .interfaces
-                .iter()
-                .map(|i| i.get_statistic(*statistic).unwrap_or(0))
-                .sum();
-            self.common.record_counter(&statistic, time, sum);
+        // sample /proc/net/dev
+        let file = File::open("/proc/net/dev").await?;
+        let reader = BufReader::new(file);
+        let mut lines = reader.lines();
+
+        let mut result = HashMap::new();
+
+        while let Some(line) = lines.next_line().await? {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts[1].parse::<u64>().is_ok() {
+                for statistic in self.sampler_config().statistics() {
+                    if let Some(field) = statistic.field_number() {
+                        if !result.contains_key(statistic) {
+                            result.insert(*statistic, 0);
+                        }
+                        let current = result.get_mut(statistic).unwrap();
+                        *current += parts[field].parse().unwrap_or(0);
+                    }
+                }
+            }
         }
 
-        // protocol statistics
-        if let Ok(protocol) = protocol::Protocol::new() {
-            for statistic in self.common.config().network().protocol_statistics() {
-                let value = *protocol.get(*statistic).unwrap_or(&0);
-                self.common.record_counter(statistic, time, value);
+        let time = time::precise_time_ns();
+        for (stat, value) in result {
+            self.metrics().record_counter(&stat, time, value);
+        }
+
+        // sample ebpf
+        #[cfg(feature = "ebpf")]
+        {
+            if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+                if let Some(ref bpf) = self.bpf {
+                    let bpf = bpf.lock().unwrap();
+                    for statistic in self.sampler_config().statistics() {
+                        if let Some(table) = statistic.ebpf_table() {
+                            let mut table = (*bpf).inner.table(table);
+
+                            for (&value, &count) in &map_from_table(&mut table) {
+                                if count > 0 {
+                                    self.metrics()
+                                        .record_distribution(statistic, time, value, count);
+                                }
+                            }
+                        }
+                    }
+                }
+                *self.bpf_last.lock().unwrap() = Instant::now();
             }
+        }
+
+        if let Some(ref mut delay) = self.delay() {
+            delay.tick().await;
         }
 
         Ok(())
     }
 
-    fn interval(&self) -> usize {
-        self.common()
-            .config()
-            .network()
-            .interval()
-            .unwrap_or_else(|| self.common().config().interval())
-    }
+    fn summary(&self, statistic: &Self::Statistic) -> Option<Summary> {
+        let precision = if statistic.ebpf_table().is_some() {
+            2
+        } else {
+            3
+        };
 
-    fn register(&mut self) {
-        if !self.common.initialized() {
-            trace!("register {}", self.name());
-            self.interfaces = self.get_interfaces();
-            self.last_refreshed = time::precise_time_ns();
-            let mut total_bandwidth_bytes = 0;
-            for interface in self.interfaces.iter() {
-                if interface.name().is_some() {
-                    total_bandwidth_bytes += interface.bandwidth_bytes().unwrap_or(0);
-                }
-            }
-            for statistic in self.common.config().network().interface_statistics() {
-                let max = match statistic {
-                    InterfaceStatistic::RxBytes | InterfaceStatistic::TxBytes => {
-                        2 * total_bandwidth_bytes
-                    }
-                    _ => (2 * total_bandwidth_bytes / 64),
-                };
-                self.common
-                    .register_counter(&statistic, max, 3, PERCENTILES);
-            }
-            for statistic in self.common.config().network().protocol_statistics() {
-                let max = 2 * total_bandwidth_bytes / 64;
-                self.common.register_counter(statistic, max, 3, PERCENTILES);
-            }
-            self.common.set_initialized(true);
-        }
-    }
+        let max = if statistic.ebpf_table().is_some() {
+            1_000_000
+        } else {
+            1_000_000_000_000
+        };
 
-    fn deregister(&mut self) {
-        trace!("deregister {}", self.name());
-        for statistic in self.common.config().network().interface_statistics() {
-            self.common.delete_channel(statistic);
-        }
-        for statistic in self.common.config().network().protocol_statistics() {
-            self.common.delete_channel(statistic);
-        }
-        self.common.set_initialized(false);
+        Some(Summary::histogram(
+            max,
+            precision,
+            Some(self.general_config().window()),
+        ))
     }
 }

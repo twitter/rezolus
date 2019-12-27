@@ -1,79 +1,125 @@
-// Copyright 2019 Twitter, Inc.
+// Copyright 2019-2020 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-pub(crate) mod container;
-pub(crate) mod cpu;
-pub(crate) mod cpuidle;
-pub(crate) mod disk;
-#[cfg(feature = "ebpf")]
-pub(crate) mod ebpf;
-pub(crate) mod memcache;
-pub(crate) mod network;
-#[cfg(feature = "perf")]
-pub(crate) mod perf;
-pub(crate) mod rezolus;
-pub(crate) mod softnet;
+use crate::config::General as GeneralConfig;
+use crate::config::{Config, SamplerConfig};
+use tokio::runtime::Handle;
 
-pub use self::container::Container;
-pub use self::cpu::Cpu;
-pub use self::cpuidle::CpuIdle;
-pub use self::disk::Disk;
-pub use self::memcache::Memcache;
-pub use self::network::Network;
-#[cfg(feature = "perf")]
-pub use self::perf::Perf;
-pub use self::rezolus::Rezolus;
-pub use self::softnet::Softnet;
-
-use crate::config::Config;
-
-use failure::Error;
+use async_trait::async_trait;
+use atomics::AtomicU32;
 use metrics::*;
 
+use tokio::time::interval;
+use tokio::time::Interval;
+
 use std::sync::Arc;
+use std::time::Duration;
 
-/// `Sampler`s are used to get samples of a particular subsystem or component
-/// The `Sampler` will perform the necessary actions to update the telemetry and
-/// record updated values into the metrics `Recorder`
-pub trait Sampler {
-    fn new(
-        config: Arc<Config>,
-        metrics: Metrics<AtomicU32>,
-    ) -> Result<Option<Box<dyn Sampler>>, Error>
-    where
-        Self: Sized;
+pub mod cpu;
+pub mod cpuidle;
+pub mod disk;
+pub mod ext4;
+pub mod memcache;
+pub mod memory;
+pub mod network;
+pub mod perf;
+pub mod rezolus;
+pub mod scheduler;
+pub mod softnet;
+pub mod tcp;
+pub mod udp;
+pub mod xfs;
 
-    /// Return a reference to the `Common` struct
+pub use cpu::Cpu;
+pub use cpuidle::Cpuidle;
+pub use disk::Disk;
+pub use ext4::Ext4;
+pub use memory::Memory;
+pub use network::Network;
+pub use perf::Perf;
+pub use rezolus::Rezolus;
+pub use scheduler::Scheduler;
+pub use softnet::Softnet;
+pub use tcp::Tcp;
+pub use udp::Udp;
+pub use xfs::Xfs;
+
+#[async_trait]
+pub trait Sampler: Sized + Send {
+    type Statistic: Statistic;
+
+    /// Create a new instance of the sampler
+    fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error>;
+
+    /// Access common fields shared between samplers
     fn common(&self) -> &Common;
+    fn common_mut(&mut self) -> &mut Common;
 
-    /// Return the name of the `Sampler`
-    fn name(&self) -> String;
+    fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle);
 
-    /// Perform required sampling steps and send stats to the `Recorder`
-    fn sample(&mut self) -> Result<(), ()>;
+    /// Run the sampler and write new observations to the metrics library and
+    /// wait until next sample interval
+    async fn sample(&mut self) -> Result<(), std::io::Error>;
 
-    /// Return the current configured interval in milliseconds for the `Sampler`
-    fn interval(&self) -> usize;
+    /// Wait until the next time to sample
+    fn delay(&mut self) -> &mut Option<Interval> {
+        if self.common_mut().interval().is_none() {
+            let duration = self
+                .sampler_config()
+                .interval()
+                .unwrap_or_else(|| self.general_config().interval());
+            self.common_mut()
+                .set_interval(Some(interval(Duration::from_millis(duration as u64))));
+        }
+        self.common_mut().interval()
+    }
 
-    /// Register any metrics that the `Sampler` will report
-    fn register(&mut self);
+    /// Access the specific sampler config
+    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic>;
 
-    /// De-register any metrics for the `Sampler`
-    fn deregister(&mut self);
+    /// Access the general config
+    fn general_config(&self) -> &GeneralConfig {
+        self.common().config().general()
+    }
+
+    /// Register all the statistics
+    fn register(&self) {
+        for statistic in self.sampler_config().statistics() {
+            self.common()
+                .metrics()
+                .register(statistic, self.summary(statistic));
+            self.common()
+                .metrics()
+                .register_output(statistic, Output::Reading);
+            for percentile in self.sampler_config().percentiles() {
+                self.common()
+                    .metrics()
+                    .register_output(statistic, Output::Percentile(*percentile));
+            }
+        }
+    }
+
+    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
+        None
+    }
+
+    fn metrics(&self) -> &Metrics<AtomicU32> {
+        self.common().metrics()
+    }
 }
 
 pub struct Common {
     config: Arc<Config>,
-    initialized: AtomicBool,
-    metrics: Metrics<AtomicU32>,
+    interval: Option<Interval>,
+    metrics: Arc<Metrics<AtomicU32>>,
 }
 
 impl Common {
-    pub fn new(config: Arc<Config>, metrics: Metrics<AtomicU32>) -> Self {
+    pub fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Self {
         Self {
             config,
-            initialized: AtomicBool::new(false),
+            interval: None,
             metrics,
         }
     }
@@ -82,116 +128,15 @@ impl Common {
         &self.config
     }
 
-    pub fn initialized(&self) -> bool {
-        self.initialized.load(Ordering::SeqCst)
+    pub fn interval(&mut self) -> &mut Option<Interval> {
+        &mut self.interval
     }
 
-    pub fn set_initialized(&self, value: bool) {
-        self.initialized.store(value, Ordering::SeqCst);
+    pub fn set_interval(&mut self, interval: Option<Interval>) {
+        self.interval = interval
     }
 
     pub fn metrics(&self) -> &Metrics<AtomicU32> {
         &self.metrics
-    }
-
-    pub fn delete_channel(&self, name: &dyn ToString) {
-        self.metrics.delete_channel(name.to_string())
-    }
-
-    #[allow(dead_code)]
-    pub fn record_distribution(&self, label: &dyn ToString, time: u64, value: u64, count: u32) {
-        self.metrics.record(
-            label.to_string(),
-            Measurement::Distribution { time, value, count },
-        );
-    }
-
-    pub fn record_counter(&self, label: &dyn ToString, time: u64, value: u64) {
-        self.metrics
-            .record(label.to_string(), Measurement::Counter { time, value });
-    }
-
-    pub fn record_gauge(&self, label: &dyn ToString, time: u64, value: u64) {
-        self.metrics
-            .record(label.to_string(), Measurement::Gauge { time, value });
-    }
-
-    #[allow(dead_code)]
-    pub fn register_distribution(
-        &self,
-        label: &dyn ToString,
-        max: u64,
-        precision: u32,
-        percentiles: &[Percentile],
-    ) {
-        self.metrics.add_channel(
-            label.to_string(),
-            Source::Distribution,
-            Some(Histogram::new(
-                max,
-                precision,
-                Some(self.config.general().window()),
-                None,
-            )),
-        );
-        self.metrics.add_output(label.to_string(), Output::Counter);
-        self.metrics
-            .add_output(label.to_string(), Output::MaxPointTime);
-        for percentile in percentiles {
-            self.metrics
-                .add_output(label.to_string(), Output::Percentile(*percentile));
-        }
-    }
-
-    pub fn register_counter(
-        &self,
-        label: &dyn ToString,
-        max: u64,
-        precision: u32,
-        percentiles: &[Percentile],
-    ) {
-        self.metrics.add_channel(
-            label.to_string(),
-            Source::Counter,
-            Some(Histogram::new(
-                max,
-                precision,
-                Some(self.config.general().window()),
-                None,
-            )),
-        );
-        self.metrics.add_output(label.to_string(), Output::Counter);
-        self.metrics
-            .add_output(label.to_string(), Output::MaxPointTime);
-        for percentile in percentiles {
-            self.metrics
-                .add_output(label.to_string(), Output::Percentile(*percentile));
-        }
-    }
-
-    pub fn register_gauge(
-        &self,
-        label: &dyn ToString,
-        max: u64,
-        precision: u32,
-        percentiles: &[Percentile],
-    ) {
-        self.metrics.add_channel(
-            label.to_string(),
-            Source::Gauge,
-            Some(Histogram::new(
-                max,
-                precision,
-                Some(self.config.general().window()),
-                None,
-            )),
-        );
-        self.metrics.add_output(label.to_string(), Output::Counter);
-        self.metrics
-            .add_output(label.to_string(), Output::MaxPointTime);
-        for percentile in percentiles {
-            self.metrics
-                .add_output(label.to_string(), Output::Percentile(*percentile));
-        }
     }
 }

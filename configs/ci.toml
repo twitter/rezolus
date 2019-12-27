@@ -2,7 +2,6 @@
 # difference between it and the example is that faults in sampler initialization
 # will result in errors as opposed to being silently handled
 
-# settings that apply to the entire process
 [general]
 listen = "0.0.0.0:4242"
 fault_tolerant = false
@@ -16,19 +15,38 @@ enabled = true
 [disk]
 enabled = true
 
-[ebpf]
-block = true
-ext4 = true
-network = true
-scheduler = true
-tcp = true
-xfs = false
+[ext4]
+enabled = true
+ebpf = true
+
+[memcahce]
+enabled = false
+
+[memory]
+enabled = true
 
 [network]
 enabled = true
+ebpf = true
 
 [perf]
 enabled = true
 
+[scheduler]
+enabled = true
+ebpf = true
+
 [softnet]
 enabled = true
+
+[tcp]
+enabled = true
+ebpf = true
+
+[udp]
+enabled = true
+ebpf = true
+
+[xfs]
+enabled = true
+ebpf = true

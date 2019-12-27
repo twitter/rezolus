@@ -1,99 +1,73 @@
-// Copyright 2019 Twitter, Inc.
+// Copyright 2019-2020 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-pub(crate) mod statistics;
-
-use self::statistics::*;
-use crate::common::*;
-use crate::config::*;
-use crate::samplers::{Common, Sampler};
-
-use failure::Error;
-use logger::*;
+use crate::config::{Config, SamplerConfig};
+use crate::samplers::Common;
+use crate::Sampler;
+use async_trait::async_trait;
 use metrics::*;
-use time;
-
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::sync::Arc;
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::runtime::Handle;
 
-const PROC_STAT: &str = "/proc/stat";
+mod config;
+mod stat;
 
-// reported percentiles
-pub const PERCENTILES: &[Percentile] = &[
-    Percentile::p01,
-    Percentile::p1,
-    Percentile::p10,
-    Percentile::p25,
-    Percentile::p50,
-    Percentile::p75,
-    Percentile::p90,
-    Percentile::p99,
-    Percentile::Maximum,
-];
+pub use config::*;
+pub use stat::*;
 
 pub struct Cpu {
     common: Common,
-    nanos_per_tick: u64,
+    tick_duration: u64,
 }
 
-struct ProcStat {
-    cpu_total: HashMap<Statistic, u64>,
+pub fn nanos_per_tick() -> u64 {
+    let ticks_per_second = sysconf::raw::sysconf(sysconf::raw::SysconfVariable::ScClkTck)
+        .expect("Failed to get Clock Ticks per Second") as u64;
+    1_000_000_000 / ticks_per_second
 }
 
-fn read_proc_stat() -> ProcStat {
-    let file = File::open(PROC_STAT)
-        .map_err(|e| debug!("could not read {}: {}", PROC_STAT, e))
-        .unwrap();
-    let mut file = BufReader::new(file);
-    parse_proc_stat(&mut file)
-}
-
-fn parse_proc_stat<T: BufRead>(reader: &mut T) -> ProcStat {
-    let mut ret = ProcStat {
-        cpu_total: HashMap::new(),
-    };
-    for line in reader.lines() {
-        let line = line.unwrap();
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts[0] == "cpu" && parts.len() == 11 {
-            ret.cpu_total
-                .insert(Statistic::User, parts[1].parse().unwrap_or(0));
-            ret.cpu_total
-                .insert(Statistic::Nice, parts[2].parse().unwrap_or(0));
-            ret.cpu_total
-                .insert(Statistic::System, parts[3].parse().unwrap_or(0));
-            ret.cpu_total
-                .insert(Statistic::Idle, parts[4].parse().unwrap_or(0));
-            ret.cpu_total
-                .insert(Statistic::Irq, parts[6].parse().unwrap_or(0));
-            ret.cpu_total
-                .insert(Statistic::Softirq, parts[7].parse().unwrap_or(0));
-            ret.cpu_total
-                .insert(Statistic::Steal, parts[8].parse().unwrap_or(0));
-            ret.cpu_total
-                .insert(Statistic::Guest, parts[9].parse().unwrap_or(0));
-            ret.cpu_total
-                .insert(Statistic::GuestNice, parts[10].parse().unwrap_or(0));
+impl Cpu {
+    pub fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
+        if let Ok(mut cpu) = Cpu::new(config.clone(), metrics) {
+            handle.spawn(async move {
+                loop {
+                    let _ = cpu.sample().await;
+                }
+            });
+        } else if !config.fault_tolerant() {
+            fatal!("failed to initialize cpu sampler");
+        } else {
+            error!("failed to initialize cpu sampler");
         }
     }
-    ret
 }
 
+#[async_trait]
 impl Sampler for Cpu {
-    fn new(
-        config: Arc<Config>,
-        metrics: Metrics<AtomicU32>,
-    ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        if config.cpu().enabled() {
-            Ok(Some(Box::new(Cpu {
-                common: Common::new(config, metrics),
-                nanos_per_tick: crate::common::nanos_per_tick(),
-            }) as Box<dyn Sampler>))
+    type Statistic = CpuStatistic;
+
+    fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        Ok(Self {
+            common: Common::new(config, metrics),
+            tick_duration: nanos_per_tick(),
+        })
+    }
+
+    fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
+        if let Ok(mut cpu) = Cpu::new(config.clone(), metrics) {
+            handle.spawn(async move {
+                loop {
+                    let _ = cpu.sample().await;
+                }
+            });
+        } else if !config.fault_tolerant() {
+            fatal!("failed to initialize cpu sampler");
         } else {
-            Ok(None)
+            error!("failed to initialize cpu sampler");
         }
     }
 
@@ -101,73 +75,76 @@ impl Sampler for Cpu {
         &self.common
     }
 
-    fn name(&self) -> String {
-        "cpu".to_string()
+    fn common_mut(&mut self) -> &mut Common {
+        &mut self.common
     }
 
-    fn sample(&mut self) -> Result<(), ()> {
-        trace!("sample {}", self.name());
-        let data = read_proc_stat();
-        let time = time::precise_time_ns();
-        self.register();
-        for statistic in self.common.config().cpu().statistics() {
-            let raw = *data.cpu_total.get(&statistic).unwrap_or(&0);
-            let value = raw * self.nanos_per_tick;
-            self.common.record_counter(&statistic, time, value);
+    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        self.common.config().cpu()
+    }
+
+    async fn sample(&mut self) -> Result<(), std::io::Error> {
+        if !self.sampler_config().enabled() {
+            if let Some(ref mut delay) = self.delay() {
+                delay.tick().await;
+            }
+
+            return Ok(());
         }
+
+        debug!("sampling");
+        self.register();
+
+        self.sample_cpu_usage().await?;
+
+        if let Some(ref mut delay) = self.delay() {
+            delay.tick().await;
+        }
+
         Ok(())
     }
 
-    fn interval(&self) -> usize {
-        self.common()
-            .config()
-            .cpu()
-            .interval()
-            .unwrap_or_else(|| self.common().config().interval())
-    }
-
-    fn register(&mut self) {
-        trace!("register {}", self.name());
-        if !self.common.initialized() {
-            let cores = crate::common::hardware_threads().unwrap_or(1);
-
-            for statistic in self.common.config().cpu().statistics() {
-                self.common
-                    .register_counter(&statistic, 2 * cores * SECOND, 3, PERCENTILES);
-            }
-
-            self.common.set_initialized(true);
-        }
-    }
-
-    fn deregister(&mut self) {
-        trace!("deregister {}", self.name());
-        for statistic in self.common.config().cpu().statistics() {
-            self.common.delete_channel(&statistic);
-        }
-        self.common.set_initialized(false);
+    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
+        let max = crate::common::hardware_threads().unwrap_or(1024) * 2_000_000_000;
+        Some(Summary::histogram(
+            max,
+            3,
+            Some(self.general_config().window()),
+        ))
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl Cpu {
+    async fn sample_cpu_usage(&self) -> Result<(), std::io::Error> {
+        let file = File::open("/proc/stat").await?;
+        let reader = BufReader::new(file);
+        let mut lines = reader.lines();
 
-    #[test]
-    fn test_parse_proc_stat() {
-        let file = File::open(&format!("tests/data{}", PROC_STAT))
-            .map_err(|e| panic!("could not read file: {}", e))
-            .unwrap();
-        let mut file = BufReader::new(file);
-        let data = parse_proc_stat(&mut file);
-        assert_eq!(*data.cpu_total.get(&Statistic::User).unwrap_or(&0), 370627);
-        assert_eq!(*data.cpu_total.get(&Statistic::Nice).unwrap_or(&0), 0);
-        assert_eq!(*data.cpu_total.get(&Statistic::System).unwrap_or(&0), 64096);
-        assert_eq!(*data.cpu_total.get(&Statistic::Idle).unwrap_or(&0), 8020800);
-        assert_eq!(*data.cpu_total.get(&Statistic::Irq).unwrap_or(&0), 0);
-        assert_eq!(*data.cpu_total.get(&Statistic::Softirq).unwrap_or(&0), 3053);
-        assert_eq!(*data.cpu_total.get(&Statistic::Steal).unwrap_or(&0), 0);
-        assert_eq!(*data.cpu_total.get(&Statistic::Guest).unwrap_or(&0), 0);
-        assert_eq!(*data.cpu_total.get(&Statistic::GuestNice).unwrap_or(&0), 0);
+        let mut result = HashMap::new();
+
+        while let Some(line) = lines.next_line().await? {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts[0] == "cpu" && parts.len() == 11 {
+                result.insert(CpuStatistic::User, parts[1].parse().unwrap_or(0));
+                result.insert(CpuStatistic::Nice, parts[2].parse().unwrap_or(0));
+                result.insert(CpuStatistic::System, parts[3].parse().unwrap_or(0));
+                result.insert(CpuStatistic::Idle, parts[4].parse().unwrap_or(0));
+                result.insert(CpuStatistic::Irq, parts[6].parse().unwrap_or(0));
+                result.insert(CpuStatistic::Softirq, parts[7].parse().unwrap_or(0));
+                result.insert(CpuStatistic::Steal, parts[8].parse().unwrap_or(0));
+                result.insert(CpuStatistic::Guest, parts[9].parse().unwrap_or(0));
+                result.insert(CpuStatistic::GuestNice, parts[10].parse().unwrap_or(0));
+            }
+        }
+
+        let time = time::precise_time_ns();
+        for stat in self.sampler_config().statistics() {
+            if let Some(value) = result.get(stat) {
+                self.metrics()
+                    .record_counter(stat, time, value * self.tick_duration);
+            }
+        }
+
+        Ok(())
     }
 }
