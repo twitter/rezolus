@@ -197,14 +197,17 @@ fn main() {
             });
     }
 
-    if config.kafka().enabled() {
-        let mut kafka_producer =
-            stats::KafkaProducer::new(config.clone(), metrics.clone(), count_suffix);
-        let _ = thread::Builder::new()
-            .name("kafka".to_string())
-            .spawn(move || loop {
-                kafka_producer.run();
-            });
+    #[cfg(feature = "push_kafka")]
+    {
+        if config.kafka().enabled() {
+            let mut kafka_producer =
+                stats::KafkaProducer::new(config.clone(), metrics.clone(), count_suffix);
+            let _ = thread::Builder::new()
+                .name("kafka".to_string())
+                .spawn(move || loop {
+                    kafka_producer.run();
+                });
+        }
     }
 
     let mut first_run = true;

@@ -5,9 +5,12 @@
 #![allow(dead_code)]
 
 mod http;
+#[cfg(feature = "push_kafka")]
 mod kafka;
 
 pub use self::http::Http;
+
+#[cfg(feature = "push_kafka")]
 pub use self::kafka::KafkaProducer;
 
 use metrics::*;
