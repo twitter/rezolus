@@ -1,97 +1,43 @@
-// Copyright 2019-2020 Twitter, Inc.
+// Copyright 2019 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-<<<<<<< HEAD:src/http.rs
-use std::sync::Arc;
-use std::time::{Duration, Instant};
-=======
-use crate::common::MILLISECOND;
-use crate::stats::MetricsSnapshot;
->>>>>>> master:src/stats/http.rs
+#![allow(dead_code)]
 
-use logger::*;
+mod http;
+#[cfg(feature = "push_kafka")]
+mod kafka;
+
+pub use self::http::Http;
+
+#[cfg(feature = "push_kafka")]
+pub use self::kafka::KafkaProducer;
+
 use metrics::*;
-use tiny_http::{Method, Response, Server};
 
-use std::net::SocketAddr;
+use std::fs::{File, OpenOptions};
+use std::io::Write;
 
-pub struct Http {
-<<<<<<< HEAD:src/http.rs
-    metrics: Arc<Metrics<AtomicU32>>,
-    server: Server,
+pub struct MetricsSnapshot {
+    metrics: Metrics<AtomicU32>,
     snapshot: Vec<Reading>,
-    refreshed: Instant,
+    refreshed: u64,
     count_label: Option<String>,
-=======
-    snapshot: MetricsSnapshot,
-    server: Server,
->>>>>>> master:src/stats/http.rs
 }
 
-impl Http {
-    pub fn new(
-        address: SocketAddr,
-        metrics: Arc<Metrics<AtomicU32>>,
-        count_label: Option<&str>,
-    ) -> Self {
-        let server = tiny_http::Server::http(address);
-        if server.is_err() {
-            fatal!("Failed to open {} for HTTP Stats listener", address);
-        }
+impl MetricsSnapshot {
+    pub fn new(metrics: Metrics<AtomicU32>, count_label: Option<&str>) -> Self {
         Self {
-            snapshot: MetricsSnapshot::new(metrics, count_label),
-            server: server.unwrap(),
+            metrics,
             snapshot: Vec::new(),
-            refreshed: Instant::now(),
+            refreshed: 0,
             count_label: count_label.map(std::string::ToString::to_string),
         }
     }
 
-    pub fn run(&mut self) {
-        if self.refreshed.elapsed() >= Duration::from_millis(500) {
-            self.snapshot = self.metrics.readings();
-            self.refreshed = Instant::now();
-        }
-        if let Ok(Some(request)) = self.server.try_recv() {
-            let url = request.url();
-            let parts: Vec<&str> = url.split('?').collect();
-            let url = parts[0];
-            match request.method() {
-                Method::Get => match url {
-                    "/" => {
-                        debug!("Serving GET on index");
-                        let _ = request.respond(Response::from_string(format!(
-                            "Welcome to {}\nVersion: {}\n",
-                            crate::common::NAME,
-                            crate::common::VERSION,
-                        )));
-                    }
-                    "/metrics" => {
-                        debug!("Serving Prometheus compatible stats");
-                        let _ = request.respond(Response::from_string(self.snapshot.prometheus()));
-                    }
-                    "/metrics.json" | "/vars.json" | "/admin/metrics.json" => {
-                        debug!("Serving machine readable stats");
-                        let _ = request.respond(Response::from_string(self.snapshot.json(false)));
-                    }
-                    "/vars" => {
-                        debug!("Serving human readable stats");
-                        let _ = request.respond(Response::from_string(self.snapshot.human()));
-                    }
-                    url => {
-                        debug!("GET on non-existent url: {}", url);
-                        debug!("Serving machine readable stats");
-                        let _ = request.respond(Response::from_string(self.snapshot.json(false)));
-                    }
-                },
-                method => {
-                    debug!("unsupported request method: {}", method);
-                    let _ = request.respond(Response::empty(404));
-                }
-            }
-        }
-        std::thread::sleep(Duration::from_millis(100));
+    pub fn refresh(&mut self) {
+        self.snapshot = self.metrics.readings();
+        self.refreshed = time::precise_time_ns();
     }
 
     pub fn prometheus(&self) -> String {
@@ -101,11 +47,11 @@ impl Http {
             let output = reading.output();
             let value = reading.value();
             match output {
-                Output::Reading => {
+                Output::Counter => {
                     if let Some(ref count_label) = self.count_label {
-                        data.push(format!("{}/{} {}", label, count_label, value))
+                        data.push(format!("{}/{} {}", label, count_label, value));
                     } else {
-                        data.push(format!("{} {}", label, value))
+                        data.push(format!("{} {}", label, value));
                     }
                 }
                 Output::Percentile(percentile) => match percentile {
@@ -122,7 +68,6 @@ impl Http {
                 Output::MaxPointTime => {
                     // we have point's ns since X and current timespec and current ns sinc X
                     let point_ns = value;
-
                     let now_timespec = time::get_time();
                     let now_ns = time::precise_time_ns();
 
@@ -141,7 +86,7 @@ impl Http {
                 _ => {
                     continue;
                 }
-            };
+            }
         }
         data.sort();
         let mut content = data.join("\n");
@@ -157,7 +102,7 @@ impl Http {
             let output = reading.output();
             let value = reading.value();
             match output {
-                Output::Reading => {
+                Output::Counter => {
                     if let Some(ref count_label) = self.count_label {
                         data.push(format!("{}/{}: {}", label, count_label, value));
                     } else {
@@ -215,11 +160,11 @@ impl Http {
             let output = reading.output();
             let value = reading.value();
             match output {
-                Output::Reading => {
+                Output::Counter => {
                     if let Some(ref count_label) = self.count_label {
                         data.push(format!("\"{}/{}\": {}", label, count_label, value));
                     } else {
-                        data.push(format!("{}: {}", label, value));
+                        data.push(format!("\"{}\": {}", label, value));
                     }
                 }
                 Output::Percentile(percentile) => match percentile {
@@ -269,5 +214,93 @@ impl Http {
         }
         content += "}";
         content
+    }
+}
+
+pub struct StatsLog {
+    file: File,
+    metrics: Metrics<AtomicU32>,
+    count_label: Option<String>,
+}
+
+impl StatsLog {
+    pub fn new(file: &str, metrics: Metrics<AtomicU32>, count_label: Option<&str>) -> Self {
+        let file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(file)
+            .expect("Failed to open file");
+        Self {
+            file,
+            metrics,
+            count_label: count_label.map(std::string::ToString::to_string),
+        }
+    }
+
+    pub fn print(&mut self) {
+        let current = self.metrics.readings();
+        let mut data = Vec::new();
+        for reading in current {
+            let label = reading.label();
+            let output = reading.output();
+            let value = reading.value();
+            match output {
+                Output::Counter => {
+                    if let Some(ref count_label) = self.count_label {
+                        data.push(format!("{}/{}: {}", label, count_label, value));
+                    } else {
+                        data.push(format!("{}: {}", label, value));
+                    }
+                }
+                Output::Percentile(percentile) => match percentile {
+                    Percentile::Minimum => {
+                        data.push(format!("{}/minimum/value: {}", label, value));
+                    }
+                    Percentile::Maximum => {
+                        data.push(format!("{}/maximum/value: {}", label, value));
+                    }
+                    _ => {
+                        data.push(format!("{}/histogram/{}: {}", label, percentile, value));
+                    }
+                },
+                Output::MaxPointTime => {
+                    // we have point's ns since X and current timespec and current ns sinc X
+                    let point_ns = value;
+                    let now_timespec = time::get_time();
+                    let now_ns = time::precise_time_ns();
+
+                    // find the number of NS in the past for point
+                    let delta_ns = now_ns - point_ns;
+                    let point_timespec =
+                        now_timespec - time::Duration::nanoseconds(delta_ns as i64);
+
+                    // convert to UTC
+                    let point_utc = time::at_utc(point_timespec);
+                    // calculate offset from the top of the minute
+                    let offset = point_utc.tm_sec as u64 * 1_000_000_000 + point_utc.tm_nsec as u64;
+                    let offset_ms = (offset as f64 / 1_000_000.0).floor() as usize;
+                    data.push(format!("{}/maximum/offset_ms: {}", label, offset_ms));
+                }
+                _ => {
+                    continue;
+                }
+            }
+        }
+        data.sort();
+        let time = time::now_utc();
+        let _ = self.file.write(format!("{}: ", time.rfc3339()).as_bytes());
+        let _ = self.file.write(data.join(", ").as_bytes());
+        let _ = self.file.write(b"\n");
+    }
+
+    pub fn run(&mut self) {
+        let time = time::now_utc();
+        let offset = time.tm_sec;
+        let delay = 60 - offset;
+        std::thread::sleep(std::time::Duration::new(delay as u64, 0));
+        loop {
+            std::thread::sleep(std::time::Duration::new(60, 0));
+            self.print();
+        }
     }
 }

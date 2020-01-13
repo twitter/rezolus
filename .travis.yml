@@ -297,6 +297,18 @@ matrix:
         - cargo run --release --features ebpf -- --version
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+    - name: "push_kafka: xenial / nightly"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: RUST_BACKTRACE=1
+      script:
+        - cargo build --features push_kafka --verbose
+        - cargo test --features push_kafka --verbose
+        - cargo build --release --features push_kafka --verbose
+        - cargo test --release --features push_kafka --verbose
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: xenial / stable"
       os: linux
       dist: xenial

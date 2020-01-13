@@ -55,6 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .expect("Failed to set handler for SIGINT / SIGTERM");
 
     // initialize metrics
+<<<<<<< HEAD
     debug!("initializing metrics");
     let metrics = Arc::new(Metrics::<AtomicU32>::new());
 
@@ -82,6 +83,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Tcp::spawn(config.clone(), metrics.clone(), runtime.handle());
     Udp::spawn(config.clone(), metrics.clone(), runtime.handle());
     Xfs::spawn(config.clone(), metrics.clone(), runtime.handle());
+
+    #[cfg(feature = "push_kafka")]
+    {
+        if config.kafka().enabled() {
+            let mut kafka_producer =
+                stats::KafkaProducer::new(config.clone(), metrics.clone(), count_suffix);
+            let _ = thread::Builder::new()
+                .name("kafka".to_string())
+                .spawn(move || loop {
+                    kafka_producer.run();
+                });
+        }
+    }
 
     debug!("beginning stats exposition");
     let mut stats_http = http::Http::new(

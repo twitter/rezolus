@@ -3,6 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 mod general;
+mod kafka;
 
 use metrics::Percentile;
 use samplers::cpu::CpuConfig;
@@ -21,6 +22,7 @@ use samplers::udp::UdpConfig;
 use samplers::xfs::XfsConfig;
 
 pub use self::general::General;
+use self::kafka::Kafka;
 
 use crate::*;
 
@@ -48,19 +50,9 @@ pub struct Config {
     #[serde(default)]
     general: General,
     #[serde(default)]
-    memcache: MemcacheConfig,
+    kafka: Kafka,
     #[serde(default)]
-    memory: MemoryConfig,
-    #[serde(default)]
-    network: NetworkConfig,
-    #[serde(default)]
-    perf: PerfConfig,
-    #[serde(default)]
-    rezolus: RezolusConfig,
-    #[serde(default)]
-    scheduler: SchedulerConfig,
-    #[serde(default)]
-    softnet: SoftnetConfig,
+    network: Network,
     #[serde(default)]
     tcp: TcpConfig,
     #[serde(default)]
@@ -125,16 +117,6 @@ impl Config {
         self.general.logging()
     }
 
-    // pub fn memcache(&self) -> Option<SocketAddr> {
-    //     self.general
-    //         .memcache()
-    //         .map(|v| v.to_socket_addrs().unwrap().next().unwrap())
-    // }
-
-    // pub fn container(&self) -> &Container {
-    //     &self.container
-    // }
-
     pub fn cpu(&self) -> &CpuConfig {
         &self.cpu
     }
@@ -153,6 +135,10 @@ impl Config {
 
     pub fn general(&self) -> &General {
         &self.general
+    }
+
+    pub fn kafka(&self) -> &Kafka {
+        &self.kafka
     }
 
     pub fn memcache(&self) -> &MemcacheConfig {
