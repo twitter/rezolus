@@ -2,29 +2,53 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use core::convert::TryFrom;
 use metrics::Statistic;
 use serde_derive::*;
+use std::str::FromStr;
+use strum::ParseError;
+use strum_macros::*;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
+#[derive(
+    Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
+)]
+#[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum NetworkStatistic {
+    #[strum(serialize = "network/receive/bytes")]
     RxBytes,
+    #[strum(serialize = "network/receive/packets")]
     RxPackets,
+    #[strum(serialize = "network/receive/errors")]
     RxErrors,
+    #[strum(serialize = "network/receive/drops")]
     RxDrops,
+    #[strum(serialize = "network/receive/fifo")]
     RxFifo,
+    #[strum(serialize = "network/receive/frame")]
     RxFrame,
+    #[strum(serialize = "network/receive/compressed")]
     RxCompressed,
+    #[strum(serialize = "network/receive/multicast")]
     RxMulticast,
+    #[strum(serialize = "network/transmit/bytes")]
     TxBytes,
+    #[strum(serialize = "network/transmit/packets")]
     TxPackets,
+    #[strum(serialize = "network/transmit/errors")]
     TxErrors,
+    #[strum(serialize = "network/transmit/drops")]
     TxDrops,
+    #[strum(serialize = "network/transmit/fifo")]
     TxFifo,
+    #[strum(serialize = "network/transmit/collisions")]
     TxCollisions,
+    #[strum(serialize = "network/transmit/carrier")]
     TxCarrier,
+    #[strum(serialize = "network/transmit/compressed")]
     TxCompressed,
+    #[strum(serialize = "network/receive/size")]
     RxSize,
+    #[strum(serialize = "network/transmit/size")]
     TxSize,
 }
 
@@ -62,26 +86,7 @@ impl NetworkStatistic {
 
 impl Statistic for NetworkStatistic {
     fn name(&self) -> &str {
-        match self {
-            Self::RxBytes => "network/receive/bytes",
-            Self::RxPackets => "network/receive/packets",
-            Self::RxErrors => "network/receive/errors",
-            Self::RxDrops => "network/receive/drops",
-            Self::RxFifo => "network/receive/fifo",
-            Self::RxFrame => "network/receive/frame",
-            Self::RxCompressed => "network/receive/compressed",
-            Self::RxMulticast => "network/receive/multicast",
-            Self::TxBytes => "network/transmit/bytes",
-            Self::TxPackets => "network/transmit/packets",
-            Self::TxErrors => "network/transmit/errors",
-            Self::TxDrops => "network/transmit/drops",
-            Self::TxFifo => "network/transmit/fifo",
-            Self::TxCollisions => "network/transmit/collisions",
-            Self::TxCarrier => "network/transmit/carrier",
-            Self::TxCompressed => "network/transmit/compressed",
-            Self::RxSize => "network/receive/size",
-            Self::TxSize => "network/transmit/size",
-        }
+        (*self).into()
     }
 
     fn source(&self) -> metrics::Source {
@@ -90,5 +95,13 @@ impl Statistic for NetworkStatistic {
         } else {
             metrics::Source::Counter
         }
+    }
+}
+
+impl TryFrom<&str> for NetworkStatistic {
+    type Error = ParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        NetworkStatistic::from_str(s)
     }
 }

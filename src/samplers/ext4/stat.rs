@@ -2,15 +2,25 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use core::convert::TryFrom;
+use core::str::FromStr;
 use metrics::Statistic;
 use serde_derive::*;
+use strum::ParseError;
+use strum_macros::*;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
+#[derive(
+    Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
+)]
+#[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum Ext4Statistic {
+    #[strum(serialize = "ext4/read/latency")]
     ReadLatency,
+    #[strum(serialize = "ext4/write/latency")]
     WriteLatency,
+    #[strum(serialize = "ext4/open/latency")]
     OpenLatency,
+    #[strum(serialize = "ext4/fsync/latency")]
     FsyncLatency,
 }
 
@@ -28,12 +38,7 @@ impl Ext4Statistic {
 
 impl Statistic for Ext4Statistic {
     fn name(&self) -> &str {
-        match self {
-            Self::ReadLatency => "ext4/read/latency",
-            Self::WriteLatency => "ext4/write/latency",
-            Self::OpenLatency => "ext4/open/latency",
-            Self::FsyncLatency => "ext4/fsync/latency",
-        }
+        (*self).into()
     }
 
     fn description(&self) -> Option<&str> {
@@ -51,5 +56,13 @@ impl Statistic for Ext4Statistic {
 
     fn source(&self) -> metrics::Source {
         metrics::Source::Distribution
+    }
+}
+
+impl TryFrom<&str> for Ext4Statistic {
+    type Error = ParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        Ext4Statistic::from_str(s)
     }
 }

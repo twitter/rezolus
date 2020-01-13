@@ -2,12 +2,19 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use core::convert::TryFrom;
 use metrics::Statistic;
 use serde_derive::*;
+use std::str::FromStr;
+use strum::ParseError;
+use strum_macros::*;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
+#[derive(
+    Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
+)]
+#[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum SchedulerStatistic {
+    #[strum(serialize = "scheduler/runqueue/latency")]
     RunqueueLatency,
 }
 
@@ -22,12 +29,18 @@ impl SchedulerStatistic {
 
 impl Statistic for SchedulerStatistic {
     fn name(&self) -> &str {
-        match self {
-            Self::RunqueueLatency => "scheduler/runqueue/latency",
-        }
+        (*self).into()
     }
 
     fn source(&self) -> metrics::Source {
         metrics::Source::Distribution
+    }
+}
+
+impl TryFrom<&str> for SchedulerStatistic {
+    type Error = ParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        SchedulerStatistic::from_str(s)
     }
 }

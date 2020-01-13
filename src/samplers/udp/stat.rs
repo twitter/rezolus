@@ -4,12 +4,21 @@
 
 use metrics::Statistic;
 use serde_derive::*;
+use std::convert::TryFrom;
+use std::str::FromStr;
+use strum::ParseError;
+use strum_macros::*;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
+#[derive(
+    Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
+)]
+#[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum UdpStatistic {
+    #[strum(serialize = "udp/receive/datagrams")]
     InDatagrams,
+    #[strum(serialize = "udp/receive/errors")]
     InErrors,
+    #[strum(serialize = "udp/transmit/datagrams")]
     OutDatagrams,
 }
 
@@ -25,11 +34,7 @@ impl UdpStatistic {
 
 impl Statistic for UdpStatistic {
     fn name(&self) -> &str {
-        match self {
-            Self::InDatagrams => "udp/receive/datagrams",
-            Self::InErrors => "udp/receive/errors",
-            Self::OutDatagrams => "udp/transmit/datagrams",
-        }
+        (*self).into()
     }
 
     fn description(&self) -> Option<&str> {
@@ -49,5 +54,13 @@ impl Statistic for UdpStatistic {
 
     fn source(&self) -> metrics::Source {
         metrics::Source::Counter
+    }
+}
+
+impl TryFrom<&str> for UdpStatistic {
+    type Error = ParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        UdpStatistic::from_str(s)
     }
 }

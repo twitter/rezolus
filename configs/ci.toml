@@ -1,52 +1,61 @@
-# This config is used to validate Rezolus in CI environments. The main
-# difference between it and the example is that faults in sampler initialization
-# will result in errors as opposed to being silently handled
-
 [general]
 listen = "0.0.0.0:4242"
-fault_tolerant = false
 
 [cpu]
 enabled = true
+perf_events = true
+statistics = [
+	"cpu/usage/user",
+	"cpu/usage/system",
+	"cpu/usage/idle",
+	"cpu/cycles",
+	"cpu/instructions",
+	"cpu/reference_cycles",
+]
 
 [cpuidle]
 enabled = true
+statistics = [
+	"cpuidle/time/c0",
+]
 
 [disk]
+# ebpf = false
 enabled = true
 
 [ext4]
+# ebpf = true
 enabled = true
-ebpf = true
 
-[memcahce]
-enabled = false
-
-[memory]
-enabled = true
+# [memory]
+# enabled = true
 
 [network]
+# ebpf = true
 enabled = true
-ebpf = true
 
 [perf]
 enabled = true
 
-[scheduler]
+[rezolus]
 enabled = true
-ebpf = true
 
 [softnet]
 enabled = true
 
 [tcp]
+# ebpf = true
 enabled = true
-ebpf = true
 
 [udp]
 enabled = true
-ebpf = true
 
 [xfs]
+# ebpf = true
 enabled = true
-ebpf = true
+statistics = [
+	"xfs/fsync/latency",
+	"xfs/open/latency",
+	"xfs/read/latency",
+	"xfs/write/latency",
+]

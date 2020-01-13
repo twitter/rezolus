@@ -105,28 +105,97 @@ Provides additional system-wide telemetry for networking
 * `network/receive/size` - distribution of received packet sizes in bytes
 * `network/transmit/size` - distribution of transmitted packet sizes in bytes
 
+### Perf
+
+ * `cpu/cache/misses`
+ * `cpu/cache/references`
+ * `cpu/branch_prediction/instructions`
+ * `cpu/branch_prediction/misses`
+ * `cpu/cycles`
+ * `cpu/instructions`
+ * `scheduler/cpu_migrations`
+ * `scheduler/context_switches`
+ * `cpu/reference_cycles`
+ * `cpu/dtlb/load`
+ * `cpu/dtlb/load/misses`
+ * `cpu/dtlb/store`
+ * `cpu/dtlb/store/misses`
+ * `memory/load`
+ * `memory/store`
+ * `memory/store/misses`
+ * `memory/load/misses`
+ * `cpu/page_fault`
+ * `cpu/stalled_cycles/frontend`
+ * `cpu/stalled_cycles/backend`
+
+### Rezolus
+
+ * `rezolus/cpu/user` - amount of user cpu time used by Rezolus
+ * `rezolus/cpu/system` - amount of system cpu time used by Rezolus
+ * `rezolus/memory/virtual` - amount of virtual memory allocated to Rezolus
+ * `rezolus/memory/resident` - amount of memory occupied by Rezolus
+
 ### Scheduler
 
-Captures system-wide scheduler telemetry
+#### eBPF
 
-* `scheduler/runqueue_latency_ns` - distribution of the amount of time in
-  nanoseconds that runnable tasks are waiting to be scheduled onto a core
+* `scheduler/runqueue/latency` - amount of time runnable tasks are waiting in
+  the runqueue before being scheduled (nanoseconds)
+
+### Softnet
+
+ * `softnet/cpu_collision` - number of times collision occurred on obtaining device
+   lock while transmitting
+ * `softnet/dropped` - number of frames dropped due to no room on processing
+   queue
+ * `softnet/flow_limit_count` - number of times the flow limit has been reached
+ * `softnet/processed` - total number of frames processed
+ * `softnet/received_rps` - number of times CPU has been woken up to process
+   packets via inter-processor interrupt
+ * `softnet/time_squeezed` - number of times net_rx_action had more work, but
+   budget or time exhausted
 
 ### TCP
 
-Captures additional system-wide telemetry for TCP
+ * `tcp/receive/checksum_errors` - tcp segments received with checksum errors
+ * `tcp/receive/collapsed` - tcp packets collapsed in receive queue due to low
+   socket buffer
+ * `tcp/receive/ofo_pruned` - TCP packets dropped from out-of-order queue due to
+   low socket buffer
+ * `tcp/receive/prune_called` - number of times pruning has been run on the
+   receive queue
+ * `tcp/receive/pruned` - TCP packets pruned from receive queue
+ * `tcp/receive/segments` - tcp segments received
+ * `tcp/receive/errors` - tcp segments received in error
+ * `tcp/syncookies/failed` - number of failed SYN cookies
+ * `tcp/syncookies/received` - number of received SYN cookies
+ * `tcp/syncookies/sent` - number of sent SYN cookies
+ * `tcp/transmit/delayed_acks` - number of delayed ACKs sent
+ * `tcp/receive/listen_drops` - number of SYNs to LISTEN sockets dropped
+ * `tcp/receive/listen_overflows` - number of times the listen queue of a socket
+   overflowed
+ * `tcp/transmit/resets` - tcp segments transmitted with the RST flag
+ * `tcp/transmit/retransmits` - tcp segments retransmitted
+ * `tcp/transmit/segments` - tcp segments transmitted
 
-* `network/tcp/connect/latency` - distribution of latency for establishing
-active (outbound) connections
+#### eBPF
+
+ * `tcp/connect/latency` - latency of active TCP connect
+
+## UDP
+
+ * `udp/receive/datagrams` - UDP datagrams received
+ * `udp/receive/errors` - UDP datagrams that were not delivered to valid port
+ * `udp/transmit/datagrams` - UDP datagrams transmitted
 
 ### XFS
 
-Capture system-wide filesystem latency for XFS
+#### eBPF
 
-* `xfs/read` - distribution of latency for read operations in nanoseconds
-* `xfs/write` - distribution of latency for write operations in nanoseconds
-* `xfs/fsync` - distribution of latency for fsync operations in nanoseconds
-* `xfs/open` - distribution of latency for open operations in nanoseconds
+* `xfs/fsync/latency` - XFS fsync latency (nanoseconds)
+* `xfs/open/latency` - XFS open latency (nanoseconds)
+* `xfs/read/latency` - XFS read latency (nanoseconds)
+* `xfs/write/latency` - XFS write latency (nanoseconds)
 
 ## Network
 

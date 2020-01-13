@@ -4,25 +4,30 @@
 
 use metrics::Statistic;
 
+use core::convert::TryFrom;
 use serde_derive::*;
+use std::str::FromStr;
+use strum::ParseError;
+use strum_macros::*;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
+#[derive(
+    Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
+)]
+#[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum RezolusStatistic {
+    #[strum(serialize = "rezolus/cpu/user")]
     UserTime,
+    #[strum(serialize = "rezolus/cpu/system")]
     SystemTime,
+    #[strum(serialize = "rezolus/memory/virtual")]
     VirtualMemory,
+    #[strum(serialize = "rezolus/memory/resident")]
     ResidentMemory,
 }
 
 impl Statistic for RezolusStatistic {
     fn name(&self) -> &str {
-        match self {
-            Self::UserTime => "rezolus/cpu/user",
-            Self::SystemTime => "rezolus/cpu/system",
-            Self::VirtualMemory => "rezolus/memory/virtual",
-            Self::ResidentMemory => "rezolus/memory/resident",
-        }
+        (*self).into()
     }
 
     fn source(&self) -> metrics::Source {
@@ -30,5 +35,13 @@ impl Statistic for RezolusStatistic {
             Self::VirtualMemory | Self::ResidentMemory => metrics::Source::Gauge,
             _ => metrics::Source::Counter,
         }
+    }
+}
+
+impl TryFrom<&str> for RezolusStatistic {
+    type Error = ParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        RezolusStatistic::from_str(s)
     }
 }

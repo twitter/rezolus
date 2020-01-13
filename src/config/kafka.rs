@@ -36,6 +36,7 @@ fn default_interval() -> AtomicUsize {
     AtomicUsize::new(500)
 }
 
+#[cfg(feature = "push_kafka")]
 impl Kafka {
     pub fn enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)

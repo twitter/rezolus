@@ -9,6 +9,7 @@ mod http;
 mod kafka;
 
 pub use self::http::Http;
+use std::sync::Arc;
 
 #[cfg(feature = "push_kafka")]
 pub use self::kafka::KafkaProducer;
@@ -19,14 +20,14 @@ use std::fs::{File, OpenOptions};
 use std::io::Write;
 
 pub struct MetricsSnapshot {
-    metrics: Metrics<AtomicU32>,
+    metrics: Arc<Metrics<AtomicU32>>,
     snapshot: Vec<Reading>,
     refreshed: u64,
     count_label: Option<String>,
 }
 
 impl MetricsSnapshot {
-    pub fn new(metrics: Metrics<AtomicU32>, count_label: Option<&str>) -> Self {
+    pub fn new(metrics: Arc<Metrics<AtomicU32>>, count_label: Option<&str>) -> Self {
         Self {
             metrics,
             snapshot: Vec::new(),
@@ -47,7 +48,7 @@ impl MetricsSnapshot {
             let output = reading.output();
             let value = reading.value();
             match output {
-                Output::Counter => {
+                Output::Reading => {
                     if let Some(ref count_label) = self.count_label {
                         data.push(format!("{}/{} {}", label, count_label, value));
                     } else {
@@ -102,7 +103,7 @@ impl MetricsSnapshot {
             let output = reading.output();
             let value = reading.value();
             match output {
-                Output::Counter => {
+                Output::Reading => {
                     if let Some(ref count_label) = self.count_label {
                         data.push(format!("{}/{}: {}", label, count_label, value));
                     } else {
@@ -160,7 +161,7 @@ impl MetricsSnapshot {
             let output = reading.output();
             let value = reading.value();
             match output {
-                Output::Counter => {
+                Output::Reading => {
                     if let Some(ref count_label) = self.count_label {
                         data.push(format!("\"{}/{}\": {}", label, count_label, value));
                     } else {
@@ -245,7 +246,7 @@ impl StatsLog {
             let output = reading.output();
             let value = reading.value();
             match output {
-                Output::Counter => {
+                Output::Reading => {
                     if let Some(ref count_label) = self.count_label {
                         data.push(format!("{}/{}: {}", label, count_label, value));
                     } else {

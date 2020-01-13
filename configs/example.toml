@@ -1,54 +1,40 @@
-# This config is an example for running Rezolus for system-level telemetry. It
-# is intended to be run as an agent on the machine to export systems performance
-# telemetry.
-
-# settings that apply to the entire process
 [general]
-# socket address for the metrics endpoint
 listen = "0.0.0.0:4242"
 
-# settings for basic cpu telemetry
 [cpu]
 enabled = true
 
-# # settings for basic disk telemetry
-# [disk]
-# ebpf = true
-# enabled = true
+[disk]
+# ebpf = false
+enabled = true
 
-# [ext4]
+[ext4]
 # ebpf = true
-# enabled = true
+enabled = true
 
 # [memory]
 # enabled = true
-# percentiles = []
 
-# # settings for network telemetry
-# [network]
+[network]
 # ebpf = true
-# enabled = true
+enabled = true
 
-# # settings for perf telemetry
 # [perf]
 # enabled = true
 
-# [rezolus]
-# enabled = true
+[rezolus]
+enabled = true
 
-# # settings for softnet telemetry
-# [softnet]
-# enabled = true
+[softnet]
+enabled = true
 
-# # settings for tcp telemetry
-# [tcp]
+[tcp]
 # ebpf = true
-# enabled = true
+enabled = true
 
-# # settings for udp telemetry
-# [udp]
-# enabled = true
+[udp]
+enabled = true
 
-# [xfs]
+[xfs]
 # ebpf = true
-# enabled = true
+enabled = true

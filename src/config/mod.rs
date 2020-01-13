@@ -52,7 +52,19 @@ pub struct Config {
     #[serde(default)]
     kafka: Kafka,
     #[serde(default)]
-    network: Network,
+    memcache: MemcacheConfig,
+    #[serde(default)]
+    memory: MemoryConfig,
+    #[serde(default)]
+    network: NetworkConfig,
+    #[serde(default)]
+    perf: PerfConfig,
+    #[serde(default)]
+    rezolus: RezolusConfig,
+    #[serde(default)]
+    scheduler: SchedulerConfig,
+    #[serde(default)]
+    softnet: SoftnetConfig,
     #[serde(default)]
     tcp: TcpConfig,
     #[serde(default)]
@@ -137,6 +149,7 @@ impl Config {
         &self.general
     }
 
+    #[cfg(feature = "push_kafka")]
     pub fn kafka(&self) -> &Kafka {
         &self.kafka
     }
@@ -212,5 +225,8 @@ pub trait SamplerConfig {
     }
     fn interval(&self) -> Option<usize>;
     fn percentiles(&self) -> &[Percentile];
+    fn perf_events(&self) -> bool {
+        false
+    }
     fn statistics(&self) -> &[<Self as config::SamplerConfig>::Statistic];
 }

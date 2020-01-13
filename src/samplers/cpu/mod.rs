@@ -2,10 +2,14 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+#[cfg(feature = "perf")]
+use perfcnt::*;
+
 use crate::config::{Config, SamplerConfig};
 use crate::samplers::Common;
 use crate::Sampler;
 use async_trait::async_trait;
+use chashmap::CHashMap;
 use metrics::*;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -19,8 +23,13 @@ mod stat;
 pub use config::*;
 pub use stat::*;
 
+#[cfg(not(feature = "perf"))]
+struct PerfCounter {}
+
+#[allow(dead_code)]
 pub struct Cpu {
     common: Common,
+    perf_counters: CHashMap<CpuStatistic, Vec<PerfCounter>>,
     tick_duration: u64,
 }
 
@@ -51,8 +60,37 @@ impl Sampler for Cpu {
     type Statistic = CpuStatistic;
 
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        let perf_counters = CHashMap::new();
+        if config.cpu().perf_events() {
+            #[cfg(feature = "perf")]
+            {
+                // TODO: core detection
+                let cores = 1;
+                for statistic in config.cpu().statistics().iter() {
+                    if let Some(mut builder) = statistic.perf_counter_builder() {
+                        let mut event_counters = Vec::new();
+                        for core in 0..cores {
+                            match builder.on_cpu(core as isize).for_all_pids().finish() {
+                                Ok(c) => event_counters.push(c),
+                                Err(e) => {
+                                    debug!(
+                                        "Failed to create PerfCounter for {:?}: {}",
+                                        statistic, e
+                                    );
+                                }
+                            }
+                        }
+                        if event_counters.len() as u64 == cores {
+                            trace!("Initialized PerfCounters for {:?}", statistic);
+                            perf_counters.insert(*statistic, event_counters);
+                        }
+                    }
+                }
+            }
+        }
         Ok(Self {
             common: Common::new(config, metrics),
+            perf_counters,
             tick_duration: nanos_per_tick(),
         })
     }
@@ -96,6 +134,8 @@ impl Sampler for Cpu {
         self.register();
 
         self.sample_cpu_usage().await?;
+        #[cfg(feature = "perf")]
+        self.sample_perf_counters().await?;
 
         if let Some(ref mut delay) = self.delay() {
             delay.tick().await;
@@ -125,15 +165,15 @@ impl Cpu {
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
             if parts[0] == "cpu" && parts.len() == 11 {
-                result.insert(CpuStatistic::User, parts[1].parse().unwrap_or(0));
-                result.insert(CpuStatistic::Nice, parts[2].parse().unwrap_or(0));
-                result.insert(CpuStatistic::System, parts[3].parse().unwrap_or(0));
-                result.insert(CpuStatistic::Idle, parts[4].parse().unwrap_or(0));
-                result.insert(CpuStatistic::Irq, parts[6].parse().unwrap_or(0));
-                result.insert(CpuStatistic::Softirq, parts[7].parse().unwrap_or(0));
-                result.insert(CpuStatistic::Steal, parts[8].parse().unwrap_or(0));
-                result.insert(CpuStatistic::Guest, parts[9].parse().unwrap_or(0));
-                result.insert(CpuStatistic::GuestNice, parts[10].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageUser, parts[1].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageNice, parts[2].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageSystem, parts[3].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageIdle, parts[4].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageIrq, parts[6].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageSoftirq, parts[7].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageSteal, parts[8].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageGuest, parts[9].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageGuestNice, parts[10].parse().unwrap_or(0));
             }
         }
 
@@ -142,6 +182,32 @@ impl Cpu {
             if let Some(value) = result.get(stat) {
                 self.metrics()
                     .record_counter(stat, time, value * self.tick_duration);
+            }
+        }
+
+        Ok(())
+    }
+
+    #[cfg(feature = "perf")]
+    async fn sample_perf_counters(&mut self) -> Result<(), std::io::Error> {
+        let time = time::precise_time_ns();
+        for stat in self.sampler_config().statistics() {
+            if let Some(mut counters) = self.perf_counters.get_mut(stat) {
+                let mut value = 0;
+                for counter in counters.iter_mut() {
+                    let count = match counter.read() {
+                        Ok(c) => c,
+                        Err(e) => {
+                            debug!("Could not read perf counter for event {:?}: {}", stat, e);
+                            0
+                        }
+                    };
+                    value += count;
+                }
+                if value > 0 {
+                    debug!("recording value for: {:?}", stat);
+                }
+                self.metrics().record_counter(stat, time, value);
             }
         }
 

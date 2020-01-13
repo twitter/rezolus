@@ -120,7 +120,7 @@ impl Sampler for Ext4 {
             if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
                 if let Some(ref bpf) = self.bpf {
                     let bpf = bpf.lock().unwrap();
-                    let time = Instant::now();
+                    let time = time::precise_time_ns();
                     for statistic in self.sampler_config().statistics() {
                         if let Some(table) = statistic.ebpf_table() {
                             let mut table = (*bpf).inner.table(table);

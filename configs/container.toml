@@ -1,29 +1,40 @@
-# This config is an example for running Rezolus within an application container.
-# It is intended to be run within the container as a "sidecar" process and used
-# to export additional telemetry about the container.
-
-# settings that apply to the entire process
 [general]
-
-# socket address for the metrics endpoint
 listen = "0.0.0.0:4242"
 
-# integration period for histograms in seconds
-window = 60
+[cpu]
+enabled = true
 
-# default collection interval for each sampler in milliseconds
-interval = 1000
+[disk]
+# ebpf = false
+enabled = true
 
-# per-sampler timeout in milliseconds
-timeout = 50
+[ext4]
+# ebpf = true
+enabled = true
 
-# per-sampler max for consecutive timeouts before disabling that sampler
-max_timeouts = 5
+[memory]
+enabled = true
 
+[network]
+# ebpf = true
+enabled = true
 
+# [perf]
+# enabled = true
 
-# settings for basic container telemetry
-[container]
+[rezolus]
+enabled = true
 
-# enable or disable collection
+[softnet]
+enabled = true
+
+[tcp]
+# ebpf = true
+enabled = true
+
+[udp]
+enabled = true
+
+[xfs]
+# ebpf = true
 enabled = true

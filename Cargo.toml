@@ -23,6 +23,8 @@ perfcnt = { version = "0.5.0", optional = true }
 regex = "1.3.3"
 serde = "1.0.103"
 serde_derive = "1.0.103"
+strum = "*"
+strum_macros = "*"
 sysconf = "0.3.4"
 time = "0.1.42"
 tiny_http = "0.6.2"
@@ -35,6 +37,7 @@ walkdir = "2.2.9"
 vergen = "3.0.4"
 
 [features]
+all = ["ebpf", "kafka", "perf"]
 default = ["perf"]
 ebpf = ["bcc"]
 ebpf_static = ["ebpf", "bcc/static"]

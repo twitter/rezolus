@@ -35,8 +35,9 @@ pub use cpu::Cpu;
 pub use cpuidle::Cpuidle;
 pub use disk::Disk;
 pub use ext4::Ext4;
-pub use memory::Memory;
+// pub use memory::Memory;
 pub use network::Network;
+#[cfg(feature = "perf")]
 pub use perf::Perf;
 pub use rezolus::Rezolus;
 pub use scheduler::Scheduler;

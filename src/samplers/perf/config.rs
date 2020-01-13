@@ -7,12 +7,7 @@ use atomics::*;
 use metrics::Percentile;
 use serde_derive::*;
 
-#[cfg(feature = "perf")]
 use super::stat::PerfStatistic;
-
-#[derive(Clone, Copy, Deserialize, Hash, Debug, PartialEq, Eq)]
-#[cfg(not(feature = "perf"))]
-pub enum PerfStatistic {}
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -48,35 +43,16 @@ fn default_percentiles() -> Vec<Percentile> {
     ]
 }
 
-#[cfg(feature = "perf")]
 fn default_statistics() -> Vec<PerfStatistic> {
     vec![
-        PerfStatistic::CacheMisses,
-        PerfStatistic::CacheReferences,
         PerfStatistic::ContextSwitches,
-        PerfStatistic::CpuBranchInstructions,
-        PerfStatistic::CpuBranchMisses,
-        PerfStatistic::CpuCycles,
-        PerfStatistic::CpuInstructions,
         PerfStatistic::CpuMigrations,
-        PerfStatistic::CpuRefCycles,
-        PerfStatistic::DtlbLoads,
-        PerfStatistic::DtlbLoadMisses,
-        PerfStatistic::DtlbStores,
-        PerfStatistic::DtlbStoreMisses,
-        PerfStatistic::MemoryLoads,
-        PerfStatistic::MemoryLoadMisses,
-        PerfStatistic::MemoryStores,
-        PerfStatistic::MemoryStoreMisses,
-        PerfStatistic::PageFaults,
-        PerfStatistic::StalledCyclesBackend,
-        PerfStatistic::StalledCyclesFrontend,
+        // PerfStatistic::MemoryLoads,
+        // PerfStatistic::MemoryLoadMisses,
+        // PerfStatistic::MemoryStores,
+        // PerfStatistic::MemoryStoreMisses,
+        // PerfStatistic::PageFaults,
     ]
-}
-
-#[cfg(not(feature = "perf"))]
-fn default_statistics() -> Vec<PerfStatistic> {
-    vec![]
 }
 
 impl SamplerConfig for PerfConfig {

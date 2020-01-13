@@ -17,8 +17,8 @@ use std::sync::Arc;
 
 mod common;
 mod config;
-mod http;
 mod samplers;
+mod stats;
 
 use config::Config;
 use samplers::*;
@@ -55,7 +55,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .expect("Failed to set handler for SIGINT / SIGTERM");
 
     // initialize metrics
-<<<<<<< HEAD
     debug!("initializing metrics");
     let metrics = Arc::new(Metrics::<AtomicU32>::new());
 
@@ -74,8 +73,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Cpuidle::spawn(config.clone(), metrics.clone(), runtime.handle());
     Disk::spawn(config.clone(), metrics.clone(), runtime.handle());
     Ext4::spawn(config.clone(), metrics.clone(), runtime.handle());
-    Memory::spawn(config.clone(), metrics.clone(), runtime.handle());
+    // Memory::spawn(config.clone(), metrics.clone(), runtime.handle());
     Network::spawn(config.clone(), metrics.clone(), runtime.handle());
+    #[cfg(feature = "perf")]
     Perf::spawn(config.clone(), metrics.clone(), runtime.handle());
     Rezolus::spawn(config.clone(), metrics.clone(), runtime.handle());
     Scheduler::spawn(config.clone(), metrics.clone(), runtime.handle());
@@ -87,8 +87,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "push_kafka")]
     {
         if config.kafka().enabled() {
-            let mut kafka_producer =
-                stats::KafkaProducer::new(config.clone(), metrics.clone(), count_suffix);
+            let mut kafka_producer = stats::KafkaProducer::new(config.clone(), metrics.clone());
             let _ = thread::Builder::new()
                 .name("kafka".to_string())
                 .spawn(move || loop {
@@ -98,10 +97,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     debug!("beginning stats exposition");
-    let mut stats_http = http::Http::new(
+    let mut stats_http = stats::Http::new(
         config.listen().expect("no listen address"),
-        metrics,
-        Some("count"),
+        metrics.clone(),
+        config.general().count_suffix(),
     );
 
     while runnable.load(Ordering::Relaxed) {

@@ -2,25 +2,46 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use core::convert::TryFrom;
+use core::str::FromStr;
 use metrics::Statistic;
 use serde_derive::*;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
+use strum::ParseError;
+use strum_macros::*;
+
+#[derive(
+    Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
+)]
+#[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum DiskStatistic {
+    #[strum(serialize = "disk/read/bytes")]
     BandwidthRead,
+    #[strum(serialize = "disk/write/bytes")]
     BandwidthWrite,
+    #[strum(serialize = "disk/discard/bytes")]
     BandwidthDiscard,
+    #[strum(serialize = "disk/read/ops")]
     OperationsRead,
+    #[strum(serialize = "disk/write/ops")]
     OperationsWrite,
+    #[strum(serialize = "disk/discard/ops")]
     OperationsDiscard,
+    #[strum(serialize = "disk/read/latency")]
     LatencyRead,
+    #[strum(serialize = "disk/write/latency")]
     LatencyWrite,
+    #[strum(serialize = "disk/read/device_latency")]
     DeviceLatencyRead,
+    #[strum(serialize = "disk/write/device_latency")]
     DeviceLatencyWrite,
+    #[strum(serialize = "disk/read/queue_latency")]
     QueueLatencyRead,
+    #[strum(serialize = "disk/write/queue_latency")]
     QueueLatencyWrite,
+    #[strum(serialize = "disk/read/io_size")]
     IoSizeRead,
+    #[strum(serialize = "disk/write/io_size")]
     IoSizeWrite,
 }
 
@@ -54,22 +75,7 @@ impl DiskStatistic {
 
 impl Statistic for DiskStatistic {
     fn name(&self) -> &str {
-        match self {
-            Self::BandwidthDiscard => "disk/bandwidth/discard",
-            Self::BandwidthRead => "disk/bandwidth/read",
-            Self::BandwidthWrite => "disk/bandwidth/write",
-            Self::OperationsDiscard => "disk/operations/discard",
-            Self::OperationsRead => "disk/operations/read",
-            Self::OperationsWrite => "disk/operations/write",
-            Self::LatencyRead => "disk/latency/read",
-            Self::LatencyWrite => "disk/latency/write",
-            Self::DeviceLatencyRead => "disk/device_latency/read",
-            Self::DeviceLatencyWrite => "disk/device_latency/write",
-            Self::QueueLatencyRead => "disk/queue_latency/read",
-            Self::QueueLatencyWrite => "disk/queue_latency/write",
-            Self::IoSizeRead => "disk/io_size/read",
-            Self::IoSizeWrite => "disk/io_size/write",
-        }
+        (*self).into()
     }
 
     fn source(&self) -> metrics::Source {
@@ -78,5 +84,13 @@ impl Statistic for DiskStatistic {
         } else {
             metrics::Source::Counter
         }
+    }
+}
+
+impl TryFrom<&str> for DiskStatistic {
+    type Error = ParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        DiskStatistic::from_str(s)
     }
 }

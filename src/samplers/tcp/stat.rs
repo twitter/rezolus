@@ -4,26 +4,49 @@
 
 use metrics::Statistic;
 use serde_derive::*;
+use std::convert::TryFrom;
+use std::str::FromStr;
+use strum::ParseError;
+use strum_macros::*;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
+#[derive(
+    Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
+)]
+#[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum TcpStatistic {
+    #[strum(serialize = "tcp/connect/latency")]
     ConnectLatency,
+    #[strum(serialize = "tcp/receive/segment")]
     RxSegments,
+    #[strum(serialize = "tcp/transmit/segment")]
     TxSegments,
+    #[strum(serialize = "tcp/receive/prune_called")]
     PruneCalled,
+    #[strum(serialize = "tcp/receive/collapsed")]
     ReceiveCollapsed,
+    #[strum(serialize = "tcp/transmit/retransmit")]
     Retransmits,
+    #[strum(serialize = "tcp/receive/checksum_error")]
     RxChecksumErrors,
+    #[strum(serialize = "tcp/transmit/reset")]
     TxResets,
+    #[strum(serialize = "tcp/receive/error")]
     RxErrors,
+    #[strum(serialize = "tcp/syncookies/sent")]
     SyncookiesSent,
+    #[strum(serialize = "tcp/syncookies/received")]
     SyncookiesRecieved,
+    #[strum(serialize = "tcp/syncookies/failed")]
     SyncookiesFailed,
+    #[strum(serialize = "tcp/receive/pruned")]
     ReceivePruned,
+    #[strum(serialize = "tcp/receive/ofo_pruned")]
     OfoPruned,
+    #[strum(serialize = "tcp/transmit/delayed_ack")]
     DelayedAcks,
+    #[strum(serialize = "tcp/receive/listen_overflows")]
     ListenOverflows,
+    #[strum(serialize = "tcp/receive/listen_drops")]
     ListenDrops,
 }
 
@@ -60,55 +83,33 @@ impl TcpStatistic {
 
 impl Statistic for TcpStatistic {
     fn name(&self) -> &str {
-        match self {
-            Self::ConnectLatency => "tcp/connect/latency",
-            Self::RxSegments => "tcp/receive/segments",
-            Self::TxSegments => "tcp/transmit/segments",
-            Self::PruneCalled => "tcp/receive/prune_called",
-            Self::ReceiveCollapsed => "tcp/receive/collapsed",
-            Self::Retransmits => "tcp/transmit/retransmits",
-            Self::RxChecksumErrors => "tcp/receive/checksum_errors",
-            Self::TxResets => "tcp/transmit/resets",
-            Self::RxErrors => "tcp/receive/errors",
-            Self::SyncookiesSent => "tcp/syncookies/sent",
-            Self::SyncookiesRecieved => "tcp/syncookies/received",
-            Self::SyncookiesFailed => "tcp/syncookies/failed",
-            Self::ReceivePruned => "tcp/receive/pruned",
-            Self::OfoPruned => "tcp/receive/ofo_pruned",
-            Self::DelayedAcks => "tcp/transmit/delayed_acks",
-            Self::ListenOverflows => "tcp/receive/listen_overflows",
-            Self::ListenDrops => "tcp/receive/listen_drops",
-        }
+        (*self).into()
     }
 
     fn description(&self) -> Option<&str> {
-        match self {
-            Self::ConnectLatency => Some("latency of active tcp connect"),
-            Self::RxSegments => Some("tcp segments received"),
-            Self::TxSegments => Some("tcp segments transmitted"),
-            Self::PruneCalled => {
-                Some("tcp packets dropped from receive queue due to socket buffer overrun")
-            }
+        Some(match self {
+            Self::ConnectLatency => "latency of active tcp connect",
+            Self::RxSegments => "tcp segments received",
+            Self::TxSegments => "tcp segments transmitted",
+            Self::PruneCalled => "number of times pruning has been run on the receive queue",
             Self::ReceiveCollapsed => {
-                Some("tcp packets collapsed in receive queue due to low socket buffer")
+                "tcp packets collapsed in receive queue due to low socket buffer"
             }
-            Self::Retransmits => Some("tcp segments retransmitted"),
-            Self::RxChecksumErrors => Some("tcp segments received with checksum errors"),
-            Self::TxResets => Some("tcp segments transmitted with the RST flag"),
-            Self::RxErrors => Some("tcp segments received in error"),
-            Self::SyncookiesSent => Some("number of sent SYN cookies"),
-            Self::SyncookiesRecieved => Some("number of received SYN cookies"),
-            Self::SyncookiesFailed => Some("number of failed SYN cookies"),
-            Self::ReceivePruned => Some("tcp packets pruned from receive queue"),
+            Self::Retransmits => "tcp segments retransmitted",
+            Self::RxChecksumErrors => "tcp segments received with checksum errors",
+            Self::TxResets => "tcp segments transmitted with the RST flag",
+            Self::RxErrors => "tcp segments received in error",
+            Self::SyncookiesSent => "number of sent SYN cookies",
+            Self::SyncookiesRecieved => "number of received SYN cookies",
+            Self::SyncookiesFailed => "number of failed SYN cookies",
+            Self::ReceivePruned => "tcp packets pruned from receive queue",
             Self::OfoPruned => {
-                Some("tcp packets dropped from out-of-order queue due to low socket buffer")
+                "tcp packets dropped from out-of-order queue due to low socket buffer"
             }
-            Self::DelayedAcks => Some("number of delayed ACKs sent"),
-            Self::ListenOverflows => {
-                Some("number of times the listen queue of a socket overflowed")
-            }
-            Self::ListenDrops => Some("number of SYNs to LISTEN sockets dropped"),
-        }
+            Self::DelayedAcks => "number of delayed ACKs sent",
+            Self::ListenOverflows => "number of times the listen queue of a socket overflowed",
+            Self::ListenDrops => "number of SYNs to LISTEN sockets dropped",
+        })
     }
 
     fn unit(&self) -> Option<&str> {
@@ -125,5 +126,13 @@ impl Statistic for TcpStatistic {
         } else {
             metrics::Source::Counter
         }
+    }
+}
+
+impl TryFrom<&str> for TcpStatistic {
+    type Error = ParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        TcpStatistic::from_str(s)
     }
 }

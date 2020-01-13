@@ -2,13 +2,21 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+#[cfg(feature = "perf")]
 use crate::config::{Config, SamplerConfig};
+#[cfg(feature = "perf")]
 use crate::samplers::{Common, Sampler};
+#[cfg(feature = "perf")]
 use async_trait::async_trait;
+#[cfg(feature = "perf")]
 use chashmap::CHashMap;
+#[cfg(feature = "perf")]
 use metrics::*;
+#[cfg(feature = "perf")]
 use perfcnt::{AbstractPerfCounter, PerfCounter};
+#[cfg(feature = "perf")]
 use std::sync::Arc;
+#[cfg(feature = "perf")]
 use tokio::runtime::Handle;
 
 mod config;
@@ -17,12 +25,14 @@ mod stat;
 pub use config::*;
 pub use stat::*;
 
+#[cfg(feature = "perf")]
 pub struct Perf {
     common: Common,
     counters: CHashMap<PerfStatistic, Vec<PerfCounter>>,
 }
 
 #[async_trait]
+#[cfg(feature = "perf")]
 impl Sampler for Perf {
     type Statistic = PerfStatistic;
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {

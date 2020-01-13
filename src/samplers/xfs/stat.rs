@@ -4,13 +4,23 @@
 
 use metrics::Statistic;
 use serde_derive::*;
+use std::convert::TryFrom;
+use std::str::FromStr;
+use strum::ParseError;
+use strum_macros::*;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
+#[derive(
+    Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
+)]
+#[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum XfsStatistic {
+    #[strum(serialize = "xfs/read/latency")]
     ReadLatency,
+    #[strum(serialize = "xfs/write/latency")]
     WriteLatency,
+    #[strum(serialize = "xfs/open/latency")]
     OpenLatency,
+    #[strum(serialize = "xfs/fsync/latency")]
     FsyncLatency,
 }
 
@@ -28,12 +38,7 @@ impl XfsStatistic {
 
 impl Statistic for XfsStatistic {
     fn name(&self) -> &str {
-        match self {
-            Self::ReadLatency => "xfs/read/latency",
-            Self::WriteLatency => "xfs/write/latency",
-            Self::OpenLatency => "xfs/open/latency",
-            Self::FsyncLatency => "xfs/fsync/latency",
-        }
+        (*self).into()
     }
 
     fn description(&self) -> Option<&str> {
@@ -51,5 +56,13 @@ impl Statistic for XfsStatistic {
 
     fn source(&self) -> metrics::Source {
         metrics::Source::Distribution
+    }
+}
+
+impl TryFrom<&str> for XfsStatistic {
+    type Error = ParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        XfsStatistic::from_str(s)
     }
 }

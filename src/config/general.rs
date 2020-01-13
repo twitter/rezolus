@@ -64,6 +64,10 @@ impl General {
     pub fn fault_tolerant(&self) -> bool {
         self.fault_tolerant.load(Ordering::Relaxed)
     }
+
+    pub fn count_suffix(&self) -> Option<&str> {
+        Some("count")
+    }
 }
 
 impl Default for General {
@@ -73,9 +77,6 @@ impl Default for General {
             logging: default_logging_level(),
             interval: default_interval(),
             window: default_window(),
-            // timeout: default_timeout(),
-            // max_timeouts: default_max_timeouts(),
-            // memcache: None,
             fault_tolerant: default_fault_tolerant(),
         }
     }
@@ -88,14 +89,6 @@ fn default_interval() -> AtomicUsize {
 fn default_window() -> AtomicUsize {
     AtomicUsize::new(60)
 }
-
-// fn default_timeout() -> AtomicUsize {
-//     AtomicUsize::new(50)
-// }
-
-// fn default_max_timeouts() -> AtomicUsize {
-//     AtomicUsize::new(5)
-// }
 
 fn default_fault_tolerant() -> AtomicBool {
     AtomicBool::new(true)

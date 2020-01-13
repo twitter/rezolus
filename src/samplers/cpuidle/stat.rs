@@ -2,14 +2,15 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use core::convert::TryFrom;
 use core::fmt;
 use metrics::Statistic;
 use serde_derive::*;
 use std::error::Error;
 use std::str::FromStr;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash, Serialize)]
+#[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum CpuidleStatistic {
     Time(CState),
 }
@@ -59,8 +60,36 @@ impl FromStr for CState {
     }
 }
 
-impl Statistic for CpuidleStatistic {
-    fn name(&self) -> &str {
+impl TryFrom<&str> for CpuidleStatistic {
+    type Error = CpuidleStatisticParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        CpuidleStatistic::from_str(s)
+    }
+}
+
+impl FromStr for CpuidleStatistic {
+    type Err = CpuidleStatisticParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let stat = match s {
+            "cpuidle/time/c0" => Self::Time(CState::C0),
+            "cpuidle/time/c1" => Self::Time(CState::C1),
+            "cpuidle/time/c1e" => Self::Time(CState::C1E),
+            "cpuidle/time/c2" => Self::Time(CState::C2),
+            "cpuidle/time/c3" => Self::Time(CState::C3),
+            "cpuidle/time/c6" => Self::Time(CState::C6),
+            "cpuidle/time/c7" => Self::Time(CState::C7),
+            "cpuidle/time/c8" => Self::Time(CState::C8),
+            _ => return Err(CpuidleStatisticParseError),
+        };
+
+        Ok(stat)
+    }
+}
+
+impl Into<&str> for CpuidleStatistic {
+    fn into(self) -> &'static str {
         match self {
             Self::Time(cstate) => match cstate {
                 CState::C0 => "cpuidle/time/c0",
@@ -73,6 +102,27 @@ impl Statistic for CpuidleStatistic {
                 CState::C8 => "cpuidle/time/c8",
             },
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct CpuidleStatisticParseError;
+
+impl std::fmt::Display for CpuidleStatisticParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid cpuidle statistic")
+    }
+}
+
+impl std::error::Error for CpuidleStatisticParseError {
+    fn description(&self) -> &str {
+        "Error parsing cpuidle statistic"
+    }
+}
+
+impl Statistic for CpuidleStatistic {
+    fn name(&self) -> &str {
+        (*self).into()
     }
 
     fn source(&self) -> metrics::Source {

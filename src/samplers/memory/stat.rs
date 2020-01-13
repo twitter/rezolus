@@ -2,174 +2,138 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+#[cfg(feature = "perf")]
+pub use perfcnt::linux::*;
+
+use core::convert::TryFrom;
 use metrics::Statistic;
 use serde_derive::*;
+use std::str::FromStr;
+use strum::ParseError;
+use strum_macros::*;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
-#[serde(deny_unknown_fields, rename_all = "snake_case")]
+#[derive(
+    Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
+)]
+#[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum MemoryStatistic {
-    MemTotal,
-    MemFree,
-    MemAvailable,
+    #[strum(serialize = "memory/total")]
+    Total,
+    #[strum(serialize = "memory/free")]
+    Free,
+    #[strum(serialize = "memory/available")]
+    Available,
+    #[strum(serialize = "memory/buffers")]
     Buffers,
+    #[strum(serialize = "memory/cached")]
     Cached,
+    #[strum(serialize = "memory/swap/cached")]
     SwapCached,
+    #[strum(serialize = "memory/active/total")]
     Active,
+    #[strum(serialize = "memory/inactive/total")]
     Inactive,
+    #[strum(serialize = "memory/active/anon")]
     ActiveAnon,
+    #[strum(serialize = "memory/inactive/anon")]
     InactiveAnon,
+    #[strum(serialize = "memory/active/file")]
     ActiveFile,
+    #[strum(serialize = "memory/inactive/file")]
     InactiveFile,
+    #[strum(serialize = "memory/unevictable")]
     Unevictable,
+    #[strum(serialize = "memory/mlocked")]
     Mlocked,
+    #[strum(serialize = "memory/swap/total")]
     SwapTotal,
+    #[strum(serialize = "memory/swap/free")]
     SwapFree,
+    #[strum(serialize = "memory/dirty")]
     Dirty,
+    #[strum(serialize = "memory/writeback")]
     Writeback,
+    #[strum(serialize = "memory/anon_pages")]
     AnonPages,
+    #[strum(serialize = "memory/mapped")]
     Mapped,
+    #[strum(serialize = "memory/shmem")]
     Shmem,
-    Slab,
-    SReclaimable,
-    SUnreclaim,
+    #[strum(serialize = "memory/slab/total")]
+    SlabTotal,
+    #[strum(serialize = "memory/slab/reclaimable")]
+    SlabReclaimable,
+    #[strum(serialize = "memory/slab/unreclaimable")]
+    SlabUnreclaimable,
+    #[strum(serialize = "memory/kernel_stack")]
     KernelStack,
+    #[strum(serialize = "memory/page_tables")]
     PageTables,
+    #[strum(serialize = "memory/nfs_unstable")]
     NFSUnstable,
+    #[strum(serialize = "memory/bounce")]
     Bounce,
+    #[strum(serialize = "memory/writeback_temp")]
     WritebackTmp,
+    #[strum(serialize = "memory/commit/limit")]
     CommitLimit,
+    #[strum(serialize = "memory/commit/committed")]
     CommittedAS,
+    #[strum(serialize = "memory/vmalloc/total")]
     VmallocTotal,
+    #[strum(serialize = "memory/vmalloc/used")]
     VmallocUsed,
+    #[strum(serialize = "memory/vmalloc/chunk")]
     VmallocChunk,
+    #[strum(serialize = "memory/percpu")]
     Percpu,
+    #[strum(serialize = "memory/hardware_corrupted")]
     HardwareCorrupted,
+    #[strum(serialize = "memory/anon_hugepages")]
     AnonHugePages,
+    #[strum(serialize = "memory/shmem_hugepages")]
     ShmemHugePages,
+    #[strum(serialize = "memory/shmem_pmd_mapped")]
     ShmemPmdMapped,
+    #[strum(serialize = "memory/hugepages/total")]
     HugePagesTotal,
+    #[strum(serialize = "memory/hugepages/free")]
     HugePagesFree,
+    #[strum(serialize = "memory/hugepages/reserved")]
     HugePagesRsvd,
+    #[strum(serialize = "memory/hugepages/surplus")]
     HugePagesSurp,
+    #[strum(serialize = "memory/hugepage_size")]
     Hugepagesize,
+    #[strum(serialize = "memory/hugetlb")]
     Hugetlb,
+    #[strum(serialize = "memory/directmap/4k")]
     DirectMap4k,
+    #[strum(serialize = "memory/directmap/2M")]
     DirectMap2M,
+    #[strum(serialize = "memory/directmap/1G")]
     DirectMap1G,
+    #[strum(serialize = "memory/load/access")]
+    LoadTotal,
+    #[strum(serialize = "memory/load/miss")]
+    LoadMiss,
+    #[strum(serialize = "memory/store/access")]
+    StoreTotal,
+    #[strum(serialize = "memory/store/miss")]
+    StoreMiss,
 }
 
-impl std::str::FromStr for MemoryStatistic {
-    type Err = MemoryStatisticParseError;
+impl TryFrom<&str> for MemoryStatistic {
+    type Error = ParseError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let stat = match s {
-            "MemTotal" => Self::MemTotal,
-            "MemFree" => Self::MemFree,
-            "MemAvailable" => Self::MemAvailable,
-            "Buffers" => Self::Buffers,
-            "Cached" => Self::Cached,
-            "SwapCached" => Self::SwapCached,
-            "Active" => Self::Active,
-            "Inactive" => Self::Inactive,
-            "Active(anon)" => Self::ActiveAnon,
-            "Inactive(anon)" => Self::InactiveAnon,
-            "Active(file)" => Self::ActiveFile,
-            "Inactive(file)" => Self::InactiveFile,
-            "Unevictable" => Self::Unevictable,
-            "Mlocked" => Self::Mlocked,
-            "SwapTotal" => Self::SwapTotal,
-            "SwapFree" => Self::SwapFree,
-            "Dirty" => Self::Dirty,
-            "Writeback" => Self::Writeback,
-            "AnonPages" => Self::AnonPages,
-            "Mapped" => Self::Mapped,
-            "Shmem" => Self::Shmem,
-            "Slab" => Self::Slab,
-            "SReclaimable" => Self::SReclaimable,
-            "SUnreclaim" => Self::SUnreclaim,
-            "KernelStack" => Self::KernelStack,
-            "PageTables" => Self::PageTables,
-            "NFS_Unstable" => Self::NFSUnstable,
-            "Bounce" => Self::Bounce,
-            "WritebackTmp" => Self::WritebackTmp,
-            "CommitLimit" => Self::CommitLimit,
-            "Committed_AS" => Self::CommittedAS,
-            "VmallocTotal" => Self::VmallocTotal,
-            "VmallocUsed" => Self::VmallocUsed,
-            "VmallocChunk" => Self::VmallocChunk,
-            "Percpu" => Self::Percpu,
-            "HardwareCorrupted" => Self::HardwareCorrupted,
-            "AnonHugePages" => Self::AnonHugePages,
-            "ShmemHugePages" => Self::ShmemHugePages,
-            "ShmemPmdMapped" => Self::ShmemPmdMapped,
-            "HugePages_Total" => Self::HugePagesTotal,
-            "HugePages_Free" => Self::HugePagesFree,
-            "HugePages_Rsvd" => Self::HugePagesRsvd,
-            "HugePages_Surp" => Self::HugePagesSurp,
-            "Hugepagesize" => Self::Hugepagesize,
-            "Hugetlb" => Self::Hugetlb,
-            "DirectMap4k" => Self::DirectMap4k,
-            "DirectMap2M" => Self::DirectMap2M,
-            "DirectMap1G" => Self::DirectMap1G,
-            _ => return Err(MemoryStatisticParseError),
-        };
-
-        Ok(stat)
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        MemoryStatistic::from_str(s)
     }
 }
 
 impl Statistic for MemoryStatistic {
     fn name(&self) -> &str {
-        match self {
-            Self::MemTotal => "memory/total",
-            Self::MemFree => "memory/free",
-            Self::MemAvailable => "memory/available",
-            Self::Buffers => "memory/buffers",
-            Self::Cached => "memory/cached",
-            Self::SwapCached => "memory/swapcached",
-            Self::Active => "memory/active",
-            Self::Inactive => "memory/inactive",
-            Self::ActiveAnon => "memory/active/anon",
-            Self::InactiveAnon => "memory/inactive/anon",
-            Self::ActiveFile => "memory/active/file",
-            Self::InactiveFile => "memory/inactive/file",
-            Self::Unevictable => "memory/unevictable",
-            Self::Mlocked => "memory/mlocked",
-            Self::SwapTotal => "memory/swap/total",
-            Self::SwapFree => "memory/swap/free",
-            Self::Dirty => "memory/dirty",
-            Self::Writeback => "memory/writeback",
-            Self::AnonPages => "memory/anonpages",
-            Self::Mapped => "memory/mapped",
-            Self::Shmem => "memory/shmem",
-            Self::Slab => "memory/slab/total",
-            Self::SReclaimable => "memory/slab/reclaimable",
-            Self::SUnreclaim => "memory/slab/unreclaimable",
-            Self::KernelStack => "memory/kernelstack",
-            Self::PageTables => "memory/pagetables",
-            Self::NFSUnstable => "memory/nfs_unstable",
-            Self::Bounce => "memory/bounce",
-            Self::WritebackTmp => "memory/writebacktmp",
-            Self::CommitLimit => "memory/commitlimit",
-            Self::CommittedAS => "memory/committed",
-            Self::VmallocTotal => "memory/vmalloc/total",
-            Self::VmallocUsed => "memory/vmalloc/used",
-            Self::VmallocChunk => "memory/vmalloc/chunk",
-            Self::Percpu => "memory/percpu",
-            Self::HardwareCorrupted => "memory/hardware_corrupted",
-            Self::AnonHugePages => "memory/hugepages/anon",
-            Self::ShmemHugePages => "memory/hugepages/shmem",
-            Self::ShmemPmdMapped => "memory/hugepages/memory_mapped",
-            Self::HugePagesTotal => "memory/hugepages/total",
-            Self::HugePagesFree => "memory/hugepages/free",
-            Self::HugePagesRsvd => "memory/hugepages/reserved",
-            Self::HugePagesSurp => "memory/hugepages/surp",
-            Self::Hugepagesize => "memory/hugepagesize",
-            Self::Hugetlb => "memory/hugetlb",
-            Self::DirectMap4k => "memory/directmap/4k",
-            Self::DirectMap2M => "memory/directmap/2M",
-            Self::DirectMap1G => "memory/directmap/1G",
-        }
+        (*self).into()
     }
 
     fn source(&self) -> metrics::Source {
@@ -177,17 +141,31 @@ impl Statistic for MemoryStatistic {
     }
 }
 
-#[derive(Debug)]
-pub struct MemoryStatisticParseError;
-
-impl std::fmt::Display for MemoryStatisticParseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Invalid meminfo field")
-    }
-}
-
-impl std::error::Error for MemoryStatisticParseError {
-    fn description(&self) -> &str {
-        "Error parsing MemInfoStat"
+impl MemoryStatistic {
+    #[cfg(feature = "perf")]
+    pub fn perf_counter_builder(&self) -> Option<PerfCounterBuilderLinux> {
+        match self {
+            Self::LoadTotal => Some(PerfCounterBuilderLinux::from_cache_event(
+                CacheId::NODE,
+                CacheOpId::Read,
+                CacheOpResultId::Access,
+            )),
+            Self::LoadMiss => Some(PerfCounterBuilderLinux::from_cache_event(
+                CacheId::NODE,
+                CacheOpId::Read,
+                CacheOpResultId::Miss,
+            )),
+            Self::StoreTotal => Some(PerfCounterBuilderLinux::from_cache_event(
+                CacheId::NODE,
+                CacheOpId::Write,
+                CacheOpResultId::Access,
+            )),
+            Self::StoreMiss => Some(PerfCounterBuilderLinux::from_cache_event(
+                CacheId::NODE,
+                CacheOpId::Write,
+                CacheOpResultId::Miss,
+            )),
+            _ => None,
+        }
     }
 }

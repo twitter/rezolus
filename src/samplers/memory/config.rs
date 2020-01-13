@@ -18,6 +18,8 @@ pub struct MemoryConfig {
     interval: AtomicOption<AtomicUsize>,
     #[serde(default = "default_percentiles")]
     percentiles: Vec<Percentile>,
+    #[serde(default)]
+    perf_events: AtomicBool,
     #[serde(default = "default_statistics")]
     statistics: Vec<MemoryStatistic>,
 }
@@ -28,6 +30,7 @@ impl Default for MemoryConfig {
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: default_percentiles(),
+            perf_events: Default::default(),
             statistics: default_statistics(),
         }
     }
@@ -45,54 +48,26 @@ fn default_percentiles() -> Vec<Percentile> {
 
 fn default_statistics() -> Vec<MemoryStatistic> {
     vec![
-        MemoryStatistic::MemTotal,
-        MemoryStatistic::MemFree,
-        MemoryStatistic::MemAvailable,
+        MemoryStatistic::Total,
+        MemoryStatistic::Free,
+        MemoryStatistic::Available,
         MemoryStatistic::Buffers,
         MemoryStatistic::Cached,
-        MemoryStatistic::SwapCached,
         MemoryStatistic::Active,
         MemoryStatistic::Inactive,
-        MemoryStatistic::ActiveAnon,
-        MemoryStatistic::InactiveAnon,
-        MemoryStatistic::ActiveFile,
-        MemoryStatistic::InactiveFile,
         MemoryStatistic::Unevictable,
-        MemoryStatistic::Mlocked,
-        MemoryStatistic::SwapTotal,
-        MemoryStatistic::SwapFree,
-        MemoryStatistic::Dirty,
-        MemoryStatistic::Writeback,
-        MemoryStatistic::AnonPages,
-        MemoryStatistic::Mapped,
-        MemoryStatistic::Shmem,
-        MemoryStatistic::Slab,
-        MemoryStatistic::SReclaimable,
-        MemoryStatistic::SUnreclaim,
-        MemoryStatistic::KernelStack,
-        MemoryStatistic::PageTables,
-        MemoryStatistic::NFSUnstable,
-        MemoryStatistic::Bounce,
-        MemoryStatistic::WritebackTmp,
-        MemoryStatistic::CommitLimit,
-        MemoryStatistic::CommittedAS,
-        MemoryStatistic::VmallocTotal,
-        MemoryStatistic::VmallocUsed,
-        MemoryStatistic::VmallocChunk,
-        MemoryStatistic::Percpu,
         MemoryStatistic::HardwareCorrupted,
         MemoryStatistic::AnonHugePages,
-        MemoryStatistic::ShmemHugePages,
-        MemoryStatistic::ShmemPmdMapped,
         MemoryStatistic::HugePagesTotal,
         MemoryStatistic::HugePagesFree,
         MemoryStatistic::HugePagesRsvd,
         MemoryStatistic::HugePagesSurp,
         MemoryStatistic::Hugepagesize,
         MemoryStatistic::Hugetlb,
-        MemoryStatistic::DirectMap4k,
-        MemoryStatistic::DirectMap2M,
-        MemoryStatistic::DirectMap1G,
+        MemoryStatistic::LoadTotal,
+        MemoryStatistic::LoadMiss,
+        MemoryStatistic::StoreTotal,
+        MemoryStatistic::StoreMiss,
     ]
 }
 
@@ -108,6 +83,10 @@ impl SamplerConfig for MemoryConfig {
 
     fn percentiles(&self) -> &[Percentile] {
         &self.percentiles
+    }
+
+    fn perf_events(&self) -> bool {
+        self.perf_events.load(Ordering::Relaxed)
     }
 
     fn statistics(&self) -> &[<Self as SamplerConfig>::Statistic] {
