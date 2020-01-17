@@ -113,14 +113,6 @@ pub enum MemoryStatistic {
     DirectMap2M,
     #[strum(serialize = "memory/directmap/1G")]
     DirectMap1G,
-    #[strum(serialize = "memory/load/access")]
-    LoadTotal,
-    #[strum(serialize = "memory/load/miss")]
-    LoadMiss,
-    #[strum(serialize = "memory/store/access")]
-    StoreTotal,
-    #[strum(serialize = "memory/store/miss")]
-    StoreMiss,
 }
 
 impl TryFrom<&str> for MemoryStatistic {
@@ -141,31 +133,3 @@ impl Statistic for MemoryStatistic {
     }
 }
 
-impl MemoryStatistic {
-    #[cfg(feature = "perf")]
-    pub fn perf_counter_builder(&self) -> Option<PerfCounterBuilderLinux> {
-        match self {
-            Self::LoadTotal => Some(PerfCounterBuilderLinux::from_cache_event(
-                CacheId::NODE,
-                CacheOpId::Read,
-                CacheOpResultId::Access,
-            )),
-            Self::LoadMiss => Some(PerfCounterBuilderLinux::from_cache_event(
-                CacheId::NODE,
-                CacheOpId::Read,
-                CacheOpResultId::Miss,
-            )),
-            Self::StoreTotal => Some(PerfCounterBuilderLinux::from_cache_event(
-                CacheId::NODE,
-                CacheOpId::Write,
-                CacheOpResultId::Access,
-            )),
-            Self::StoreMiss => Some(PerfCounterBuilderLinux::from_cache_event(
-                CacheId::NODE,
-                CacheOpId::Write,
-                CacheOpResultId::Miss,
-            )),
-            _ => None,
-        }
-    }
-}

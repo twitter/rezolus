@@ -18,8 +18,6 @@ pub struct MemoryConfig {
     interval: AtomicOption<AtomicUsize>,
     #[serde(default = "default_percentiles")]
     percentiles: Vec<Percentile>,
-    #[serde(default)]
-    perf_events: AtomicBool,
     #[serde(default = "default_statistics")]
     statistics: Vec<MemoryStatistic>,
 }
@@ -30,7 +28,6 @@ impl Default for MemoryConfig {
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: default_percentiles(),
-            perf_events: Default::default(),
             statistics: default_statistics(),
         }
     }
@@ -64,10 +61,6 @@ fn default_statistics() -> Vec<MemoryStatistic> {
         MemoryStatistic::HugePagesSurp,
         MemoryStatistic::Hugepagesize,
         MemoryStatistic::Hugetlb,
-        MemoryStatistic::LoadTotal,
-        MemoryStatistic::LoadMiss,
-        MemoryStatistic::StoreTotal,
-        MemoryStatistic::StoreMiss,
     ]
 }
 
@@ -83,10 +76,6 @@ impl SamplerConfig for MemoryConfig {
 
     fn percentiles(&self) -> &[Percentile] {
         &self.percentiles
-    }
-
-    fn perf_events(&self) -> bool {
-        self.perf_events.load(Ordering::Relaxed)
     }
 
     fn statistics(&self) -> &[<Self as SamplerConfig>::Statistic] {
