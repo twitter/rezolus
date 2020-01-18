@@ -8,6 +8,7 @@ use serde_derive::*;
 use std::str::FromStr;
 use strum::ParseError;
 use strum_macros::*;
+use metrics::Source;
 
 #[derive(
     Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
@@ -16,6 +17,14 @@ use strum_macros::*;
 pub enum SchedulerStatistic {
     #[strum(serialize = "scheduler/runqueue/latency")]
     RunqueueLatency,
+    #[strum(serialize = "scheduler/context_switches")]
+    ContextSwitches,
+    #[strum(serialize = "scheduler/processes/created")]
+    ProcessesCreated,
+    #[strum(serialize = "scheduler/processes/running")]
+    ProcessesRunning,
+    #[strum(serialize = "scheduler/processes/blocked")]
+    ProcessesBlocked,
 }
 
 impl SchedulerStatistic {
@@ -23,6 +32,7 @@ impl SchedulerStatistic {
     pub fn ebpf_table(self) -> Option<&'static str> {
         match self {
             Self::RunqueueLatency => Some("runqueue_latency"),
+            _ => None,
         }
     }
 }
@@ -32,8 +42,12 @@ impl Statistic for SchedulerStatistic {
         (*self).into()
     }
 
-    fn source(&self) -> metrics::Source {
-        metrics::Source::Distribution
+    fn source(&self) -> Source {
+        match *self {
+            Self::RunqueueLatency => Source::Distribution,
+            Self::ProcessesRunning | Self::ProcessesBlocked => Source::Gauge,
+            _ => Source::Counter,
+        }
     }
 }
 

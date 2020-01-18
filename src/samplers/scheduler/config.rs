@@ -47,7 +47,13 @@ fn default_percentiles() -> Vec<Percentile> {
 }
 
 fn default_statistics() -> Vec<SchedulerStatistic> {
-    vec![SchedulerStatistic::RunqueueLatency]
+    vec![
+        SchedulerStatistic::ProcessesCreated,
+        SchedulerStatistic::ContextSwitches,
+        SchedulerStatistic::ProcessesRunning,
+        SchedulerStatistic::ProcessesBlocked,
+        SchedulerStatistic::RunqueueLatency,
+        ]
 }
 
 impl SamplerConfig for SchedulerConfig {

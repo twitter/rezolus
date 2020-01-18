@@ -14,6 +14,8 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Instant;
 use tokio::runtime::Handle;
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, BufReader};
 
 mod config;
 mod stat;
@@ -101,8 +103,56 @@ impl Sampler for Scheduler {
         debug!("sampling");
         self.register();
 
+        self.sample_proc_stat().await?;
         // sample ebpf
         #[cfg(feature = "ebpf")]
+        self.sample_ebpf().await?;
+
+        if let Some(ref mut delay) = self.delay() {
+            delay.tick().await;
+        }
+
+        Ok(())
+    }
+
+    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
+        Some(Summary::histogram(
+            1_000_000,
+            2,
+            Some(self.general_config().window()),
+        ))
+    }
+}
+
+impl Scheduler {
+    async fn sample_proc_stat(&self) -> Result<(), std::io::Error> {
+        let file = File::open("/proc/stat").await?;
+        let reader = BufReader::new(file);
+        let mut lines = reader.lines();
+
+        let time = time::precise_time_ns();
+        while let Some(line) = lines.next_line().await? {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts[0] == "ctxt" && parts.len() == 2 {
+                self.metrics().record_counter(&SchedulerStatistic::ContextSwitches, time, parts[1].parse().unwrap_or(0));
+            }
+            if parts[0] == "processes" && parts.len() == 2 {
+                self.metrics().record_counter(&SchedulerStatistic::ProcessesCreated, time, parts[1].parse().unwrap_or(0));
+            }
+            if parts[0] == "procs_running" && parts.len() == 2 {
+                self.metrics().record_gauge(&SchedulerStatistic::ProcessesRunning, time, parts[1].parse().unwrap_or(0));
+            }
+            if parts[0] == "procs_blocked" && parts.len() == 2 {
+                self.metrics().record_gauge(&SchedulerStatistic::ProcessesBlocked, time, parts[1].parse().unwrap_or(0));
+            }
+        }
+
+        Ok(())
+    }
+
+    #[cfg(feature = "ebpf")]
+    async fn sample_ebpf(&mut self) -> Result<(), std::io::Error> {
+        // sample ebpf
         {
             if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
                 if let Some(ref bpf) = self.bpf {
@@ -129,18 +179,6 @@ impl Sampler for Scheduler {
             }
         }
 
-        if let Some(ref mut delay) = self.delay() {
-            delay.tick().await;
-        }
-
         Ok(())
-    }
-
-    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
-        Some(Summary::histogram(
-            1_000_000,
-            2,
-            Some(self.general_config().window()),
-        ))
     }
 }
