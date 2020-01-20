@@ -2,6 +2,9 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+#[cfg(feature = "perf")]
+pub use perfcnt::linux::*;
+
 use core::convert::TryFrom;
 use metrics::Statistic;
 use serde_derive::*;
@@ -15,6 +18,8 @@ use metrics::Source;
 )]
 #[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum SchedulerStatistic {
+    #[strum(serialize = "scheduler/cpu_migrations")]
+    CpuMigrations,
     #[strum(serialize = "scheduler/runqueue/latency")]
     RunqueueLatency,
     #[strum(serialize = "scheduler/context_switches")]
@@ -32,6 +37,14 @@ impl SchedulerStatistic {
     pub fn ebpf_table(self) -> Option<&'static str> {
         match self {
             Self::RunqueueLatency => Some("runqueue_latency"),
+            _ => None,
+        }
+    }
+
+    #[cfg(feature = "perf")]
+    pub fn perf_counter_builder(&self) -> Option<PerfCounterBuilderLinux> {
+        match self {
+            Self::CpuMigrations => Some(PerfCounterBuilderLinux::from_software_event(SoftwareEventType::CpuMigrations)),
             _ => None,
         }
     }

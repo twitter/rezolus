@@ -73,10 +73,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Cpuidle::spawn(config.clone(), metrics.clone(), runtime.handle());
     Disk::spawn(config.clone(), metrics.clone(), runtime.handle());
     Ext4::spawn(config.clone(), metrics.clone(), runtime.handle());
-    // Memory::spawn(config.clone(), metrics.clone(), runtime.handle());
+    Memory::spawn(config.clone(), metrics.clone(), runtime.handle());
     Network::spawn(config.clone(), metrics.clone(), runtime.handle());
-    #[cfg(feature = "perf")]
-    Perf::spawn(config.clone(), metrics.clone(), runtime.handle());
     Rezolus::spawn(config.clone(), metrics.clone(), runtime.handle());
     Scheduler::spawn(config.clone(), metrics.clone(), runtime.handle());
     Softnet::spawn(config.clone(), metrics.clone(), runtime.handle());

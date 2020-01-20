@@ -2,6 +2,9 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+#[cfg(feature = "perf")]
+use perfcnt::*;
+use chashmap::CHashMap;
 use crate::common::bpf::*;
 use crate::config::{Config, SamplerConfig};
 use crate::samplers::Common;
@@ -23,17 +26,49 @@ mod stat;
 pub use config::*;
 pub use stat::*;
 
+#[cfg(not(feature = "perf"))]
+struct PerfCounter {}
+
 #[allow(dead_code)]
 pub struct Scheduler {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
+    perf_counters: CHashMap<SchedulerStatistic, Vec<PerfCounter>>,
 }
 
 #[async_trait]
 impl Sampler for Scheduler {
     type Statistic = SchedulerStatistic;
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        let perf_counters = CHashMap::new();
+        if config.cpu().perf_events() {
+            #[cfg(feature = "perf")]
+            {
+                // TODO: core detection
+                let cores = 1;
+                for statistic in config.scheduler().statistics().iter() {
+                    if let Some(mut builder) = statistic.perf_counter_builder() {
+                        let mut event_counters = Vec::new();
+                        for core in 0..cores {
+                            match builder.on_cpu(core as isize).for_all_pids().finish() {
+                                Ok(c) => event_counters.push(c),
+                                Err(e) => {
+                                    debug!(
+                                        "Failed to create PerfCounter for {:?}: {}",
+                                        statistic, e
+                                    );
+                                }
+                            }
+                        }
+                        if event_counters.len() as u64 == cores {
+                            trace!("Initialized PerfCounters for {:?}", statistic);
+                            perf_counters.insert(*statistic, event_counters);
+                        }
+                    }
+                }
+            }
+        }
         #[cfg(feature = "ebpf")]
         let bpf = if config.disk().ebpf() {
             debug!("initializing ebpf");
@@ -62,6 +97,7 @@ impl Sampler for Scheduler {
             bpf,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common: Common::new(config, metrics),
+            perf_counters,
         })
     }
 
@@ -104,9 +140,10 @@ impl Sampler for Scheduler {
         self.register();
 
         self.sample_proc_stat().await?;
-        // sample ebpf
         #[cfg(feature = "ebpf")]
         self.sample_ebpf().await?;
+        #[cfg(feature = "perf")]
+        self.sample_perf_counters().await?;
 
         if let Some(ref mut delay) = self.delay() {
             delay.tick().await;
@@ -176,6 +213,32 @@ impl Scheduler {
                     }
                 }
                 *self.bpf_last.lock().unwrap() = Instant::now();
+            }
+        }
+
+        Ok(())
+    }
+
+    #[cfg(feature = "perf")]
+    async fn sample_perf_counters(&mut self) -> Result<(), std::io::Error> {
+        let time = time::precise_time_ns();
+        for stat in self.sampler_config().statistics() {
+            if let Some(mut counters) = self.perf_counters.get_mut(stat) {
+                let mut value = 0;
+                for counter in counters.iter_mut() {
+                    let count = match counter.read() {
+                        Ok(c) => c,
+                        Err(e) => {
+                            debug!("Could not read perf counter for event {:?}: {}", stat, e);
+                            0
+                        }
+                    };
+                    value += count;
+                }
+                if value > 0 {
+                    debug!("recording value for: {:?}", stat);
+                }
+                self.metrics().record_counter(stat, time, value);
             }
         }
 

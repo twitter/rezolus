@@ -13,7 +13,6 @@ use samplers::ext4::Ext4Config;
 use samplers::memcache::MemcacheConfig;
 use samplers::memory::MemoryConfig;
 use samplers::network::NetworkConfig;
-use samplers::perf::PerfConfig;
 use samplers::rezolus::RezolusConfig;
 use samplers::scheduler::SchedulerConfig;
 use samplers::softnet::SoftnetConfig;
@@ -57,8 +56,6 @@ pub struct Config {
     memory: MemoryConfig,
     #[serde(default)]
     network: NetworkConfig,
-    #[serde(default)]
-    perf: PerfConfig,
     #[serde(default)]
     rezolus: RezolusConfig,
     #[serde(default)]
@@ -164,11 +161,6 @@ impl Config {
 
     pub fn network(&self) -> &NetworkConfig {
         &self.network
-    }
-
-    #[cfg(feature = "perf")]
-    pub fn perf(&self) -> &PerfConfig {
-        &self.perf
     }
 
     pub fn rezolus(&self) -> &RezolusConfig {
