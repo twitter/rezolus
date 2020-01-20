@@ -6,7 +6,6 @@ use crate::config::{Config, SamplerConfig};
 use crate::samplers::Common;
 use crate::Sampler;
 use async_trait::async_trait;
-use chashmap::CHashMap;
 use metrics::*;
 use std::collections::HashMap;
 use std::sync::Arc;

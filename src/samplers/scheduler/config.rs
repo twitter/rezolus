@@ -48,10 +48,11 @@ fn default_percentiles() -> Vec<Percentile> {
 
 fn default_statistics() -> Vec<SchedulerStatistic> {
     vec![
-        SchedulerStatistic::ProcessesCreated,
         SchedulerStatistic::ContextSwitches,
-        SchedulerStatistic::ProcessesRunning,
+        SchedulerStatistic::CpuMigrations,
         SchedulerStatistic::ProcessesBlocked,
+        SchedulerStatistic::ProcessesCreated,
+        SchedulerStatistic::ProcessesRunning,
         SchedulerStatistic::RunqueueLatency,
         ]
 }
