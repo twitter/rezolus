@@ -5,6 +5,7 @@
 #[cfg(feature = "perf")]
 use perfcnt::*;
 
+use crate::common::*;
 use crate::config::{Config, SamplerConfig};
 use crate::samplers::Common;
 use crate::Sampler;
@@ -16,6 +17,8 @@ use std::sync::Arc;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::runtime::Handle;
+use tokio::prelude::*;
+use regex::Regex;
 
 mod config;
 mod stat;
@@ -36,7 +39,7 @@ pub struct Cpu {
 pub fn nanos_per_tick() -> u64 {
     let ticks_per_second = sysconf::raw::sysconf(sysconf::raw::SysconfVariable::ScClkTck)
         .expect("Failed to get Clock Ticks per Second") as u64;
-    1_000_000_000 / ticks_per_second
+    SECOND / ticks_per_second
 }
 
 impl Cpu {
@@ -64,8 +67,7 @@ impl Sampler for Cpu {
         if config.samplers().cpu().perf_events() {
             #[cfg(feature = "perf")]
             {
-                // TODO: core detection
-                let cores = 1;
+                let cores = crate::common::hardware_threads().unwrap_or(1024);
                 for statistic in config.samplers().cpu().statistics().iter() {
                     if let Some(mut builder) = statistic.perf_counter_builder() {
                         let mut event_counters = Vec::new();
@@ -133,6 +135,7 @@ impl Sampler for Cpu {
         debug!("sampling");
         self.register();
 
+        self.sample_cstates().await?;
         self.sample_cpu_usage().await?;
         #[cfg(feature = "perf")]
         self.sample_perf_counters().await?;
@@ -145,7 +148,7 @@ impl Sampler for Cpu {
     }
 
     fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
-        let max = crate::common::hardware_threads().unwrap_or(1024) * 2_000_000_000;
+        let max = crate::common::hardware_threads().unwrap_or(1024) * SECOND;
         Some(Summary::histogram(
             max,
             3,
@@ -208,6 +211,80 @@ impl Cpu {
                     debug!("recording value for: {:?}", stat);
                 }
                 self.metrics().record_counter(stat, time, value);
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn sample_cstates(&self) -> Result<(), std::io::Error> {
+        let mut result = HashMap::<CpuStatistic, u64>::new();
+
+        // iterate through all cpus
+        let cpu_regex = Regex::new(r"^cpu\d+$").unwrap();
+        let state_regex = Regex::new(r"^state\d+$").unwrap();
+        let mut cpu_dir = tokio::fs::read_dir("/sys/devices/system/cpu").await?;
+        while let Some(cpu_entry) = cpu_dir.next_entry().await? {
+            if let Ok(cpu_name) = cpu_entry.file_name().into_string() {
+                if cpu_regex.is_match(&cpu_name) {
+                    // iterate through all cpuidle states
+                    let cpuidle_dir = format!("/sys/devices/system/cpu/{}/cpuidle", cpu_name);
+                    let mut cpuidle_dir = tokio::fs::read_dir(cpuidle_dir).await?;
+                    while let Some(cpuidle_entry) = cpuidle_dir.next_entry().await? {
+                        if let Ok(cpuidle_name) = cpuidle_entry.file_name().into_string() {
+                            if state_regex.is_match(&cpuidle_name) {
+                                // have an actual state here
+
+                                // get the name of the state
+                                let name_file = format!(
+                                    "/sys/devices/system/cpu/{}/cpuidle/{}/name",
+                                    cpu_name, cpuidle_name
+                                );
+                                let mut name_file = File::open(name_file).await?;
+                                let mut name_content = Vec::new();
+                                name_file.read_to_end(&mut name_content).await?;
+                                if let Ok(name_string) = std::str::from_utf8(&name_content) {
+                                    if let Ok(state) = name_string.parse() {
+                                        // get the time spent in the state
+                                        let time_file = format!(
+                                            "/sys/devices/system/cpu/{}/cpuidle/{}/time",
+                                            cpu_name, cpuidle_name
+                                        );
+                                        let mut time_file = File::open(time_file).await?;
+                                        let mut time_content = Vec::new();
+                                        time_file.read_to_end(&mut time_content).await?;
+                                        if let Ok(time_string) = std::str::from_utf8(&time_content)
+                                        {
+                                            if let Ok(time) = time_string.parse::<u64>() {
+                                                let metric = match state {
+                                                    CState::C0 => CpuStatistic::CstateC0Time,
+                                                    CState::C1 => CpuStatistic::CstateC1Time,
+                                                    CState::C1E => CpuStatistic::CstateC1ETime,
+                                                    CState::C2 => CpuStatistic::CstateC2Time,
+                                                    CState::C3 => CpuStatistic::CstateC3Time,
+                                                    CState::C6 => CpuStatistic::CstateC6Time,
+                                                    CState::C7 => CpuStatistic::CstateC7Time,
+                                                    CState::C8 => CpuStatistic::CstateC8Time,
+                                                };
+                                                let counter = result
+                                                    .entry(metric)
+                                                    .or_insert(0);
+                                                *counter += time;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        let time = time::precise_time_ns();
+        for stat in self.sampler_config().statistics() {
+            if let Some(value) = result.get(stat) {
+                self.metrics().record_counter(stat, time, *value);
             }
         }
 

@@ -17,7 +17,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 pub mod cpu;
-pub mod cpuidle;
 pub mod disk;
 pub mod ext4;
 pub mod memcache;
@@ -31,7 +30,6 @@ pub mod udp;
 pub mod xfs;
 
 pub use cpu::Cpu;
-pub use cpuidle::Cpuidle;
 pub use disk::Disk;
 pub use ext4::Ext4;
 pub use memory::Memory;

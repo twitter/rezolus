@@ -62,6 +62,22 @@ pub enum CpuStatistic {
     StalledCyclesBackend,
     #[strum(serialize = "cpu/stalled_cycles/frontend")]
     StalledCyclesFrontend,
+    #[strum(serialize = "cpu/cstate/time/c0")]
+    CstateC0Time,
+    #[strum(serialize = "cpu/cstate/time/c1")]
+    CstateC1Time,
+    #[strum(serialize = "cpu/cstate/time/c1e")]
+    CstateC1ETime,
+    #[strum(serialize = "cpu/cstate/time/c2")]
+    CstateC2Time,
+    #[strum(serialize = "cpu/cstate/time/c3")]
+    CstateC3Time,
+    #[strum(serialize = "cpu/cstate/time/c6")]
+    CstateC6Time,
+    #[strum(serialize = "cpu/cstate/time/c7")]
+    CstateC7Time,
+    #[strum(serialize = "cpu/cstate/time/c8")]
+    CstateC8Time,
 }
 
 impl TryFrom<&str> for CpuStatistic {
@@ -134,6 +150,51 @@ impl CpuStatistic {
                 HardwareEventType::StalledCyclesFrontend,
             )),
             _ => None,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct ParseCStateError;
+
+impl std::fmt::Display for ParseCStateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Error parsing cstate")
+    }
+}
+
+impl std::error::Error for ParseCStateError {
+    fn description(&self) -> &str {
+        "Error parsing cstate"
+    }
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Hash)]
+pub enum CState {
+    C0,
+    C1,
+    C1E,
+    C2,
+    C3,
+    C6,
+    C7,
+    C8,
+}
+
+impl FromStr for CState {
+    type Err = ParseCStateError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "POLL" | "C0" => Ok(CState::C0),
+            "C1" => Ok(CState::C1),
+            "C1E" => Ok(CState::C1E),
+            "C2" => Ok(CState::C2),
+            "C3" => Ok(CState::C3),
+            "C6" => Ok(CState::C6),
+            "C7" => Ok(CState::C7),
+            "C8" => Ok(CState::C8),
+            _ => Err(ParseCStateError),
         }
     }
 }

@@ -12,8 +12,6 @@ use serde_derive::*;
 #[serde(deny_unknown_fields)]
 pub struct RezolusConfig {
     #[serde(default)]
-    ebpf: AtomicBool,
-    #[serde(default)]
     enabled: AtomicBool,
     #[serde(default)]
     interval: AtomicOption<AtomicUsize>,

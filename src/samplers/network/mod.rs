@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use crate::common::*;
 use crate::common::bpf::*;
 use crate::config::{Config, SamplerConfig};
 use crate::samplers::Common;
@@ -168,9 +169,9 @@ impl Sampler for Network {
         };
 
         let max = if statistic.ebpf_table().is_some() {
-            1_000_000
+            SECOND
         } else {
-            1_000_000_000_000
+            TERABIT
         };
 
         Some(Summary::histogram(

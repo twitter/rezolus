@@ -5,7 +5,6 @@
 use crate::config::*;
 
 use samplers::cpu::CpuConfig;
-use samplers::cpuidle::CpuidleConfig;
 use samplers::disk::DiskConfig;
 use samplers::ext4::Ext4Config;
 use samplers::memcache::MemcacheConfig;
@@ -23,8 +22,6 @@ use samplers::xfs::XfsConfig;
 pub struct Samplers {
     #[serde(default)]
     cpu: CpuConfig,
-    #[serde(default)]
-    cpuidle: CpuidleConfig,
     #[serde(default)]
     disk: DiskConfig,
     #[serde(default)]
@@ -52,10 +49,6 @@ pub struct Samplers {
 impl Samplers {
     pub fn cpu(&self) -> &CpuConfig {
         &self.cpu
-    }
-
-    pub fn cpuidle(&self) -> &CpuidleConfig {
-        &self.cpuidle
     }
 
     pub fn disk(&self) -> &DiskConfig {

@@ -73,6 +73,10 @@ fn default_statistics() -> Vec<NetworkStatistic> {
 impl SamplerConfig for NetworkConfig {
     type Statistic = NetworkStatistic;
 
+    fn ebpf(&self) -> bool {
+        self.ebpf.load(Ordering::Relaxed)
+    }
+
     fn enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
     }

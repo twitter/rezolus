@@ -4,6 +4,7 @@
 
 #[cfg(feature = "perf")]
 use perfcnt::*;
+use crate::common::*;
 use chashmap::CHashMap;
 use crate::common::bpf::*;
 use crate::config::{Config, SamplerConfig};
@@ -45,8 +46,7 @@ impl Sampler for Scheduler {
         if config.samplers().scheduler().perf_events() {
             #[cfg(feature = "perf")]
             {
-                // TODO: core detection
-                let cores = 1;
+                let cores = crate::common::hardware_threads().unwrap_or(1024);
                 for statistic in config.samplers().scheduler().statistics().iter() {
                     if let Some(mut builder) = statistic.perf_counter_builder() {
                         let mut event_counters = Vec::new();
@@ -152,10 +152,22 @@ impl Sampler for Scheduler {
         Ok(())
     }
 
-    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
+    fn summary(&self, statistic: &Self::Statistic) -> Option<Summary> {
+        let precision = if statistic.ebpf_table().is_some() {
+            2
+        } else {
+            3
+        };
+
+        let max = if statistic.ebpf_table().is_some() {
+            SECOND
+        } else {
+            1_000_000
+        };
+
         Some(Summary::histogram(
-            1_000_000,
-            2,
+            max,
+            precision,
             Some(self.general_config().window()),
         ))
     }
@@ -204,7 +216,7 @@ impl Scheduler {
                                     self.metrics().record_distribution(
                                         statistic,
                                         time,
-                                        value * 1000,
+                                        value * MICROSECOND,
                                         count,
                                     );
                                 }

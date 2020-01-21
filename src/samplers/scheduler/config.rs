@@ -20,6 +20,8 @@ pub struct SchedulerConfig {
     interval: AtomicOption<AtomicUsize>,
     #[serde(default = "default_percentiles")]
     percentiles: Vec<Percentile>,
+    #[serde(default)]
+    perf_events: AtomicBool,
     #[serde(default = "default_statistics")]
     statistics: Vec<SchedulerStatistic>,
 }
@@ -31,6 +33,7 @@ impl Default for SchedulerConfig {
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: default_percentiles(),
+            perf_events: Default::default(),
             statistics: default_statistics(),
         }
     }
@@ -60,6 +63,10 @@ fn default_statistics() -> Vec<SchedulerStatistic> {
 impl SamplerConfig for SchedulerConfig {
     type Statistic = SchedulerStatistic;
 
+    fn ebpf(&self) -> bool {
+        self.ebpf.load(Ordering::Relaxed)
+    }
+
     fn enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
     }
@@ -70,6 +77,10 @@ impl SamplerConfig for SchedulerConfig {
 
     fn percentiles(&self) -> &[Percentile] {
         &self.percentiles
+    }
+
+    fn perf_events(&self) -> bool {
+        self.perf_events.load(Ordering::Relaxed)
     }
 
     fn statistics(&self) -> &[<Self as SamplerConfig>::Statistic] {

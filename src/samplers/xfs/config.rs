@@ -58,6 +58,10 @@ fn default_statistics() -> Vec<XfsStatistic> {
 impl SamplerConfig for XfsConfig {
     type Statistic = XfsStatistic;
 
+    fn ebpf(&self) -> bool {
+        self.ebpf.load(Ordering::Relaxed)
+    }
+
     fn enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
     }

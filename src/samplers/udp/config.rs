@@ -11,8 +11,6 @@ use serde_derive::*;
 #[serde(deny_unknown_fields)]
 pub struct UdpConfig {
     #[serde(default)]
-    ebpf: AtomicBool,
-    #[serde(default)]
     enabled: AtomicBool,
     #[serde(default)]
     interval: AtomicOption<AtomicUsize>,
@@ -25,7 +23,6 @@ pub struct UdpConfig {
 impl Default for UdpConfig {
     fn default() -> Self {
         Self {
-            ebpf: Default::default(),
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: default_percentiles(),

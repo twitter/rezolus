@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use crate::common::*;
 use crate::config::{Config, SamplerConfig};
 use crate::samplers::Common;
 use crate::Sampler;
@@ -88,7 +89,7 @@ impl Sampler for Memory {
 
     fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
         Some(Summary::histogram(
-            1_000_000_000_000,
+            TEBIBYTE,
             3,
             Some(self.general_config().window()),
         ))

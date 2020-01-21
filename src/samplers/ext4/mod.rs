@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use crate::common::*;
 use crate::common::bpf::*;
 use crate::config::{Config, SamplerConfig};
 use crate::samplers::Common;
@@ -151,7 +152,7 @@ impl Sampler for Ext4 {
 
     fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
         Some(Summary::histogram(
-            1_000_000,
+            SECOND,
             2,
             Some(self.general_config().window()),
         ))

@@ -58,6 +58,10 @@ fn default_statistics() -> Vec<Ext4Statistic> {
 impl SamplerConfig for Ext4Config {
     type Statistic = Ext4Statistic;
 
+    fn ebpf(&self) -> bool {
+        self.ebpf.load(Ordering::Relaxed)
+    }
+
     fn enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
     }

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use crate::common::*;
 use crate::common::bpf::*;
 use crate::config::{Config, SamplerConfig};
 use crate::samplers::Common;
@@ -130,7 +131,7 @@ impl Sampler for Xfs {
                                     self.metrics().record_distribution(
                                         statistic,
                                         time,
-                                        value * 1000,
+                                        value * MICROSECOND,
                                         count,
                                     );
                                 }
@@ -151,7 +152,7 @@ impl Sampler for Xfs {
 
     fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
         Some(Summary::histogram(
-            1_000_000,
+            SECOND,
             2,
             Some(self.general_config().window()),
         ))

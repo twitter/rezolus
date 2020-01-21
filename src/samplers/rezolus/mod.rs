@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use crate::common::*;
 use crate::config::Config;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
@@ -24,7 +25,7 @@ pub use stat::*;
 pub fn nanos_per_tick() -> u64 {
     let ticks_per_second = sysconf::raw::sysconf(sysconf::raw::SysconfVariable::ScClkTck)
         .expect("Failed to get Clock Ticks per Second") as u64;
-    1_000_000_000 / ticks_per_second
+    SECOND / ticks_per_second
 }
 
 pub struct Rezolus {
