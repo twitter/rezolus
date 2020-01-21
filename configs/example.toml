@@ -2,39 +2,63 @@
 listen = "0.0.0.0:4242"
 
 [cpu]
+# enable the cpu sampler
 enabled = true
+# enable perf_events telemetry
+perf_events = true
+# the complete set of statistics can be specified
+statistics = [
+	"cpu/cache/access",
+	"cpu/cache/miss",
+	"cpu/cycles",
+	"cpu/instructions",
+	"cpu/reference_cycles",
+	"cpu/usage/user",
+	"cpu/usage/system",
+	"cpu/usage/idle",
+	"cpu/cstate/c0/time",
+]
 
 [disk]
-# ebpf = false
+# enable the ebpf telemetry
+ebpf = true
+# enable the disk sampler
 enabled = true
+# the complete set of percentiles can be specified
+percentiles = [
+	"p10",
+	"p50",
+	"p90",
+]
 
 [ext4]
-# ebpf = true
+ebpf = true
 enabled = true
 
-# [memory]
-# enabled = true
+[memory]
+enabled = true
 
 [network]
-# ebpf = true
+ebpf = true
 enabled = true
-
-# [perf]
-# enabled = true
 
 [rezolus]
 enabled = true
+
+[scheduler]
+ebpf = true
+perf_events = true
 
 [softnet]
 enabled = true
 
 [tcp]
-# ebpf = true
+ebpf = true
 enabled = true
 
 [udp]
 enabled = true
 
 [xfs]
-# ebpf = true
+ebpf = true
 enabled = true

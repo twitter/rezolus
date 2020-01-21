@@ -319,7 +319,7 @@ matrix:
         - cargo test --verbose --no-default-features
         - cargo build --release --verbose --no-default-features
         - cargo test --release --verbose --no-default-features
-        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
+        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: bionic / stable"
       os: linux
       dist: bionic
@@ -330,7 +330,7 @@ matrix:
         - cargo test --verbose --no-default-features
         - cargo build --release --verbose --no-default-features
         - cargo test --release --verbose --no-default-features
-        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
+        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: xenial / nightly"
       os: linux
       dist: xenial
@@ -341,7 +341,7 @@ matrix:
         - cargo test --verbose --no-default-features
         - cargo build --release --verbose --no-default-features
         - cargo test --release --verbose --no-default-features
-        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
+        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: bionic / nightly"
       os: linux
       dist: bionic
@@ -352,7 +352,7 @@ matrix:
         - cargo test --verbose --no-default-features
         - cargo build --release --verbose --no-default-features
         - cargo test --release --verbose --no-default-features
-        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci-no_perf.toml
+        - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "rustfmt"
       os: linux
       dist: bionic

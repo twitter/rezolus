@@ -1,61 +1,44 @@
 [general]
+fault_tolerant = false
 listen = "0.0.0.0:4242"
 
 [cpu]
 enabled = true
 perf_events = true
-statistics = [
-	"cpu/usage/user",
-	"cpu/usage/system",
-	"cpu/usage/idle",
-	"cpu/cycles",
-	"cpu/instructions",
-	"cpu/reference_cycles",
-]
-
-[cpuidle]
-enabled = true
-statistics = [
-	"cpuidle/time/c0",
-]
 
 [disk]
-# ebpf = false
+ebpf = true
 enabled = true
 
 [ext4]
-# ebpf = true
+ebpf = true
 enabled = true
 
-# [memory]
-# enabled = true
+[memory]
+enabled = true
 
 [network]
-# ebpf = true
-enabled = true
-
-[perf]
+ebpf = true
 enabled = true
 
 [rezolus]
 enabled = true
 
+[scheduler]
+ebpf = true
+perf_events = true
+
 [softnet]
 enabled = true
 
 [tcp]
-# ebpf = true
+ebpf = true
 enabled = true
 
 [udp]
 enabled = true
 
 [xfs]
+# no xfs present on ci
 # ebpf = true
 enabled = true
-statistics = [
-	"xfs/fsync/latency",
-	"xfs/open/latency",
-	"xfs/read/latency",
-	"xfs/write/latency",
-]
