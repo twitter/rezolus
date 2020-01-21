@@ -42,12 +42,12 @@ impl Sampler for Scheduler {
     type Statistic = SchedulerStatistic;
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
         let perf_counters = CHashMap::new();
-        if config.cpu().perf_events() {
+        if config.samplers().scheduler().perf_events() {
             #[cfg(feature = "perf")]
             {
                 // TODO: core detection
                 let cores = 1;
-                for statistic in config.scheduler().statistics().iter() {
+                for statistic in config.samplers().scheduler().statistics().iter() {
                     if let Some(mut builder) = statistic.perf_counter_builder() {
                         let mut event_counters = Vec::new();
                         for core in 0..cores {
@@ -70,7 +70,7 @@ impl Sampler for Scheduler {
             }
         }
         #[cfg(feature = "ebpf")]
-        let bpf = if config.disk().ebpf() {
+        let bpf = if config.samplers().scheduler().ebpf() {
             debug!("initializing ebpf");
             // load the code and compile
             let code = include_str!("bpf.c");
@@ -124,7 +124,7 @@ impl Sampler for Scheduler {
     }
 
     fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().scheduler()
+        self.common.config().samplers().scheduler()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {

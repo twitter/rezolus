@@ -47,10 +47,10 @@ fn default_percentiles() -> Vec<Percentile> {
 
 fn default_statistics() -> Vec<RezolusStatistic> {
     vec![
-        RezolusStatistic::UserTime,
-        RezolusStatistic::SystemTime,
-        RezolusStatistic::ResidentMemory,
-        RezolusStatistic::VirtualMemory,
+        RezolusStatistic::CpuUser,
+        RezolusStatistic::CpuSystem,
+        RezolusStatistic::MemoryResident,
+        RezolusStatistic::MemoryVirtual,
     ]
 }
 

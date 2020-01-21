@@ -17,8 +17,8 @@ use std::sync::Arc;
 
 mod common;
 mod config;
+mod exposition;
 mod samplers;
-mod stats;
 
 use config::Config;
 use samplers::*;
@@ -84,7 +84,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(feature = "push_kafka")]
     {
-        if config.kafka().enabled() {
+        if config.exposition().kafka().enabled() {
             let mut kafka_producer = stats::KafkaProducer::new(config.clone(), metrics.clone());
             let _ = thread::Builder::new()
                 .name("kafka".to_string())
@@ -95,14 +95,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     debug!("beginning stats exposition");
-    let mut stats_http = stats::Http::new(
+    let mut http = exposition::Http::new(
         config.listen().expect("no listen address"),
         metrics.clone(),
         config.general().count_suffix(),
     );
 
     while runnable.load(Ordering::Relaxed) {
-        stats_http.run();
+        http.run();
     }
 
     Ok(())

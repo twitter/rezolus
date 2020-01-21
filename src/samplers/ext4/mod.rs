@@ -33,7 +33,7 @@ impl Sampler for Ext4 {
     type Statistic = Ext4Statistic;
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
         #[cfg(feature = "ebpf")]
-        let bpf = if config.disk().ebpf() {
+        let bpf = if config.samplers().ext4().ebpf() {
             debug!("initializing ebpf");
             // load the code and compile
             let code = include_str!("bpf.c").to_string();
@@ -99,7 +99,7 @@ impl Sampler for Ext4 {
     }
 
     fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().ext4()
+        self.common.config().samplers().ext4()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {

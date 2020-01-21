@@ -56,7 +56,7 @@ impl Sampler for Softnet {
     }
 
     fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().softnet()
+        self.common.config().samplers().softnet()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {

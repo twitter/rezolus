@@ -66,7 +66,7 @@ impl Sampler for Rezolus {
     }
 
     fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().rezolus()
+        self.common.config().samplers().rezolus()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {
@@ -103,8 +103,8 @@ impl Rezolus {
             let parts: Vec<&str> = line.split_whitespace().collect();
             let user = parts[13].parse().unwrap_or(0) + parts[15].parse().unwrap_or(0);
             let system = parts[14].parse().unwrap_or(0) + parts[16].parse().unwrap_or(0);
-            result.insert(RezolusStatistic::UserTime, user * self.nanos_per_tick);
-            result.insert(RezolusStatistic::SystemTime, system * self.nanos_per_tick);
+            result.insert(RezolusStatistic::CpuUser, user * self.nanos_per_tick);
+            result.insert(RezolusStatistic::CpuSystem, system * self.nanos_per_tick);
         }
 
         let time = time::precise_time_ns();
@@ -126,8 +126,8 @@ impl Rezolus {
             let parts: Vec<&str> = line.split_whitespace().collect();
             let vm = parts[0].parse().unwrap_or(0);
             let rss = parts[1].parse().unwrap_or(0);
-            result_memory.insert(RezolusStatistic::VirtualMemory, vm);
-            result_memory.insert(RezolusStatistic::ResidentMemory, rss);
+            result_memory.insert(RezolusStatistic::MemoryVirtual, vm);
+            result_memory.insert(RezolusStatistic::MemoryResident, rss);
         }
 
         let time = time::precise_time_ns();

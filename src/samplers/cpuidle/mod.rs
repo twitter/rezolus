@@ -58,7 +58,7 @@ impl Sampler for Cpuidle {
     }
 
     fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().cpuidle()
+        self.common.config().samplers().cpuidle()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {

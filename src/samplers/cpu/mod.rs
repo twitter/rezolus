@@ -61,12 +61,12 @@ impl Sampler for Cpu {
 
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
         let perf_counters = CHashMap::new();
-        if config.cpu().perf_events() {
+        if config.samplers().cpu().perf_events() {
             #[cfg(feature = "perf")]
             {
                 // TODO: core detection
                 let cores = 1;
-                for statistic in config.cpu().statistics().iter() {
+                for statistic in config.samplers().cpu().statistics().iter() {
                     if let Some(mut builder) = statistic.perf_counter_builder() {
                         let mut event_counters = Vec::new();
                         for core in 0..cores {
@@ -118,7 +118,7 @@ impl Sampler for Cpu {
     }
 
     fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().cpu()
+        self.common.config().samplers().cpu()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {

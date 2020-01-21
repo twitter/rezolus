@@ -62,7 +62,7 @@ impl Sampler for Memory {
     }
 
     fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().memory()
+        self.common.config().samplers().memory()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {

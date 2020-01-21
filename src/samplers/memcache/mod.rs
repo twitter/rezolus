@@ -53,10 +53,10 @@ impl Sampler for Memcache {
     type Statistic = MemcacheStatistic;
 
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
-        if config.memcache().endpoint().is_none() {
+        if config.samplers().memcache().endpoint().is_none() {
             return Err(format_err!("no memcache endpoint configured"));
         }
-        let endpoint = config.memcache().endpoint().unwrap();
+        let endpoint = config.samplers().memcache().endpoint().unwrap();
         let mut addrs = endpoint.to_socket_addrs().unwrap_or_else(|_| {
             fatal!("ERROR: endpoint address is malformed: {}", endpoint);
         });
@@ -95,7 +95,7 @@ impl Sampler for Memcache {
     }
 
     fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().memcache()
+        self.common.config().samplers().memcache()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {

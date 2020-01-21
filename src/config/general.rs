@@ -18,10 +18,6 @@ pub struct General {
     interval: AtomicUsize,
     #[serde(default = "default_window")]
     window: AtomicUsize,
-    // #[serde(default = "default_timeout")]
-    // timeout: AtomicUsize,
-    // #[serde(default = "default_max_timeouts")]
-    // max_timeouts: AtomicUsize,
     #[serde(default = "default_fault_tolerant")]
     fault_tolerant: AtomicBool,
 }
@@ -48,18 +44,6 @@ impl General {
     pub fn window(&self) -> Duration {
         Duration::new(self.window.load(Ordering::Relaxed) as u64, 0)
     }
-
-    // pub fn timeout(&self) -> usize {
-    //     self.timeout.load(Ordering::Relaxed)
-    // }
-
-    // pub fn max_timeouts(&self) -> usize {
-    //     self.max_timeouts.load(Ordering::Relaxed)
-    // }
-
-    // pub fn memcache(&self) -> Option<String> {
-    //     self.memcache.clone()
-    // }
 
     pub fn fault_tolerant(&self) -> bool {
         self.fault_tolerant.load(Ordering::Relaxed)

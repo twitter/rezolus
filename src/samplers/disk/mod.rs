@@ -37,7 +37,7 @@ impl Sampler for Disk {
 
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
         #[cfg(feature = "ebpf")]
-        let bpf = if config.disk().ebpf() {
+        let bpf = if config.samplers().disk().ebpf() {
             debug!("initializing ebpf");
             // load the code and compile
             let code = include_str!("bpf.c");
@@ -90,7 +90,7 @@ impl Sampler for Disk {
     }
 
     fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().disk()
+        self.common.config().samplers().disk()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {

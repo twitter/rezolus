@@ -16,13 +16,13 @@ use strum_macros::*;
 #[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum RezolusStatistic {
     #[strum(serialize = "rezolus/cpu/user")]
-    UserTime,
+    CpuUser,
     #[strum(serialize = "rezolus/cpu/system")]
-    SystemTime,
+    CpuSystem,
     #[strum(serialize = "rezolus/memory/virtual")]
-    VirtualMemory,
+    MemoryVirtual,
     #[strum(serialize = "rezolus/memory/resident")]
-    ResidentMemory,
+    MemoryResident,
 }
 
 impl Statistic for RezolusStatistic {
@@ -32,7 +32,7 @@ impl Statistic for RezolusStatistic {
 
     fn source(&self) -> metrics::Source {
         match self {
-            Self::VirtualMemory | Self::ResidentMemory => metrics::Source::Gauge,
+            Self::MemoryVirtual | Self::MemoryResident => metrics::Source::Gauge,
             _ => metrics::Source::Counter,
         }
     }

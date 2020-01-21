@@ -15,70 +15,70 @@ use strum_macros::*;
 #[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum NetworkStatistic {
     #[strum(serialize = "network/receive/bytes")]
-    RxBytes,
+    ReceiveBytes,
     #[strum(serialize = "network/receive/packets")]
-    RxPackets,
+    ReceivePackets,
     #[strum(serialize = "network/receive/errors")]
-    RxErrors,
+    ReceiveErrors,
     #[strum(serialize = "network/receive/drops")]
-    RxDrops,
+    ReceiveDrops,
     #[strum(serialize = "network/receive/fifo")]
-    RxFifo,
+    ReceiveFifo,
     #[strum(serialize = "network/receive/frame")]
-    RxFrame,
+    ReceiveFrame,
     #[strum(serialize = "network/receive/compressed")]
-    RxCompressed,
+    ReceiveCompressed,
     #[strum(serialize = "network/receive/multicast")]
-    RxMulticast,
+    ReceiveMulticast,
     #[strum(serialize = "network/transmit/bytes")]
-    TxBytes,
+    TransmitBytes,
     #[strum(serialize = "network/transmit/packets")]
-    TxPackets,
+    TransmitPackets,
     #[strum(serialize = "network/transmit/errors")]
-    TxErrors,
+    TransmitErrors,
     #[strum(serialize = "network/transmit/drops")]
-    TxDrops,
+    TransmitDrops,
     #[strum(serialize = "network/transmit/fifo")]
-    TxFifo,
+    TransmitFifo,
     #[strum(serialize = "network/transmit/collisions")]
-    TxCollisions,
+    TransmitCollisions,
     #[strum(serialize = "network/transmit/carrier")]
-    TxCarrier,
+    TransmitCarrier,
     #[strum(serialize = "network/transmit/compressed")]
-    TxCompressed,
+    TransmitCompressed,
     #[strum(serialize = "network/receive/size")]
-    RxSize,
+    ReceiveSize,
     #[strum(serialize = "network/transmit/size")]
-    TxSize,
+    TransmitSize,
 }
 
 impl NetworkStatistic {
     pub fn field_number(self) -> Option<usize> {
         match self {
-            Self::RxBytes => Some(1),
-            Self::RxPackets => Some(2),
-            Self::RxErrors => Some(3),
-            Self::RxDrops => Some(4),
-            Self::RxFifo => Some(5),
-            Self::RxFrame => Some(6),
-            Self::RxCompressed => Some(7),
-            Self::RxMulticast => Some(8),
-            Self::TxBytes => Some(9),
-            Self::TxPackets => Some(10),
-            Self::TxErrors => Some(11),
-            Self::TxDrops => Some(12),
-            Self::TxFifo => Some(13),
-            Self::TxCollisions => Some(14),
-            Self::TxCarrier => Some(15),
-            Self::TxCompressed => Some(16),
+            Self::ReceiveBytes => Some(1),
+            Self::ReceivePackets => Some(2),
+            Self::ReceiveErrors => Some(3),
+            Self::ReceiveDrops => Some(4),
+            Self::ReceiveFifo => Some(5),
+            Self::ReceiveFrame => Some(6),
+            Self::ReceiveCompressed => Some(7),
+            Self::ReceiveMulticast => Some(8),
+            Self::TransmitBytes => Some(9),
+            Self::TransmitPackets => Some(10),
+            Self::TransmitErrors => Some(11),
+            Self::TransmitDrops => Some(12),
+            Self::TransmitFifo => Some(13),
+            Self::TransmitCollisions => Some(14),
+            Self::TransmitCarrier => Some(15),
+            Self::TransmitCompressed => Some(16),
             _ => None,
         }
     }
 
     pub fn ebpf_table(self) -> Option<&'static str> {
         match self {
-            Self::RxSize => Some("rx_size"),
-            Self::TxSize => Some("tx_size"),
+            Self::ReceiveSize => Some("rx_size"),
+            Self::TransmitSize => Some("tx_size"),
             _ => None,
         }
     }
