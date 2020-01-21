@@ -1,7 +1,8 @@
 [general]
 listen = "0.0.0.0:4242"
 
-[cpu]
+[samplers]
+[samplers.cpu]
 # enable the cpu sampler
 enabled = true
 # enable perf_events telemetry
@@ -19,7 +20,7 @@ statistics = [
 	"cpu/cstate/c0/time",
 ]
 
-[disk]
+[samplers.disk]
 # enable the ebpf telemetry
 ebpf = true
 # enable the disk sampler
@@ -31,34 +32,34 @@ percentiles = [
 	"p90",
 ]
 
-[ext4]
+[samplers.ext4]
 ebpf = true
 enabled = true
 
-[memory]
+[samplers.memory]
 enabled = true
 
-[network]
+[samplers.network]
 ebpf = true
 enabled = true
 
-[rezolus]
+[samplers.rezolus]
 enabled = true
 
-[scheduler]
+[samplers.scheduler]
 ebpf = true
 perf_events = true
 
-[softnet]
+[samplers.softnet]
 enabled = true
 
-[tcp]
+[samplers.tcp]
 ebpf = true
 enabled = true
 
-[udp]
+[samplers.udp]
 enabled = true
 
-[xfs]
+[samplers.xfs]
 ebpf = true
 enabled = true

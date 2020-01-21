@@ -2,43 +2,44 @@
 fault_tolerant = false
 listen = "0.0.0.0:4242"
 
-[cpu]
+[samplers]
+[samplers.cpu]
 enabled = true
 perf_events = true
 
-[disk]
+[samplers.disk]
 ebpf = true
 enabled = true
 
-[ext4]
+[samplers.ext4]
 ebpf = true
 enabled = true
 
-[memory]
+[samplers.memory]
 enabled = true
 
-[network]
+[samplers.network]
 ebpf = true
 enabled = true
 
-[rezolus]
+[samplers.rezolus]
 enabled = true
 
-[scheduler]
+[samplers.scheduler]
 ebpf = true
 perf_events = true
 
-[softnet]
+[samplers.softnet]
 enabled = true
 
-[tcp]
+[samplers.tcp]
 ebpf = true
 enabled = true
 
-[udp]
+[samplers.udp]
 enabled = true
 
-[xfs]
+[samplers.xfs]
 # no xfs present on ci
 # ebpf = true
 enabled = true
