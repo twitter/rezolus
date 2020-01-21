@@ -24,7 +24,6 @@ pub struct RezolusConfig {
 impl Default for RezolusConfig {
     fn default() -> Self {
         Self {
-            ebpf: Default::default(),
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: default_percentiles(),

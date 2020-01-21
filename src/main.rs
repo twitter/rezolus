@@ -70,7 +70,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // spawn samplers
     debug!("spawning samplers");
     Cpu::spawn(config.clone(), metrics.clone(), runtime.handle());
-    Cpuidle::spawn(config.clone(), metrics.clone(), runtime.handle());
     Disk::spawn(config.clone(), metrics.clone(), runtime.handle());
     Ext4::spawn(config.clone(), metrics.clone(), runtime.handle());
     Memory::spawn(config.clone(), metrics.clone(), runtime.handle());
