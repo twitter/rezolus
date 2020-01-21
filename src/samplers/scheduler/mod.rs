@@ -2,24 +2,24 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-#[cfg(feature = "perf")]
-use perfcnt::*;
-use crate::common::*;
-use chashmap::CHashMap;
 use crate::common::bpf::*;
+use crate::common::*;
 use crate::config::{Config, SamplerConfig};
 use crate::samplers::Common;
 use crate::Sampler;
 use async_trait::async_trait;
 #[cfg(feature = "ebpf")]
 use bcc;
+use chashmap::CHashMap;
 use metrics::*;
+#[cfg(feature = "perf")]
+use perfcnt::*;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Instant;
-use tokio::runtime::Handle;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::runtime::Handle;
 
 mod config;
 mod stat;
@@ -183,16 +183,32 @@ impl Scheduler {
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
             if parts[0] == "ctxt" && parts.len() == 2 {
-                self.metrics().record_counter(&SchedulerStatistic::ContextSwitches, time, parts[1].parse().unwrap_or(0));
+                self.metrics().record_counter(
+                    &SchedulerStatistic::ContextSwitches,
+                    time,
+                    parts[1].parse().unwrap_or(0),
+                );
             }
             if parts[0] == "processes" && parts.len() == 2 {
-                self.metrics().record_counter(&SchedulerStatistic::ProcessesCreated, time, parts[1].parse().unwrap_or(0));
+                self.metrics().record_counter(
+                    &SchedulerStatistic::ProcessesCreated,
+                    time,
+                    parts[1].parse().unwrap_or(0),
+                );
             }
             if parts[0] == "procs_running" && parts.len() == 2 {
-                self.metrics().record_gauge(&SchedulerStatistic::ProcessesRunning, time, parts[1].parse().unwrap_or(0));
+                self.metrics().record_gauge(
+                    &SchedulerStatistic::ProcessesRunning,
+                    time,
+                    parts[1].parse().unwrap_or(0),
+                );
             }
             if parts[0] == "procs_blocked" && parts.len() == 2 {
-                self.metrics().record_gauge(&SchedulerStatistic::ProcessesBlocked, time, parts[1].parse().unwrap_or(0));
+                self.metrics().record_gauge(
+                    &SchedulerStatistic::ProcessesBlocked,
+                    time,
+                    parts[1].parse().unwrap_or(0),
+                );
             }
         }
 

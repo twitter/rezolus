@@ -6,12 +6,12 @@
 pub use perfcnt::linux::*;
 
 use core::convert::TryFrom;
+use metrics::Source;
 use metrics::Statistic;
 use serde_derive::*;
 use std::str::FromStr;
 use strum::ParseError;
 use strum_macros::*;
-use metrics::Source;
 
 #[derive(
     Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
@@ -44,7 +44,9 @@ impl SchedulerStatistic {
     #[cfg(feature = "perf")]
     pub fn perf_counter_builder(&self) -> Option<PerfCounterBuilderLinux> {
         match self {
-            Self::CpuMigrations => Some(PerfCounterBuilderLinux::from_software_event(SoftwareEventType::CpuMigrations)),
+            Self::CpuMigrations => Some(PerfCounterBuilderLinux::from_software_event(
+                SoftwareEventType::CpuMigrations,
+            )),
             _ => None,
         }
     }

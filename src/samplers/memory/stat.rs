@@ -132,4 +132,3 @@ impl Statistic for MemoryStatistic {
         metrics::Source::Gauge
     }
 }
-

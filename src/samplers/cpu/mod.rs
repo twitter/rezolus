@@ -12,13 +12,13 @@ use crate::Sampler;
 use async_trait::async_trait;
 use chashmap::CHashMap;
 use metrics::*;
+use regex::Regex;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
-use tokio::runtime::Handle;
 use tokio::prelude::*;
-use regex::Regex;
+use tokio::runtime::Handle;
 
 mod config;
 mod stat;
@@ -266,9 +266,7 @@ impl Cpu {
                                                     CState::C7 => CpuStatistic::CstateC7Time,
                                                     CState::C8 => CpuStatistic::CstateC8Time,
                                                 };
-                                                let counter = result
-                                                    .entry(metric)
-                                                    .or_insert(0);
+                                                let counter = result.entry(metric).or_insert(0);
                                                 *counter += time;
                                             }
                                         }

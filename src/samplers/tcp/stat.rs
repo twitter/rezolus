@@ -107,7 +107,9 @@ impl Statistic for TcpStatistic {
                 "tcp packets dropped from out-of-order queue due to low socket buffer"
             }
             Self::TransmitDelayedAcks => "number of delayed ACKs sent",
-            Self::ReceiveListenOverflows => "number of times the listen queue of a socket overflowed",
+            Self::ReceiveListenOverflows => {
+                "number of times the listen queue of a socket overflowed"
+            }
             Self::ReceiveListenDrops => "number of SYNs to LISTEN sockets dropped",
         })
     }

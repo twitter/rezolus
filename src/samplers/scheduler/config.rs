@@ -57,7 +57,7 @@ fn default_statistics() -> Vec<SchedulerStatistic> {
         SchedulerStatistic::ProcessesCreated,
         SchedulerStatistic::ProcessesRunning,
         SchedulerStatistic::RunqueueLatency,
-        ]
+    ]
 }
 
 impl SamplerConfig for SchedulerConfig {

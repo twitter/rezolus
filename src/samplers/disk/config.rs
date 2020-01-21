@@ -67,7 +67,7 @@ fn default_statistics() -> Vec<DiskStatistic> {
 
 impl SamplerConfig for DiskConfig {
     type Statistic = DiskStatistic;
-    
+
     fn ebpf(&self) -> bool {
         self.ebpf.load(Ordering::Relaxed)
     }
