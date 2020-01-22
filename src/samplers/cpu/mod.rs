@@ -125,7 +125,6 @@ impl Sampler for Cpu {
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {
         if let Some(ref mut delay) = self.delay() {
-            info!("delay");
             delay.tick().await;
         }
 
