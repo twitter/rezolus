@@ -62,21 +62,21 @@ pub enum CpuStatistic {
     StalledCyclesBackend,
     #[strum(serialize = "cpu/stalled_cycles/frontend")]
     StalledCyclesFrontend,
-    #[strum(serialize = "cpu/cstate/time/c0")]
+    #[strum(serialize = "cpu/cstate/c0/time")]
     CstateC0Time,
-    #[strum(serialize = "cpu/cstate/time/c1")]
+    #[strum(serialize = "cpu/cstate/c1/time")]
     CstateC1Time,
-    #[strum(serialize = "cpu/cstate/time/c1e")]
+    #[strum(serialize = "cpu/cstate/c1e/time")]
     CstateC1ETime,
-    #[strum(serialize = "cpu/cstate/time/c2")]
+    #[strum(serialize = "cpu/cstate/c2/time")]
     CstateC2Time,
-    #[strum(serialize = "cpu/cstate/time/c3")]
+    #[strum(serialize = "cpu/cstate/c3/time")]
     CstateC3Time,
-    #[strum(serialize = "cpu/cstate/time/c6")]
+    #[strum(serialize = "cpu/cstate/c6/time")]
     CstateC6Time,
-    #[strum(serialize = "cpu/cstate/time/c7")]
+    #[strum(serialize = "cpu/cstate/c7/time")]
     CstateC7Time,
-    #[strum(serialize = "cpu/cstate/time/c8")]
+    #[strum(serialize = "cpu/cstate/c8/time")]
     CstateC8Time,
 }
 
