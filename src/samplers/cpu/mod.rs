@@ -124,11 +124,12 @@ impl Sampler for Cpu {
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {
-        if !self.sampler_config().enabled() {
-            if let Some(ref mut delay) = self.delay() {
-                delay.tick().await;
-            }
+        if let Some(ref mut delay) = self.delay() {
+            info!("delay");
+            delay.tick().await;
+        }
 
+        if !self.sampler_config().enabled() {
             return Ok(());
         }
 
@@ -139,12 +140,6 @@ impl Sampler for Cpu {
         self.sample_cpu_usage().await?;
         #[cfg(feature = "perf")]
         self.sample_perf_counters().await?;
-
-        if let Some(ref mut delay) = self.delay() {
-            delay.tick().await;
-        } else {
-            fatal!("no delay");
-        }
 
         Ok(())
     }

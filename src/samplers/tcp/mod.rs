@@ -94,11 +94,11 @@ impl Sampler for Tcp {
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {
-        if !self.sampler_config().enabled() {
-            if let Some(ref mut delay) = self.delay() {
-                delay.tick().await;
-            }
+        if let Some(ref mut delay) = self.delay() {
+            delay.tick().await;
+        }
 
+        if !self.sampler_config().enabled() {
             return Ok(());
         }
 
@@ -159,12 +159,6 @@ impl Sampler for Tcp {
                 }
                 *self.bpf_last.lock().unwrap() = Instant::now();
             }
-        }
-
-        if let Some(ref mut delay) = self.delay() {
-            delay.tick().await;
-        } else {
-            fatal!("no delay");
         }
 
         Ok(())

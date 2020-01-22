@@ -60,11 +60,11 @@ impl Sampler for Softnet {
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {
-        if !self.sampler_config().enabled() {
-            if let Some(ref mut delay) = self.delay() {
-                delay.tick().await;
-            }
+        if let Some(ref mut delay) = self.delay() {
+            delay.tick().await;
+        }
 
+        if !self.sampler_config().enabled() {
             return Ok(());
         }
 
@@ -91,12 +91,6 @@ impl Sampler for Softnet {
         let time = time::precise_time_ns();
         for (stat, value) in result {
             self.metrics().record_counter(&stat, time, value);
-        }
-
-        if let Some(ref mut delay) = self.delay() {
-            delay.tick().await;
-        } else {
-            fatal!("no delay");
         }
 
         Ok(())

@@ -71,23 +71,17 @@ impl Sampler for Rezolus {
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {
-        if !self.sampler_config().enabled() {
-            if let Some(ref mut delay) = self.delay() {
-                delay.tick().await;
-            }
+        if let Some(ref mut delay) = self.delay() {
+            delay.tick().await;
+        }
 
+        if !self.sampler_config().enabled() {
             return Ok(());
         }
 
         debug!("sampling");
         self.sample_memory().await?;
         self.sample_cpu().await?;
-
-        if let Some(ref mut delay) = self.delay() {
-            delay.tick().await;
-        } else {
-            fatal!("no delay");
-        }
 
         Ok(())
     }
