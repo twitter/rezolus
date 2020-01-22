@@ -106,7 +106,6 @@ impl Rezolus {
 
         let time = time::precise_time_ns();
         for (stat, value) in result {
-            debug!("record: {} value: {}", stat.name(), value);
             self.metrics().record_counter(&stat, time, value);
         }
         Ok(())
