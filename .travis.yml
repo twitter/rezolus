@@ -9,10 +9,10 @@ matrix:
       rust: nightly
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --verbose
-        - cargo test --verbose
-        - cargo build --release --verbose
-        - cargo test --release --verbose
+        - cargo build
+        - cargo test
+        - cargo build --release
+        - cargo test --release
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "default: bionic / nightly"
@@ -21,10 +21,10 @@ matrix:
       rust: nightly
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --verbose
-        - cargo test --verbose
-        - cargo build --release --verbose
-        - cargo test --release --verbose
+        - cargo build
+        - cargo test
+        - cargo build --release
+        - cargo test --release
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "ebpf: xenial / nightly / llvm 8.0 / bcc 0.10.0"
@@ -303,10 +303,10 @@ matrix:
       rust: nightly
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --features push_kafka --verbose
-        - cargo test --features push_kafka --verbose
-        - cargo build --release --features push_kafka --verbose
-        - cargo test --release --features push_kafka --verbose
+        - cargo build --features push_kafka
+        - cargo test --features push_kafka
+        - cargo build --release --features push_kafka
+        - cargo test --release --features push_kafka
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: xenial / stable"
@@ -315,10 +315,10 @@ matrix:
       rust: stable
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --verbose --no-default-features
-        - cargo test --verbose --no-default-features
-        - cargo build --release --verbose --no-default-features
-        - cargo test --release --verbose --no-default-features
+        - cargo build --no-default-features
+        - cargo test --no-default-features
+        - cargo build --release --no-default-features
+        - cargo test --release --no-default-features
         - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: bionic / stable"
       os: linux
@@ -326,10 +326,10 @@ matrix:
       rust: stable
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --verbose --no-default-features
-        - cargo test --verbose --no-default-features
-        - cargo build --release --verbose --no-default-features
-        - cargo test --release --verbose --no-default-features
+        - cargo build --no-default-features
+        - cargo test --no-default-features
+        - cargo build --release --no-default-features
+        - cargo test --release --no-default-features
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: xenial / nightly"
       os: linux
@@ -337,10 +337,10 @@ matrix:
       rust: nightly
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --verbose --no-default-features
-        - cargo test --verbose --no-default-features
-        - cargo build --release --verbose --no-default-features
-        - cargo test --release --verbose --no-default-features
+        - cargo build --no-default-features
+        - cargo test --no-default-features
+        - cargo build --release --no-default-features
+        - cargo test --release --no-default-features
         - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: bionic / nightly"
       os: linux
@@ -348,10 +348,10 @@ matrix:
       rust: nightly
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --verbose --no-default-features
-        - cargo test --verbose --no-default-features
-        - cargo build --release --verbose --no-default-features
-        - cargo test --release --verbose --no-default-features
+        - cargo build --no-default-features
+        - cargo test --no-default-features
+        - cargo build --release --no-default-features
+        - cargo test --release --no-default-features
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "rustfmt"
       os: linux
