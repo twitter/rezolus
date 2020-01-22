@@ -48,9 +48,9 @@ impl Sampler for Memory {
                 }
             });
         } else if !config.fault_tolerant() {
-            fatal!("failed to initialize sampler");
+            fatal!("failed to initialize memory sampler");
         } else {
-            error!("failed to initialize sampler");
+            error!("failed to initialize memory sampler");
         }
     }
 

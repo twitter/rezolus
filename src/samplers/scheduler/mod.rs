@@ -69,36 +69,37 @@ impl Sampler for Scheduler {
                 }
             }
         }
-        #[cfg(feature = "ebpf")]
-        let bpf = if config.samplers().scheduler().ebpf() {
-            debug!("initializing ebpf");
-            // load the code and compile
-            let code = include_str!("bpf.c");
-            let mut bpf = bcc::core::BPF::new(code)?;
 
-            // load + attach kprobes!
-            let trace_run = bpf.load_kprobe("trace_run")?;
-            let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup")?;
-            let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task")?;
-
-            bpf.attach_kprobe("finish_task_switch", trace_run)?;
-            bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task)?;
-            bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)?;
-
-            Some(Arc::new(Mutex::new(BPF { inner: bpf })))
-        } else {
-            None
-        };
-
-        #[cfg(not(feature = "ebpf"))]
-        let bpf = None;
-
-        Ok(Self {
-            bpf,
+        #[allow(unused_mut)]
+        let mut sampler = Self {
+            bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common: Common::new(config, metrics),
             perf_counters,
-        })
+        };
+
+        #[cfg(feature = "ebpf")]
+        {
+            if sampler.ebpf_enabled() {
+                debug!("initializing ebpf");
+                // load the code and compile
+                let code = include_str!("bpf.c");
+                let mut bpf = bcc::core::BPF::new(code)?;
+
+                // load + attach kprobes!
+                let trace_run = bpf.load_kprobe("trace_run")?;
+                let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup")?;
+                let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task")?;
+
+                bpf.attach_kprobe("finish_task_switch", trace_run)?;
+                bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task)?;
+                bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)?;
+
+                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+            }
+        }
+
+        Ok(sampler)
     }
 
     fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
@@ -109,9 +110,9 @@ impl Sampler for Scheduler {
                 }
             });
         } else if !config.fault_tolerant() {
-            fatal!("failed to initialize sampler");
+            fatal!("failed to initialize scheduler sampler");
         } else {
-            error!("failed to initialize sampler");
+            error!("failed to initialize scheduler sampler");
         }
     }
 
@@ -267,5 +268,18 @@ impl Scheduler {
         }
 
         Ok(())
+    }
+
+    // checks that ebpf is enabled in config and one or more ebpf stats enabled
+    #[cfg(feature = "ebpf")]
+    fn ebpf_enabled(&self) -> bool {
+        if self.sampler_config().ebpf() {
+            for statistic in self.sampler_config().statistics() {
+                if statistic.ebpf_table().is_some() {
+                    return true;
+                }
+            }
+        }
+        false
     }
 }

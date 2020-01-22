@@ -45,9 +45,9 @@ impl Sampler for Udp {
                 }
             });
         } else if !config.fault_tolerant() {
-            fatal!("failed to initialize sampler");
+            fatal!("failed to initialize udp sampler");
         } else {
-            error!("failed to initialize sampler");
+            error!("failed to initialize udp sampler");
         }
     }
 

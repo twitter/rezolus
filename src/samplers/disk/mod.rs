@@ -37,35 +37,35 @@ impl Sampler for Disk {
     type Statistic = DiskStatistic;
 
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
-        #[cfg(feature = "ebpf")]
-        let bpf = if config.samplers().disk().ebpf() {
-            debug!("initializing ebpf");
-            // load the code and compile
-            let code = include_str!("bpf.c");
-            let mut bpf = bcc::core::BPF::new(code)?;
-            // load + attach kprobes!
-            let trace_pid_start = bpf.load_kprobe("trace_pid_start")?;
-            let trace_req_start = bpf.load_kprobe("trace_req_start")?;
-            let trace_mq_req_start = bpf.load_kprobe("trace_req_start")?;
-            let do_count = bpf.load_kprobe("do_count")?;
-
-            bpf.attach_kprobe("blk_account_io_start", trace_pid_start)?;
-            bpf.attach_kprobe("blk_start_request", trace_req_start)?;
-            bpf.attach_kprobe("blk_mq_start_request", trace_mq_req_start)?;
-            bpf.attach_kprobe("blk_account_io_completion", do_count)?;
-            Some(Arc::new(Mutex::new(BPF { inner: bpf })))
-        } else {
-            None
-        };
-
-        #[cfg(not(feature = "ebpf"))]
-        let bpf = None;
-
-        Ok(Self {
-            bpf,
+        #[allow(unused_mut)]
+        let mut sampler = Self {
+            bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common: Common::new(config, metrics),
-        })
+        };
+
+        #[cfg(feature = "ebpf")]
+        {
+            if sampler.ebpf_enabled() {
+                debug!("initializing ebpf");
+                // load the code and compile
+                let code = include_str!("bpf.c");
+                let mut bpf = bcc::core::BPF::new(code)?;
+                // load + attach kprobes!
+                let trace_pid_start = bpf.load_kprobe("trace_pid_start")?;
+                let trace_req_start = bpf.load_kprobe("trace_req_start")?;
+                let trace_mq_req_start = bpf.load_kprobe("trace_req_start")?;
+                let do_count = bpf.load_kprobe("do_count")?;
+
+                bpf.attach_kprobe("blk_account_io_start", trace_pid_start)?;
+                bpf.attach_kprobe("blk_start_request", trace_req_start)?;
+                bpf.attach_kprobe("blk_mq_start_request", trace_mq_req_start)?;
+                bpf.attach_kprobe("blk_account_io_completion", do_count)?;
+                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+            } 
+        }
+
+        Ok(sampler)
     }
 
     fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
@@ -76,9 +76,9 @@ impl Sampler for Disk {
                 }
             });
         } else if !config.fault_tolerant() {
-            fatal!("failed to initialize sampler");
+            fatal!("failed to initialize disk sampler");
         } else {
-            error!("failed to initialize sampler");
+            error!("failed to initialize disk sampler");
         }
     }
 
@@ -185,5 +185,20 @@ impl Sampler for Disk {
             precision,
             Some(self.general_config().window()),
         ))
+    }
+}
+
+impl Disk {
+    // checks that ebpf is enabled in config and one or more ebpf stats enabled
+    #[cfg(feature = "ebpf")]
+    fn ebpf_enabled(&self) -> bool {
+        if self.sampler_config().ebpf() {
+            for statistic in self.sampler_config().statistics() {
+                if statistic.ebpf_table().is_some() {
+                    return true;
+                }
+            }
+        }
+        false
     }
 }

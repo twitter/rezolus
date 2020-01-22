@@ -37,34 +37,34 @@ pub struct Tcp {
 impl Sampler for Tcp {
     type Statistic = TcpStatistic;
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
-        #[cfg(feature = "ebpf")]
-        let bpf = if config.samplers().tcp().ebpf() {
-            debug!("initializing ebpf");
-            // load the code and compile
-            let code = include_str!("bpf.c");
-            let mut bpf = bcc::core::BPF::new(code)?;
-
-            // load + attach kprobes!
-            let tcp_v4_connect = bpf.load_kprobe("trace_connect")?;
-            let tcp_v6_connect = bpf.load_kprobe("trace_connect")?;
-            let tcp_rcv_state_process = bpf.load_kprobe("trace_tcp_rcv_state_process")?;
-            bpf.attach_kprobe("tcp_v4_connect", tcp_v4_connect)?;
-            bpf.attach_kprobe("tcp_v6_connect", tcp_v6_connect)?;
-            bpf.attach_kprobe("tcp_rcv_state_process", tcp_rcv_state_process)?;
-
-            Some(Arc::new(Mutex::new(BPF { inner: bpf })))
-        } else {
-            None
-        };
-
-        #[cfg(not(feature = "ebpf"))]
-        let bpf = None;
-
-        Ok(Self {
-            bpf,
+        #[allow(unused_mut)]
+        let mut sampler = Self {
+            bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common: Common::new(config, metrics),
-        })
+        };
+
+        #[cfg(feature = "ebpf")]
+        {
+            if sampler.ebpf_enabled() {
+                debug!("initializing ebpf");
+                // load the code and compile
+                let code = include_str!("bpf.c");
+                let mut bpf = bcc::core::BPF::new(code)?;
+
+                // load + attach kprobes!
+                let tcp_v4_connect = bpf.load_kprobe("trace_connect")?;
+                let tcp_v6_connect = bpf.load_kprobe("trace_connect")?;
+                let tcp_rcv_state_process = bpf.load_kprobe("trace_tcp_rcv_state_process")?;
+                bpf.attach_kprobe("tcp_v4_connect", tcp_v4_connect)?;
+                bpf.attach_kprobe("tcp_v6_connect", tcp_v6_connect)?;
+                bpf.attach_kprobe("tcp_rcv_state_process", tcp_rcv_state_process)?;
+
+                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
+            }
+        }
+
+        Ok(sampler)
     }
 
     fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
@@ -75,9 +75,9 @@ impl Sampler for Tcp {
                 }
             });
         } else if !config.fault_tolerant() {
-            fatal!("failed to initialize sampler");
+            fatal!("failed to initialize tcp sampler");
         } else {
-            error!("failed to initialize sampler");
+            error!("failed to initialize tcp sampler");
         }
     }
 
@@ -210,4 +210,19 @@ async fn nested_map_from_file<T: AsRef<Path>>(
         }
     }
     Ok(ret)
+}
+
+impl Tcp {
+    // checks that ebpf is enabled in config and one or more ebpf stats enabled
+    #[cfg(feature = "ebpf")]
+    fn ebpf_enabled(&self) -> bool {
+        if self.sampler_config().ebpf() {
+            for statistic in self.sampler_config().statistics() {
+                if statistic.ebpf_table().is_some() {
+                    return true;
+                }
+            }
+        }
+        false
+    }
 }

@@ -80,9 +80,9 @@ impl Sampler for Memcache {
                 }
             });
         } else if !config.fault_tolerant() {
-            fatal!("failed to initialize sampler");
+            fatal!("failed to initialize memcache sampler");
         } else {
-            error!("failed to initialize sampler");
+            error!("failed to initialize memcache sampler");
         }
     }
 

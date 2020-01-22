@@ -41,9 +41,9 @@ impl Sampler for Softnet {
                 }
             });
         } else if !config.fault_tolerant() {
-            fatal!("failed to initialize sampler");
+            fatal!("failed to initialize softnet sampler");
         } else {
-            error!("failed to initialize sampler");
+            error!("failed to initialize softnet sampler");
         }
     }
 

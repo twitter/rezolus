@@ -38,32 +38,32 @@ impl Sampler for Network {
     type Statistic = NetworkStatistic;
 
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
-        #[cfg(feature = "ebpf")]
-        let bpf = if config.samplers().network().ebpf() {
-            debug!("initializing ebpf");
-            // load the code and compile
-            let code = include_str!("bpf.c");
-            let mut bpf = bcc::core::BPF::new(code)?;
-
-            // load + attach kprobes!
-            let trace_transmit = bpf.load_tracepoint("trace_transmit")?;
-            bpf.attach_tracepoint("net", "net_dev_queue", trace_transmit)?;
-            let trace_receive = bpf.load_tracepoint("trace_receive")?;
-            bpf.attach_tracepoint("net", "netif_rx", trace_receive)?;
-
-            Some(Arc::new(Mutex::new(BPF { inner: bpf })))
-        } else {
-            None
-        };
-
-        #[cfg(not(feature = "ebpf"))]
-        let bpf = None;
-
-        Ok(Self {
-            bpf,
+        #[allow(unused_mut)]
+        let mut sampler = Self {
+            bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common: Common::new(config, metrics),
-        })
+        };
+
+        #[cfg(feature = "ebpf")]
+        {
+            if sampler.ebpf_enabled() {
+                debug!("initializing ebpf");
+                // load the code and compile
+                let code = include_str!("bpf.c");
+                let mut bpf = bcc::core::BPF::new(code)?;
+
+                // load + attach kprobes!
+                let trace_transmit = bpf.load_tracepoint("trace_transmit")?;
+                bpf.attach_tracepoint("net", "net_dev_queue", trace_transmit)?;
+                let trace_receive = bpf.load_tracepoint("trace_receive")?;
+                bpf.attach_tracepoint("net", "netif_rx", trace_receive)?;
+
+                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+            }
+        }
+        
+        Ok(sampler)
     }
 
     fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
@@ -74,9 +74,9 @@ impl Sampler for Network {
                 }
             });
         } else if !config.fault_tolerant() {
-            fatal!("failed to initialize sampler");
+            fatal!("failed to initialize network sampler");
         } else {
-            error!("failed to initialize sampler");
+            error!("failed to initialize network sampler");
         }
     }
 
@@ -175,5 +175,20 @@ impl Sampler for Network {
             precision,
             Some(self.general_config().window()),
         ))
+    }
+}
+
+impl Network {
+    // checks that ebpf is enabled in config and one or more ebpf stats enabled
+    #[cfg(feature = "ebpf")]
+    fn ebpf_enabled(&self) -> bool {
+        if self.sampler_config().ebpf() {
+            for statistic in self.sampler_config().statistics() {
+                if statistic.ebpf_table().is_some() {
+                    return true;
+                }
+            }
+        }
+        false
     }
 }

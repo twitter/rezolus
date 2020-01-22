@@ -33,48 +33,48 @@ pub struct Ext4 {
 impl Sampler for Ext4 {
     type Statistic = Ext4Statistic;
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
-        #[cfg(feature = "ebpf")]
-        let bpf = if config.samplers().ext4().ebpf() {
-            debug!("initializing ebpf");
-            // load the code and compile
-            let code = include_str!("bpf.c").to_string();
-            let addr = "0x".to_string()
-                + &crate::common::bpf::symbol_lookup("ext4_file_operations").unwrap();
-            let code = code.replace("EXT4_FILE_OPERATIONS", &addr);
-            let mut bpf = bcc::core::BPF::new(&code)?;
-
-            // load + attach kprobes!
-            let generic_file_read_iter_entry = bpf.load_kprobe("trace_read_entry")?;
-            let ext4_file_write_iter_entry = bpf.load_kprobe("trace_entry")?;
-            let ext4_file_open_entry = bpf.load_kprobe("trace_entry")?;
-            let ext4_sync_file_entry = bpf.load_kprobe("trace_entry")?;
-            let generic_file_read_iter_return = bpf.load_kprobe("trace_read_return")?;
-            let ext4_file_write_iter_return = bpf.load_kprobe("trace_write_return")?;
-            let ext4_file_open_return = bpf.load_kprobe("trace_open_return")?;
-            let ext4_sync_file_return = bpf.load_kprobe("trace_fsync_return")?;
-
-            bpf.attach_kprobe("generic_file_read_iter", generic_file_read_iter_entry)?;
-            bpf.attach_kprobe("ext4_file_write_iter", ext4_file_write_iter_entry)?;
-            bpf.attach_kprobe("ext4_file_open", ext4_file_open_entry)?;
-            bpf.attach_kprobe("ext4_sync_file", ext4_sync_file_entry)?;
-            bpf.attach_kretprobe("generic_file_read_iter", generic_file_read_iter_return)?;
-            bpf.attach_kretprobe("ext4_file_write_iter", ext4_file_write_iter_return)?;
-            bpf.attach_kretprobe("ext4_file_open", ext4_file_open_return)?;
-            bpf.attach_kretprobe("ext4_sync_file", ext4_sync_file_return)?;
-
-            Some(Arc::new(Mutex::new(BPF { inner: bpf })))
-        } else {
-            None
-        };
-
-        #[cfg(not(feature = "ebpf"))]
-        let bpf = None;
-
-        Ok(Self {
-            bpf,
+        #[allow(unused_mut)]
+        let mut sampler = Self {
+            bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common: Common::new(config, metrics),
-        })
+        };
+
+        #[cfg(feature = "ebpf")]
+        {
+            if sampler.ebpf_enabled() {
+                debug!("initializing ebpf");
+                // load the code and compile
+                let code = include_str!("bpf.c").to_string();
+                let addr = "0x".to_string()
+                    + &crate::common::bpf::symbol_lookup("ext4_file_operations").unwrap();
+                let code = code.replace("EXT4_FILE_OPERATIONS", &addr);
+                let mut bpf = bcc::core::BPF::new(&code)?;
+
+                // load + attach kprobes!
+                let generic_file_read_iter_entry = bpf.load_kprobe("trace_read_entry")?;
+                let ext4_file_write_iter_entry = bpf.load_kprobe("trace_entry")?;
+                let ext4_file_open_entry = bpf.load_kprobe("trace_entry")?;
+                let ext4_sync_file_entry = bpf.load_kprobe("trace_entry")?;
+                let generic_file_read_iter_return = bpf.load_kprobe("trace_read_return")?;
+                let ext4_file_write_iter_return = bpf.load_kprobe("trace_write_return")?;
+                let ext4_file_open_return = bpf.load_kprobe("trace_open_return")?;
+                let ext4_sync_file_return = bpf.load_kprobe("trace_fsync_return")?;
+
+                bpf.attach_kprobe("generic_file_read_iter", generic_file_read_iter_entry)?;
+                bpf.attach_kprobe("ext4_file_write_iter", ext4_file_write_iter_entry)?;
+                bpf.attach_kprobe("ext4_file_open", ext4_file_open_entry)?;
+                bpf.attach_kprobe("ext4_sync_file", ext4_sync_file_entry)?;
+                bpf.attach_kretprobe("generic_file_read_iter", generic_file_read_iter_return)?;
+                bpf.attach_kretprobe("ext4_file_write_iter", ext4_file_write_iter_return)?;
+                bpf.attach_kretprobe("ext4_file_open", ext4_file_open_return)?;
+                bpf.attach_kretprobe("ext4_sync_file", ext4_sync_file_return)?;
+
+                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+            }
+        }
+
+        Ok(sampler)
     }
 
     fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
@@ -85,9 +85,9 @@ impl Sampler for Ext4 {
                 }
             });
         } else if !config.fault_tolerant() {
-            fatal!("failed to initialize sampler");
+            fatal!("failed to initialize ext4 sampler");
         } else {
-            error!("failed to initialize sampler");
+            error!("failed to initialize ext4 sampler");
         }
     }
 
@@ -152,5 +152,20 @@ impl Sampler for Ext4 {
             2,
             Some(self.general_config().window()),
         ))
+    }
+}
+
+impl Ext4 {
+    // checks that ebpf is enabled in config and one or more ebpf stats enabled
+    #[cfg(feature = "ebpf")]
+    fn ebpf_enabled(&self) -> bool {
+        if self.sampler_config().ebpf() {
+            for statistic in self.sampler_config().statistics() {
+                if statistic.ebpf_table().is_some() {
+                    return true;
+                }
+            }
+        }
+        false
     }
 }

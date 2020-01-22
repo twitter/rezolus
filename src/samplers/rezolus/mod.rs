@@ -52,9 +52,9 @@ impl Sampler for Rezolus {
                 }
             });
         } else if !config.fault_tolerant() {
-            fatal!("failed to initialize sampler");
+            fatal!("failed to initialize rezolus sampler");
         } else {
-            error!("failed to initialize sampler");
+            error!("failed to initialize rezolus sampler");
         }
     }
 
