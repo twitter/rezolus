@@ -85,6 +85,8 @@ impl Sampler for Rezolus {
 
         if let Some(ref mut delay) = self.delay() {
             delay.tick().await;
+        } else {
+            fatal!("no delay");
         }
 
         Ok(())

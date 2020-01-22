@@ -163,6 +163,8 @@ impl Sampler for Tcp {
 
         if let Some(ref mut delay) = self.delay() {
             delay.tick().await;
+        } else {
+            fatal!("no delay");
         }
 
         Ok(())

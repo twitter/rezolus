@@ -145,6 +145,8 @@ impl Sampler for Ext4 {
 
         if let Some(ref mut delay) = self.delay() {
             delay.tick().await;
+        } else {
+            fatal!("no delay");
         }
 
         Ok(())

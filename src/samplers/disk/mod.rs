@@ -166,6 +166,8 @@ impl Sampler for Disk {
 
         if let Some(ref mut delay) = self.delay() {
             delay.tick().await;
+        } else {
+            fatal!("no delay");
         }
 
         Ok(())

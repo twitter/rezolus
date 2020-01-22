@@ -185,6 +185,8 @@ impl Sampler for Memcache {
 
         if let Some(ref mut delay) = self.delay() {
             delay.tick().await;
+        } else {
+            fatal!("no delay");
         }
 
         Ok(())

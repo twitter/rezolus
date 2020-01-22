@@ -13,8 +13,8 @@ matrix:
         - cargo test --verbose
         - cargo build --release --verbose
         - cargo test --release --verbose
-        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml --verbose
+        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml --verbose
     - name: "default: bionic / nightly"
       os: linux
       dist: bionic
@@ -25,8 +25,8 @@ matrix:
         - cargo test --verbose
         - cargo build --release --verbose
         - cargo test --release --verbose
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml --verbose
+        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml --verbose
     - name: "ebpf: xenial / nightly / llvm 8.0 / bcc 0.10.0"
       os: linux
       dist: xenial
