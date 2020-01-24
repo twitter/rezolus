@@ -91,6 +91,7 @@ impl Config {
         self.general.logging()
     }
 
+    #[allow(dead_code)]
     pub fn exposition(&self) -> &Exposition {
         &self.exposition
     }

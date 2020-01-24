@@ -100,7 +100,7 @@ impl Statistic for CpuStatistic {
 
 impl CpuStatistic {
     #[cfg(feature = "perf")]
-    pub fn perf_counter_builder(&self) -> Option<PerfCounterBuilderLinux> {
+    pub fn perf_counter_builder(self) -> Option<PerfCounterBuilderLinux> {
         match self {
             Self::BpuBranches => Some(PerfCounterBuilderLinux::from_hardware_event(
                 HardwareEventType::BranchInstructions,

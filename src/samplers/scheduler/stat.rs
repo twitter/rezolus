@@ -42,7 +42,7 @@ impl SchedulerStatistic {
     }
 
     #[cfg(feature = "perf")]
-    pub fn perf_counter_builder(&self) -> Option<PerfCounterBuilderLinux> {
+    pub fn perf_counter_builder(self) -> Option<PerfCounterBuilderLinux> {
         match self {
             Self::CpuMigrations => Some(PerfCounterBuilderLinux::from_software_event(
                 SoftwareEventType::CpuMigrations,
