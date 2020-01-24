@@ -119,6 +119,7 @@ impl Sampler for Xfs {
         #[cfg(feature = "ebpf")]
         {
             if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+                info!("sampling ebpf for xfs");
                 if let Some(ref bpf) = self.bpf {
                     let bpf = bpf.lock().unwrap();
                     let time = time::precise_time_ns();
