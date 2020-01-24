@@ -37,7 +37,7 @@ walkdir = "2.2.9"
 vergen = "3.0.4"
 
 [features]
-all = ["ebpf", "kafka", "perf"]
+all = ["ebpf", "push_kafka", "perf"]
 default = ["perf"]
 ebpf = ["bcc"]
 ebpf_static = ["ebpf", "bcc/static"]
