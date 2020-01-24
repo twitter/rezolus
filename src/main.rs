@@ -84,8 +84,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "push_kafka")]
     {
         if config.exposition().kafka().enabled() {
-            let mut kafka_producer = stats::KafkaProducer::new(config.clone(), metrics.clone());
-            let _ = thread::Builder::new()
+            let mut kafka_producer =
+                exposition::KafkaProducer::new(config.clone(), metrics.clone());
+            let _ = std::thread::Builder::new()
                 .name("kafka".to_string())
                 .spawn(move || loop {
                     kafka_producer.run();

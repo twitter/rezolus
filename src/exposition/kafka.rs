@@ -5,7 +5,7 @@
 use kafka::producer::{Producer, Record};
 
 use crate::config::Config;
-use crate::stats::MetricsSnapshot;
+use crate::exposition::MetricsSnapshot;
 
 use std::convert::TryInto;
 use std::sync::Arc;
@@ -24,18 +24,21 @@ impl KafkaProducer {
     pub fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Self {
         Self {
             snapshot: MetricsSnapshot::new(metrics, config.general().count_suffix()),
-            producer: Producer::from_hosts(config.kafka().hosts())
+            producer: Producer::from_hosts(config.exposition().kafka().hosts())
                 .create()
                 .unwrap(),
-            topic: config.kafka().topic().unwrap(),
-            interval: Duration::from_millis(config.kafka().interval().try_into().unwrap()),
+            topic: config.exposition().kafka().topic().unwrap(),
+            interval: Duration::from_millis(
+                config.exposition().kafka().interval().try_into().unwrap(),
+            ),
         }
     }
 
     pub fn run(&mut self) {
         let start = Instant::now();
         self.snapshot.refresh();
-        self.producer
+        let _ = self
+            .producer
             .send(&Record::from_value(&self.topic, self.snapshot.json(false)));
         let stop = Instant::now();
         if start + self.interval > stop {
