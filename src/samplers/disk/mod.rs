@@ -62,7 +62,7 @@ impl Sampler for Disk {
                 bpf.attach_kprobe("blk_mq_start_request", trace_mq_req_start)?;
                 bpf.attach_kprobe("blk_account_io_completion", do_count)?;
                 sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
-            } 
+            }
         }
 
         Ok(sampler)

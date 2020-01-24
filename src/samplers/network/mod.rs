@@ -62,7 +62,7 @@ impl Sampler for Network {
                 sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }
-        
+
         Ok(sampler)
     }
 
