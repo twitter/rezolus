@@ -148,7 +148,7 @@ impl Xfs {
     fn initialize_ebpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "ebpf")]
         {
-            if sampler.ebpf_enabled() {
+            if self.ebpf_enabled() {
                 debug!("initializing ebpf");
 
                 // load the code and compile
@@ -174,7 +174,7 @@ impl Xfs {
                 bpf.attach_kretprobe("xfs_file_open", open_return)?;
                 bpf.attach_kretprobe("xfs_file_fsync", fsync_return)?;
 
-                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+                self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }
 

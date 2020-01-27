@@ -217,7 +217,7 @@ impl Tcp {
     fn initialize_ebpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "ebpf")]
         {
-            if sampler.ebpf_enabled() {
+            if self.ebpf_enabled() {
                 debug!("initializing ebpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");
@@ -231,7 +231,7 @@ impl Tcp {
                 bpf.attach_kprobe("tcp_v6_connect", tcp_v6_connect)?;
                 bpf.attach_kprobe("tcp_rcv_state_process", tcp_rcv_state_process)?;
 
-                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
+                self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
             }
         }
 
