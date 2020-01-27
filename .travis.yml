@@ -367,6 +367,5 @@ matrix:
       rust: nightly
       env: TYPE=clippy RUST_BACKTRACE=1
       script:
-        - rustup toolchain install
         - rustup component add clippy
         - cargo clippy --features ebpf
