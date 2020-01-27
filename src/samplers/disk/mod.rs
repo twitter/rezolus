@@ -46,7 +46,7 @@ impl Sampler for Disk {
             common: Common::new(config, metrics),
         };
 
-        if let Err(e) = sampler.try_initialize_ebpf() {
+        if let Err(e) = sampler.initialize_ebpf() {
             if !fault_tolerant {
                 return Err(e);
             }
@@ -189,7 +189,7 @@ impl Disk {
         false
     }
 
-    fn try_initialize_ebpf(&self) -> Result<(), failure::Error> {
+    fn initialize_ebpf(&self) -> Result<(), failure::Error> {
         #[cfg(feature = "ebpf")]
         {
             if self.ebpf_enabled() {
