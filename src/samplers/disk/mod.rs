@@ -189,7 +189,7 @@ impl Disk {
         false
     }
 
-    fn initialize_ebpf(&self) -> Result<(), failure::Error> {
+    fn initialize_ebpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "ebpf")]
         {
             if self.ebpf_enabled() {

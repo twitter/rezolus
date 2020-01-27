@@ -270,10 +270,10 @@ impl Scheduler {
         false
     }
 
-    fn initialize_ebpf(&self) -> Result<(), failure::Error> {
+    fn initialize_ebpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "ebpf")]
         {
-            if sampler.ebpf_enabled() {
+            if self.ebpf_enabled() {
                 debug!("initializing ebpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");
@@ -288,7 +288,7 @@ impl Scheduler {
                 bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task)?;
                 bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)?;
 
-                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+                self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }
 

@@ -182,10 +182,10 @@ impl Network {
         false
     }
 
-    fn initialize_ebpf(&self) -> Result<(), failure::Error> {
+    fn initialize_ebpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "ebpf")]
         {
-            if sampler.ebpf_enabled() {
+            if self.ebpf_enabled() {
                 debug!("initializing ebpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");
@@ -197,7 +197,7 @@ impl Network {
                 let trace_receive = bpf.load_tracepoint("trace_receive")?;
                 bpf.attach_tracepoint("net", "netif_rx", trace_receive)?;
 
-                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+                self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }
 

@@ -143,10 +143,10 @@ impl Ext4 {
         false
     }
 
-    fn initialize_ebpf(&self) -> Result<(), failure::Error> {
+    fn initialize_ebpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "ebpf")]
         {
-            if sampler.ebpf_enabled() {
+            if self.ebpf_enabled() {
                 debug!("initializing ebpf");
                 // load the code and compile
                 let code = include_str!("bpf.c").to_string();
@@ -174,7 +174,7 @@ impl Ext4 {
                 bpf.attach_kretprobe("ext4_file_open", ext4_file_open_return)?;
                 bpf.attach_kretprobe("ext4_sync_file", ext4_sync_file_return)?;
 
-                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+                self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }
 
