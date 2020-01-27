@@ -42,6 +42,8 @@ pub struct Scheduler {
 impl Sampler for Scheduler {
     type Statistic = SchedulerStatistic;
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        let fault_tolerant = config.general().fault_tolerant();
+
         let perf_counters = CHashMap::new();
         if config.samplers().scheduler().perf_events() {
             #[cfg(feature = "perf")]
@@ -78,24 +80,9 @@ impl Sampler for Scheduler {
             perf_counters,
         };
 
-        #[cfg(feature = "ebpf")]
-        {
-            if sampler.ebpf_enabled() {
-                debug!("initializing ebpf");
-                // load the code and compile
-                let code = include_str!("bpf.c");
-                let mut bpf = bcc::core::BPF::new(code)?;
-
-                // load + attach kprobes!
-                let trace_run = bpf.load_kprobe("trace_run")?;
-                let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup")?;
-                let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task")?;
-
-                bpf.attach_kprobe("finish_task_switch", trace_run)?;
-                bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task)?;
-                bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)?;
-
-                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+        if let Err(e) = sampler.initialize_ebpf() {
+            if !fault_tolerant {
+                return Err(e);
             }
         }
 
@@ -281,5 +268,30 @@ impl Scheduler {
             }
         }
         false
+    }
+
+    fn initialize_ebpf(&self) -> Result<(), failure::Error> {
+        #[cfg(feature = "ebpf")]
+        {
+            if sampler.ebpf_enabled() {
+                debug!("initializing ebpf");
+                // load the code and compile
+                let code = include_str!("bpf.c");
+                let mut bpf = bcc::core::BPF::new(code)?;
+
+                // load + attach kprobes!
+                let trace_run = bpf.load_kprobe("trace_run")?;
+                let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup")?;
+                let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task")?;
+
+                bpf.attach_kprobe("finish_task_switch", trace_run)?;
+                bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task)?;
+                bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)?;
+
+                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+            }
+        }
+
+        Ok(())
     }
 }
