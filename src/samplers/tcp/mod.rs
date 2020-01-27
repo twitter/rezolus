@@ -37,6 +37,8 @@ pub struct Tcp {
 impl Sampler for Tcp {
     type Statistic = TcpStatistic;
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        let fault_tolerant = config.general().fault_tolerant();
+
         #[allow(unused_mut)]
         let mut sampler = Self {
             bpf: None,
@@ -44,23 +46,9 @@ impl Sampler for Tcp {
             common: Common::new(config, metrics),
         };
 
-        #[cfg(feature = "ebpf")]
-        {
-            if sampler.ebpf_enabled() {
-                debug!("initializing ebpf");
-                // load the code and compile
-                let code = include_str!("bpf.c");
-                let mut bpf = bcc::core::BPF::new(code)?;
-
-                // load + attach kprobes!
-                let tcp_v4_connect = bpf.load_kprobe("trace_connect")?;
-                let tcp_v6_connect = bpf.load_kprobe("trace_connect")?;
-                let tcp_rcv_state_process = bpf.load_kprobe("trace_tcp_rcv_state_process")?;
-                bpf.attach_kprobe("tcp_v4_connect", tcp_v4_connect)?;
-                bpf.attach_kprobe("tcp_v6_connect", tcp_v6_connect)?;
-                bpf.attach_kprobe("tcp_rcv_state_process", tcp_rcv_state_process)?;
-
-                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
+        if let Err(e) = sampler.initialize_ebpf() {
+            if !fault_tolerant {
+                return Err(e);
             }
         }
 
@@ -224,5 +212,29 @@ impl Tcp {
             }
         }
         false
+    }
+
+    fn initialize_ebpf(&mut self) -> Result<(), failure::Error> {
+        #[cfg(feature = "ebpf")]
+        {
+            if sampler.ebpf_enabled() {
+                debug!("initializing ebpf");
+                // load the code and compile
+                let code = include_str!("bpf.c");
+                let mut bpf = bcc::core::BPF::new(code)?;
+
+                // load + attach kprobes!
+                let tcp_v4_connect = bpf.load_kprobe("trace_connect")?;
+                let tcp_v6_connect = bpf.load_kprobe("trace_connect")?;
+                let tcp_rcv_state_process = bpf.load_kprobe("trace_tcp_rcv_state_process")?;
+                bpf.attach_kprobe("tcp_v4_connect", tcp_v4_connect)?;
+                bpf.attach_kprobe("tcp_v6_connect", tcp_v6_connect)?;
+                bpf.attach_kprobe("tcp_rcv_state_process", tcp_rcv_state_process)?;
+
+                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
+            }
+        }
+
+        Ok(())
     }
 }
