@@ -32,9 +32,6 @@ impl Sampler for Memory {
     type Statistic = MemoryStatistic;
 
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
-        debug!("initializing");
-
-        debug!("initialization complete");
         Ok(Self {
             common: Common::new(config, metrics),
         })

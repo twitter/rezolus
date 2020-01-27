@@ -38,6 +38,8 @@ impl Sampler for Network {
     type Statistic = NetworkStatistic;
 
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        let fault_tolerant = config.general().fault_tolerant();
+
         #[allow(unused_mut)]
         let mut sampler = Self {
             bpf: None,
@@ -45,21 +47,9 @@ impl Sampler for Network {
             common: Common::new(config, metrics),
         };
 
-        #[cfg(feature = "ebpf")]
-        {
-            if sampler.ebpf_enabled() {
-                debug!("initializing ebpf");
-                // load the code and compile
-                let code = include_str!("bpf.c");
-                let mut bpf = bcc::core::BPF::new(code)?;
-
-                // load + attach kprobes!
-                let trace_transmit = bpf.load_tracepoint("trace_transmit")?;
-                bpf.attach_tracepoint("net", "net_dev_queue", trace_transmit)?;
-                let trace_receive = bpf.load_tracepoint("trace_receive")?;
-                bpf.attach_tracepoint("net", "netif_rx", trace_receive)?;
-
-                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+        if let Err(e) = sampler.initialize_ebpf() {
+            if !fault_tolerant {
+                return Err(e);
             }
         }
 
@@ -190,5 +180,27 @@ impl Network {
             }
         }
         false
+    }
+
+    fn initialize_ebpf(&self) -> Result<(), failure::Error> {
+        #[cfg(feature = "ebpf")]
+        {
+            if sampler.ebpf_enabled() {
+                debug!("initializing ebpf");
+                // load the code and compile
+                let code = include_str!("bpf.c");
+                let mut bpf = bcc::core::BPF::new(code)?;
+
+                // load + attach kprobes!
+                let trace_transmit = bpf.load_tracepoint("trace_transmit")?;
+                bpf.attach_tracepoint("net", "net_dev_queue", trace_transmit)?;
+                let trace_receive = bpf.load_tracepoint("trace_receive")?;
+                bpf.attach_tracepoint("net", "netif_rx", trace_receive)?;
+
+                sampler.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+            }
+        }
+
+        Ok(())
     }
 }

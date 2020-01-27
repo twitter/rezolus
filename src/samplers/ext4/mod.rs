@@ -34,7 +34,7 @@ impl Sampler for Ext4 {
     type Statistic = Ext4Statistic;
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
         let fault_tolerant = config.general().fault_tolerant();
-        
+
         #[allow(unused_mut)]
         let mut sampler = Self {
             bpf: None,
