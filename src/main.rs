@@ -8,18 +8,18 @@ extern crate logger;
 #[macro_use]
 extern crate failure;
 
-use common::*;
+use std::sync::Arc;
+
 use logger::Logger;
 use metrics::*;
 use tokio::runtime::Builder;
-
-use std::sync::Arc;
 
 mod common;
 mod config;
 mod exposition;
 mod samplers;
 
+use common::*;
 use config::Config;
 use samplers::*;
 

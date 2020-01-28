@@ -2,12 +2,13 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use core::convert::TryFrom;
+use core::str::FromStr;
+
 use metrics::Statistic;
-use serde_derive::*;
-use std::convert::TryFrom;
-use std::str::FromStr;
+use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
-use strum_macros::*;
+use strum_macros::{EnumString, IntoStaticStr};
 
 #[derive(
     Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,

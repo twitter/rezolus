@@ -12,9 +12,9 @@ use serde_derive::*;
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MemcacheConfig {
-    #[serde(default = "default_enabled")]
+    #[serde(default)]
     enabled: AtomicBool,
-    #[serde(default = "default_interval")]
+    #[serde(default)]
     interval: Option<AtomicUsize>,
     #[serde(default = "default_percentiles")]
     percentiles: Vec<Percentile>,
@@ -24,20 +24,12 @@ pub struct MemcacheConfig {
 impl Default for MemcacheConfig {
     fn default() -> Self {
         Self {
-            enabled: default_enabled(),
-            interval: default_interval(),
+            enabled: Default::default(),
+            interval: Default::default(),
             percentiles: default_percentiles(),
             endpoint: None,
         }
     }
-}
-
-fn default_enabled() -> AtomicBool {
-    AtomicBool::new(false)
-}
-
-fn default_interval() -> AtomicOption<AtomicUsize> {
-    AtomicOption::none()
 }
 
 fn default_percentiles() -> Vec<Percentile> {

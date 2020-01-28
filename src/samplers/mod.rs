@@ -6,7 +6,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use atomics::AtomicU32;
 use metrics::*;
 use tokio::runtime::Handle;
 use tokio::time::{interval, Interval};

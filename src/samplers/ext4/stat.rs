@@ -4,10 +4,11 @@
 
 use core::convert::TryFrom;
 use core::str::FromStr;
+
 use metrics::Statistic;
-use serde_derive::*;
+use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
-use strum_macros::*;
+use strum_macros::{EnumString, IntoStaticStr};
 
 #[derive(
     Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
