@@ -4,20 +4,19 @@
 
 #![allow(dead_code)]
 
+use std::fs::{File, OpenOptions};
+use std::io::Write;
+use std::sync::Arc;
+
+use metrics::*;
+
 mod http;
 #[cfg(feature = "push_kafka")]
 mod kafka;
 
 pub use self::http::Http;
-use std::sync::Arc;
-
 #[cfg(feature = "push_kafka")]
 pub use self::kafka::KafkaProducer;
-
-use metrics::*;
-
-use std::fs::{File, OpenOptions};
-use std::io::Write;
 
 pub struct MetricsSnapshot {
     metrics: Arc<Metrics<AtomicU32>>,

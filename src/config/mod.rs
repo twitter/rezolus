@@ -16,9 +16,9 @@ use serde_derive::*;
 
 use crate::*;
 
-use self::exposition::*;
-pub use self::general::General;
-use self::samplers::*;
+use config::exposition::*;
+pub use config::general::General;
+use config::samplers::*;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const NAME: &str = env!("CARGO_PKG_NAME");
