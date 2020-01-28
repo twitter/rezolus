@@ -2,22 +2,23 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::time::Instant;
+
+use async_trait::async_trait;
+#[cfg(feature = "ebpf")]
+use bcc;
+use metrics::*;
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::runtime::Handle;
+
 use crate::common::bpf::*;
 use crate::common::*;
 use crate::config::{Config, SamplerConfig};
 use crate::samplers::Common;
 use crate::Sampler;
-use async_trait::async_trait;
-use atomics::AtomicU32;
-#[cfg(feature = "ebpf")]
-use bcc;
-use metrics::*;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use std::time::Instant;
-use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader};
-use tokio::runtime::Handle;
 
 mod config;
 mod stat;

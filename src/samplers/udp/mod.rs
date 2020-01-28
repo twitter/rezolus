@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use crate::config::{Config, SamplerConfig};
-use crate::samplers::Common;
-use crate::Sampler;
+use std::collections::HashMap;
+use std::path::Path;
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use metrics::*;
@@ -12,9 +12,9 @@ use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::runtime::Handle;
 
-use std::collections::HashMap;
-use std::path::Path;
-use std::sync::Arc;
+use crate::config::{Config, SamplerConfig};
+use crate::samplers::Common;
+use crate::Sampler;
 
 mod config;
 mod stat;

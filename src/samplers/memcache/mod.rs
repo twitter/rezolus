@@ -2,23 +2,24 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use crate::config::*;
-use crate::samplers::Common;
-use crate::Sampler;
-use async_trait::async_trait;
-use atomics::AtomicU32;
-use metrics::*;
 use std::net::SocketAddr;
 use std::net::ToSocketAddrs;
 use std::sync::Arc;
+
+use async_trait::async_trait;
+use metrics::*;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio::runtime::Handle;
 
-mod config;
-pub use config::*;
+use crate::config::*;
+use crate::samplers::Common;
+use crate::Sampler;
 
+mod config;
 mod stat;
+
+pub use config::*;
 pub use stat::*;
 
 pub struct Memcache {

@@ -2,11 +2,10 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use crate::common::bpf::*;
-use crate::common::*;
-use crate::config::{Config, SamplerConfig};
-use crate::samplers::Common;
-use crate::Sampler;
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::time::Instant;
+
 use async_trait::async_trait;
 #[cfg(feature = "ebpf")]
 use bcc;
@@ -14,12 +13,15 @@ use chashmap::CHashMap;
 use metrics::*;
 #[cfg(feature = "perf")]
 use perfcnt::*;
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::time::Instant;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::runtime::Handle;
+
+use crate::common::bpf::*;
+use crate::common::*;
+use crate::config::{Config, SamplerConfig};
+use crate::samplers::Common;
+use crate::Sampler;
 
 mod config;
 mod stat;

@@ -2,9 +2,6 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-mod config;
-mod stat;
-
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -23,6 +20,9 @@ use crate::common::*;
 use crate::config::{Config, SamplerConfig};
 use crate::samplers::Common;
 use crate::Sampler;
+
+mod config;
+mod stat;
 
 pub use config::*;
 pub use stat::*;
