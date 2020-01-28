@@ -6,20 +6,19 @@ mod exposition;
 mod general;
 mod samplers;
 
-use metrics::Percentile;
-
-use self::exposition::*;
-pub use self::general::General;
-use self::samplers::*;
-
-use crate::*;
-
 use std::io::Read;
 use std::net::{SocketAddr, ToSocketAddrs};
 
 use clap::{App, Arg};
 use logger::Level;
+use metrics::Percentile;
 use serde_derive::*;
+
+use crate::*;
+
+use self::exposition::*;
+pub use self::general::General;
+use self::samplers::*;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const NAME: &str = env!("CARGO_PKG_NAME");

@@ -19,8 +19,8 @@ use std::sync::Arc;
 mod config;
 mod stat;
 
-pub use config::*;
-pub use stat::*;
+pub use config::UdpConfig;
+pub use stat::UdpStatistic;
 
 #[allow(dead_code)]
 pub struct Udp {

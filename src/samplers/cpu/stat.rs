@@ -2,14 +2,13 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-#[cfg(feature = "perf")]
-pub use perfcnt::linux::*;
-
 use core::convert::TryFrom;
 use core::str::FromStr;
-use metrics::Statistic;
-use serde_derive::*;
 
+use metrics::Statistic;
+#[cfg(feature = "perf")]
+pub use perfcnt::linux::*;
+use serde_derive::*;
 use strum::ParseError;
 use strum_macros::*;
 

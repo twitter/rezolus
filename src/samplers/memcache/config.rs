@@ -15,7 +15,7 @@ pub struct MemcacheConfig {
     #[serde(default = "default_enabled")]
     enabled: AtomicBool,
     #[serde(default = "default_interval")]
-    interval: AtomicOption<AtomicUsize>,
+    interval: Option<AtomicUsize>,
     #[serde(default = "default_percentiles")]
     percentiles: Vec<Percentile>,
     endpoint: Option<String>,
@@ -64,7 +64,7 @@ impl SamplerConfig for MemcacheConfig {
     }
 
     fn interval(&self) -> Option<usize> {
-        self.interval.load(Ordering::Relaxed)
+        self.interval.as_ref().map(|v| v.load(Ordering::Relaxed))
     }
 
     fn percentiles(&self) -> &[Percentile] {

@@ -2,19 +2,17 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use crate::config::General as GeneralConfig;
-use crate::config::{Config, SamplerConfig};
-use tokio::runtime::Handle;
+use std::sync::Arc;
+use std::time::Duration;
 
 use async_trait::async_trait;
 use atomics::AtomicU32;
 use metrics::*;
+use tokio::runtime::Handle;
+use tokio::time::{interval, Interval};
 
-use tokio::time::interval;
-use tokio::time::Interval;
-
-use std::sync::Arc;
-use std::time::Duration;
+use crate::config::General as GeneralConfig;
+use crate::config::{Config, SamplerConfig};
 
 pub mod cpu;
 pub mod disk;

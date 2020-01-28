@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use super::stat::*;
-use crate::config::SamplerConfig;
 use metrics::*;
-use serde_derive::*;
+use serde_derive::Deserialize;
+
+use crate::config::SamplerConfig;
+
+use super::stat::*;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -13,7 +15,7 @@ pub struct UdpConfig {
     #[serde(default)]
     enabled: AtomicBool,
     #[serde(default)]
-    interval: AtomicOption<AtomicUsize>,
+    interval: Option<AtomicUsize>,
     #[serde(default = "default_percentiles")]
     percentiles: Vec<Percentile>,
     #[serde(default = "default_statistics")]
@@ -56,7 +58,7 @@ impl SamplerConfig for UdpConfig {
     }
 
     fn interval(&self) -> Option<usize> {
-        self.interval.load(Ordering::Relaxed)
+        self.interval.as_ref().map(|v| v.load(Ordering::Relaxed))
     }
 
     fn percentiles(&self) -> &[Percentile] {

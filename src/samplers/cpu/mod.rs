@@ -2,26 +2,27 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-#[cfg(feature = "perf")]
-use perfcnt::*;
+mod config;
+mod stat;
 
-use crate::common::*;
-use crate::config::{Config, SamplerConfig};
-use crate::samplers::Common;
-use crate::Sampler;
+use std::collections::HashMap;
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use chashmap::CHashMap;
 use metrics::*;
+#[cfg(feature = "perf")]
+use perfcnt::*;
 use regex::Regex;
-use std::collections::HashMap;
-use std::sync::Arc;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::prelude::*;
 use tokio::runtime::Handle;
 
-mod config;
-mod stat;
+use crate::common::*;
+use crate::config::{Config, SamplerConfig};
+use crate::samplers::Common;
+use crate::Sampler;
 
 pub use config::*;
 pub use stat::*;

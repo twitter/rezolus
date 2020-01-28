@@ -22,8 +22,8 @@ impl Default for Kafka {
         Kafka {
             enabled: default_enabled(),
             interval: default_interval(),
-            hosts: vec![],
-            topic: None,
+            hosts: Default::default(),
+            topic: Default::default(),
         }
     }
 }

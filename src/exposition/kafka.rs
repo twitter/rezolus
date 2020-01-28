@@ -2,16 +2,15 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use kafka::producer::{Producer, Record};
-
-use crate::config::Config;
-use crate::exposition::MetricsSnapshot;
-
 use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use kafka::producer::{Producer, Record};
 use metrics::*;
+
+use crate::config::Config;
+use crate::exposition::MetricsSnapshot;
 
 pub struct KafkaProducer {
     snapshot: MetricsSnapshot,

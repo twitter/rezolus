@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use super::MetricsSnapshot;
+use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -10,7 +10,7 @@ use logger::*;
 use metrics::*;
 use tiny_http::{Method, Response, Server};
 
-use std::net::SocketAddr;
+use super::MetricsSnapshot;
 
 pub struct Http {
     snapshot: MetricsSnapshot,
