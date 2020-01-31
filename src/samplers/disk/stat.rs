@@ -21,11 +21,11 @@ pub enum DiskStatistic {
     BandwidthWrite,
     #[strum(serialize = "disk/discard/bytes")]
     BandwidthDiscard,
-    #[strum(serialize = "disk/read/ops")]
+    #[strum(serialize = "disk/read/operations")]
     OperationsRead,
-    #[strum(serialize = "disk/write/ops")]
+    #[strum(serialize = "disk/write/operations")]
     OperationsWrite,
-    #[strum(serialize = "disk/discard/ops")]
+    #[strum(serialize = "disk/discard/operations")]
     OperationsDiscard,
     #[strum(serialize = "disk/read/latency")]
     LatencyRead,
