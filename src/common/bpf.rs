@@ -19,8 +19,6 @@ pub struct BPF {
 #[cfg(not(feature = "ebpf"))]
 pub struct BPF {}
 
-unsafe impl Send for BPF {}
-
 #[cfg(feature = "ebpf")]
 pub fn key_to_value(index: u64) -> Option<u64> {
     let index = index;
