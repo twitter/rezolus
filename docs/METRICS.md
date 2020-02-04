@@ -19,43 +19,46 @@ used in the descriptions below.
 Provides system-wide CPU telemetry.
 
 ### Basic
-* `cpu/cstate/c0/time` - the amount of time, in nanoseconds, spent in c0 state
-* `cpu/cstate/c1/time` -
-* `cpu/cstate/c1e/time` -
-* `cpu/cstate/c2/time` -
-* `cpu/cstate/c3/time` -
-* `cpu/cstate/c6/time` -
-* `cpu/cstate/c7/time` -
-* `cpu/cstate/c8/time` -
-* `cpu/usage/guest` - the amount of time, in nanoseconds, running a guest VM
-* `cpu/usage/guestnice` - the amount of time, in nanoseconds, running a
-  low-priority guest VM
-* `cpu/usage/idle` - the amount of time, in nanoseconds, where nothing is
-  running
-* `cpu/usage/irq` - the amount of time, in nanoseconds, handling interrupts
-* `cpu/usage/nice` - the amount of time, in nanoseconds, spent on lower-priority
-  tasks
-* `cpu/usage/softirq` - the amount of time, in nanoseconds, handling soft
-  interrupts
-* `cpu/usage/steal` - the amount of time, in nanoseconds, stolen by the
-  hypervisor
-* `cpu/usage/system` - the amount of time, in nanoseconds, spent in kernel-space
-* `cpu/usage/user` - the amount of time, in nanoseconds, spent in user-space
+* `cpu/cstate/c0/time` - nanoseconds spent in c0 state, Active Mode
+* `cpu/cstate/c1/time` - nanoseconds spent in c1 state, Auto Halt
+* `cpu/cstate/c1e/time` - nanoseconds spent in c1e state, Auto Halt + low
+  frequency + low voltage
+* `cpu/cstate/c2/time` - nanoseconds spent in c2 state, temporary before c3 with
+  memory paths still open
+* `cpu/cstate/c3/time` - nanoseconds spent in c3 state, L1/L2 flush + clocks off
+* `cpu/cstate/c6/time` - nanoseconds spent in c6 state, save core states before
+  shutdown and PLL off
+* `cpu/cstate/c7/time` - nanoseconds spent in c7 state, c6 + LLC may flush
+* `cpu/cstate/c8/time` - nanoseconds spent in c8 state, c7 + LLC must flush
+* `cpu/usage/guest` - nanoseconds spent running a guest VM
+* `cpu/usage/guestnice` - nanoseconds spent running a low-priority guest VM
+* `cpu/usage/idle` - nanoseconds spent idle
+* `cpu/usage/irq` - nanoseconds spent handling interrupts
+* `cpu/usage/nice` - nanoseconds spent on lower-priority tasks
+* `cpu/usage/softirq` - nanoseconds spent handling soft interrupts
+* `cpu/usage/steal` - nanoseconds stolen by the hypervisor
+* `cpu/usage/system` - nanoseconds spent in kernel-space
+* `cpu/usage/user` - nanoseconds spent in user-space
 
 ### perf_events
-* `cpu/bpu/branch` - the number of branch instructions
-* `cpu/bpu/miss` - the number of branch predictions resulting in miss
-* `cpu/cache/access` -
-* `cpu/cache/miss` -
-* `cpu/cycles` -
-* `cpu/dtlb/load/access` -
-* `cpu/dtlb/load/miss` -
-* `cpu/dtlb/store/access` -
-* `cpu/dtlb/store/miss` -
-* `cpu/instructions` -
-* `cpu/reference_cycles` -
-* `cpu/stalled_cycles/backend` -
-* `cpu/stalled_cycles/frontend` -
+* `cpu/bpu/branch` - total branch instructions
+* `cpu/bpu/miss` - branch predictions resulting in miss
+* `cpu/cache/access` - total cache accesses
+* `cpu/cache/miss` - cache accesses resulting in miss
+* `cpu/cycles` - cpu cycles elapsed, may not be accurate with frequency scaling.
+  consult processor documentation for details and consider using
+  `cpu/reference_cycles` metric
+* `cpu/dtlb/load/access` - total dtlb loads
+* `cpu/dtlb/load/miss` - dtlb loads resulting in miss
+* `cpu/dtlb/store/access` - total dtlb stores
+* `cpu/dtlb/store/miss` - dtlb stores resulting in miss
+* `cpu/instructions` - instructions retired
+* `cpu/reference_cycles` - reference number of cpu cycles elapsed, may not be
+  present on all processors. consult processor documentation
+* `cpu/stalled_cycles/backend` - cycles stalled waiting on backend, eg memory
+  access
+* `cpu/stalled_cycles/frontend` - cycles stalled waiting on frontend, eg
+  instructions
 
 
 ## Disk
@@ -64,23 +67,29 @@ Provides system-wide telemetry for disk devices
 
 ### Basic
 
-* `disk/discard/bytes` -
-* `disk/discard/operations` -
-* `disk/read/bytes` -
-* `disk/read/operations` - 
-* `disk/write/bytes` -
-* `disk/write/operations` -
+* `disk/discard/bytes` - bytes marked as unused on SSD devices 
+* `disk/discard/operations` - total number of discards completed
+* `disk/read/bytes` - bytes read from disk devices
+* `disk/read/operations` - total number of reads completed
+* `disk/write/bytes` - bytes written to disk devices
+* `disk/write/operations` - total number of writes completed
 
 ### eBPF
 
-* `disk/read/device_latency` -
-* `disk/read/latency` -
-* `disk/read/io_size` -
-* `disk/read/queue_latency` -
-* `disk/write/device_latency` -
-* `disk/write/io_size` -
-* `disk/write/latency` -
-* `disk/write/queue_latency` -
+* `disk/read/device_latency` - latency distribution, in nanoseconds, waiting for
+  disk to complete a read operation
+* `disk/read/latency` - end-to-end latency distribution, in nanoseconds, for
+  read operations
+* `disk/read/io_size` - size distribution, in bytes, for read operations
+* `disk/read/queue_latency` - latency distribution, in nanoseconds, where read
+  was waiting on the device queue
+* `disk/write/device_latency` - latency distribution, in nanoseconds, waiting
+  for disk to complete a write operation
+* `disk/write/io_size` - size distribution, in bytes, for write operations
+* `disk/write/latency` - end-to-end latency distribution, in nanoseconds, for
+  write operations
+* `disk/write/queue_latency` - latency distribution, in nanoseconds, where write
+  was waiting on the device queue
 
 ## EXT4
 
