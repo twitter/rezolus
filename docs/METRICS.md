@@ -97,63 +97,113 @@ Provides system-wide telemetry for EXT4 filesystems
 
 ### eBPF
 
-* `ext4/fsync/latency` -
-* `ext4/open/latency` -
-* `ext4/read/latency` -
-* `ext4/write/latency` -
+* `ext4/fsync/latency` - latency distribution, in nanoseconds, for `fsync()` on
+  ext4 filesystems
+* `ext4/open/latency` - latency distribution, in nanoseconds, for `open()` on
+  ext4 filesystems
+* `ext4/read/latency` - latency distribution, in nanoseconds, for `read()` on
+  ext4 filesystems
+* `ext4/write/latency` - latency distribution, in nanoseconds, for `write()` on
+  ext4 filesystems
 
 ## Memory
 
 ### Basic
 
-* `memory/active/anon`
-* `memory/active/file`
-* `memory/active/total`
-* `memory/anon_hugepages`
-* `memory/anon_pages`
-* `memory/available`
-* `memory/bounce`
-* `memory/buffers`
-* `memory/cached`
-* `memory/commit/committed`
-* `memory/commit/limit`
-* `memory/directmap/1G`
-* `memory/directmap/2M`
-* `memory/directmap/4k`
-* `memory/dirty`
-* `memory/free`
-* `memory/hardware_corrupted`
-* `memory/hugepage_size`
-* `memory/hugepages/free`
-* `memory/hugepages/reserved`
-* `memory/hugepages/surplus`
-* `memory/hugepages/total`
+* `memory/active/anon` - the amount of anonymous and tmpfs/shmem memory, in
+  bytes, that is in active use, or was in active use since the last time the
+  system moved something to swap.
+* `memory/active/file` - the amount of file cache memory, in bytes, that is in
+  active use, or was in active use since the last time the system reclaimed
+  memory.
+* `memory/active/total` - the amount of memory, in bytes, that has been used
+  more recently and is usually not reclaimed unless absolutely necessary.
+* `memory/anon_hugepages` - the total amount of memory, in bytes, used by huge
+  pages that are not backed by files and are mapped into userspace page tables.
+* `memory/anon_pages` - the total amount of memory, in bytes, used by pages that
+  are not backed by files and are mapped into userspace page tables.
+* `memory/available` - estimate of the amount of memory, in bytes, available on
+  the system to allocate without swapping
+* `memory/bounce` - the amount of memory, in bytes, used for the block device
+  "bounce buffers".
+* `memory/buffers` - the amount, in bytes, of temporary storage for raw disk
+  blocks
+* `memory/cached` - the amount of physical RAM, in bytes, used as cache memory
+* `memory/commit/committed` - the total amount of memory, in bytes, estimated to
+  complete the workload. This value represents the worst case scenario value,
+  and also includes swap memory.
+* `memory/commit/limit` - total amount of memory, inb bytes, currently available
+  to be allocated on the system based on the overcommit ratio
+* `memory/directmap/1G` - the amount of memory, in bytes, mapped into kernel
+  address space with 1 GB page mappings.
+* `memory/directmap/2M` - the amount of memory, in bytes, mapped into kernel
+  address space with 2 MB page mappings.
+* `memory/directmap/4k` - the amount of memory, in bytes, mapped into kernel
+  address space with 4 kB page mappings.
+* `memory/dirty` - the total amount of memory, in bytes, waiting to be written
+  back to the disk.
+* `memory/free` - the amount of physical RAM, in bytes, left unused by the
+  system
+* `memory/hardware_corrupted` - the amount of memory, in bytes, with physical
+  memory corruption problems, identified by the hardware and set aside by the
+  kernel so it does not get used.
+* `memory/hugepage_size` - the size for each hugepages unit in bytes.
+* `memory/hugepages/free` - the total number of hugepages available for the
+  system.
+* `memory/hugepages/reserved` - the number of unused huge pages reserved for
+  hugetlbfs.
+* `memory/hugepages/surplus` - the number of surplus huge pages.
+* `memory/hugepages/total` - the total number of hugepages for the system.
 * `memory/hugetlb`
-* `memory/inactive/anon`
-* `memory/inactive/file`
-* `memory/inactive/total`
-* `memory/kernel_stack`
-* `memory/mapped`
-* `memory/mlocked`
-* `memory/nfs_unstable`
-* `memory/page_tables`
-* `memory/percpu`
-* `memory/shmem_hugepages`
-* `memory/shmem_pmd_mapped`
-* `memory/shmem`
-* `memory/slab/reclaimable`
-* `memory/slab/total`
-* `memory/slab/unreclaimable`
-* `memory/swap/cached`
-* `memory/swap/free`
-* `memory/swap/total`
-* `memory/total`
-* `memory/unevictable`
-* `memory/vmalloc/chunk`
-* `memory/vmalloc/total`
-* `memory/vmalloc/used`
-* `memory/writeback_temp`
-* `memory/writeback`
+* `memory/inactive/anon` - the amount of anonymous and tmpfs/shmem memory, in
+  bytes, that is a candidate for eviction.
+* `memory/inactive/file` - the amount of file cache memory, in bytes, that is
+  newly loaded from the disk, or is a candidate for reclaiming.
+* `memory/inactive/total` - the amount of memory, in bytes, that has been used
+  less recently and is more eligible to be reclaimed for other purposes.
+* `memory/kernel_stack` - the amount of memory, in bytes, used by the kernel
+  stack allocations done for each task in the system.
+* `memory/mapped` - the memory, in bytes, used for files that have been mmaped,
+  such as libraries.
+* `memory/mlocked` - the total amount of memory, in bytes, that is not evictable
+  because it is locked into memory by user programs.
+* `memory/nfs_unstable` - the amount, in bytes, of NFS pages sent to the server
+  but not yet committed to the stable storage.
+* `memory/page_tables` - the total amount of memory, in bytes, dedicated to the
+  lowest page table level.
+* `memory/shmem_hugepages` - the number of hugepages which are used for shared
+  memory allocated as transparent hugepages
+* `memory/shmem_pmd_mapped` - the number of hugepages which are used for
+  application transparent hugepages
+* `memory/shmem` - the total amount of memory, in bytes, used by shared memory
+  (shmem) and tmpfs.
+* `memory/slab/reclaimable` - the part of Slab that can be reclaimed, such as
+  caches.
+* `memory/slab/total` - the total amount of memory, in bytes, used by the kernel
+  to cache data structures for its own use.
+* `memory/slab/unreclaimable` - the part of Slab that cannot be reclaimed even
+  when lacking memory.
+* `memory/swap/cached` - the amount of memory, in bytes, that has once been
+  moved into swap, then back into the main memory, but still also remains in the
+  swapfile. This saves I/O, because the memory does not need to be moved into
+  swap again.
+* `memory/swap/free` - the total amount of swap free, in bytes.
+* `memory/swap/total` - the total amount of swap available, in bytes.
+* `memory/total` - total amount of usable RAM, in bytes, which is physical RAM
+  minus a number of reserved bits and the kernel binary code
+* `memory/unevictable` - the amount of memory, in bytes, discovered by the
+  pageout code, that is not evictable because it is locked into memory by user
+  programs.
+* `memory/vmalloc/chunk` - the largest contiguous block of memory, in bytes, of
+  available virtual address space.
+* `memory/vmalloc/total` -  total amount of memory, in bytes, of total allocated
+  virtual address space.
+* `memory/vmalloc/used` - total amount of memory, in bytes, of used virtual
+  address space.
+* `memory/writeback_temp` - the amount of memory, in bytes, used by FUSE for
+  temporary writeback buffers.
+* `memory/writeback` - the total amount of memory, in bytes, actively being
+  written back to the disk.
 
 ## Network
 

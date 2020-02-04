@@ -137,7 +137,6 @@ impl Memory {
                 "VmallocTotal" => Some(Stat::VmallocTotal),
                 "VmallocUsed" => Some(Stat::VmallocUsed),
                 "VmallocChunk" => Some(Stat::VmallocChunk),
-                "Percpu" => Some(Stat::Percpu),
                 "HardwareCorrupted" => Some(Stat::HardwareCorrupted),
                 "AnonHugePages" => Some(Stat::AnonHugePages),
                 "ShmemHugePages" => Some(Stat::ShmemHugePages),
@@ -160,7 +159,7 @@ impl Memory {
         let time = time::precise_time_ns();
         for stat in self.sampler_config().statistics() {
             if let Some(value) = result.get(stat) {
-                self.metrics().record_gauge(stat, time, *value);
+                self.metrics().record_gauge(stat, time, *value * 1024);
             }
         }
         Ok(())

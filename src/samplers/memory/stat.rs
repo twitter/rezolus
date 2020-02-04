@@ -83,8 +83,6 @@ pub enum MemoryStatistic {
     VmallocUsed,
     #[strum(serialize = "memory/vmalloc/chunk")]
     VmallocChunk,
-    #[strum(serialize = "memory/percpu")]
-    Percpu,
     #[strum(serialize = "memory/hardware_corrupted")]
     HardwareCorrupted,
     #[strum(serialize = "memory/anon_hugepages")]
@@ -111,6 +109,20 @@ pub enum MemoryStatistic {
     DirectMap2M,
     #[strum(serialize = "memory/directmap/1G")]
     DirectMap1G,
+}
+
+impl MemoryStatistic {
+    pub fn multiplier(&self) -> u64 {
+        match self {
+            Self::HugePagesTotal
+            | Self::HugePagesFree
+            | Self::HugePagesRsvd
+            | Self::HugePagesSurp
+            | Self::ShmemHugePages
+            | Self::ShmemPmdMapped => 1,
+            _ => 1024,
+        }
+    }
 }
 
 impl TryFrom<&str> for MemoryStatistic {
