@@ -64,29 +64,37 @@ impl Sampler for Cpu {
     type Statistic = CpuStatistic;
 
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        let fault_tolerant = config.general().fault_tolerant();
         let perf_counters = CHashMap::new();
         if config.samplers().cpu().perf_events() {
             #[cfg(feature = "perf")]
             {
-                let cores = crate::common::hardware_threads().unwrap_or(1024);
-                for statistic in config.samplers().cpu().statistics().iter() {
-                    if let Some(mut builder) = statistic.perf_counter_builder() {
-                        let mut event_counters = Vec::new();
-                        for core in 0..cores {
-                            match builder.on_cpu(core as isize).for_all_pids().finish() {
-                                Ok(c) => event_counters.push(c),
-                                Err(e) => {
-                                    debug!(
-                                        "Failed to create PerfCounter for {:?}: {}",
-                                        statistic, e
-                                    );
+                if let Ok(cores) = crate::common::hardware_threads() {
+                    for statistic in config.samplers().cpu().statistics().iter() {
+                        if let Some(mut builder) = statistic.perf_counter_builder() {
+                            let mut event_counters = Vec::new();
+                            for core in 0..cores {
+                                match builder.on_cpu(core as isize).for_all_pids().finish() {
+                                    Ok(c) => event_counters.push(c),
+                                    Err(e) => {
+                                        debug!(
+                                            "Failed to create PerfCounter for {:?}: {}",
+                                            statistic, e
+                                        );
+                                    }
                                 }
                             }
+                            if event_counters.len() as u64 == cores {
+                                trace!("Initialized PerfCounters for {:?}", statistic);
+                                perf_counters.insert(*statistic, event_counters);
+                            }
                         }
-                        if event_counters.len() as u64 == cores {
-                            trace!("Initialized PerfCounters for {:?}", statistic);
-                            perf_counters.insert(*statistic, event_counters);
-                        }
+                    }
+                } else {
+                    if !fault_tolerant {
+                        fatal!("failed to detect number of hardware threads");
+                    } else {
+                        error!("failed to detect number of hardware threads. skipping cpu perf telemetry");
                     }
                 }
             }
