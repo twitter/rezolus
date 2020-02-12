@@ -7,6 +7,7 @@
 listen = "0.0.0.0:4242"
 fault_tolerant = false
 
-[memcahce]
+[samplers]
+[samplers.memcache]
 enabled = true
-
+endpoint = "localhost:11211"
