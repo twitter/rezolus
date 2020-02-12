@@ -13,7 +13,7 @@ use super::stat::*;
 #[serde(deny_unknown_fields)]
 pub struct NetworkConfig {
     #[serde(default)]
-    ebpf: AtomicBool,
+    bpf: AtomicBool,
     #[serde(default)]
     enabled: AtomicBool,
     #[serde(default)]
@@ -27,7 +27,7 @@ pub struct NetworkConfig {
 impl Default for NetworkConfig {
     fn default() -> Self {
         Self {
-            ebpf: Default::default(),
+            bpf: Default::default(),
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: default_percentiles(),
@@ -73,8 +73,8 @@ fn default_statistics() -> Vec<NetworkStatistic> {
 impl SamplerConfig for NetworkConfig {
     type Statistic = NetworkStatistic;
 
-    fn ebpf(&self) -> bool {
-        self.ebpf.load(Ordering::Relaxed)
+    fn bpf(&self) -> bool {
+        self.bpf.load(Ordering::Relaxed)
     }
 
     fn enabled(&self) -> bool {

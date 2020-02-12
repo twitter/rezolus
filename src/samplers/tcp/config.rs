@@ -13,7 +13,7 @@ use super::stat::*;
 #[serde(deny_unknown_fields)]
 pub struct TcpConfig {
     #[serde(default)]
-    ebpf: AtomicBool,
+    bpf: AtomicBool,
     #[serde(default)]
     enabled: AtomicBool,
     #[serde(default)]
@@ -27,7 +27,7 @@ pub struct TcpConfig {
 impl Default for TcpConfig {
     fn default() -> Self {
         Self {
-            ebpf: Default::default(),
+            bpf: Default::default(),
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: default_percentiles(),
@@ -71,8 +71,8 @@ fn default_statistics() -> Vec<TcpStatistic> {
 impl SamplerConfig for TcpConfig {
     type Statistic = TcpStatistic;
 
-    fn ebpf(&self) -> bool {
-        self.ebpf.load(Ordering::Relaxed)
+    fn bpf(&self) -> bool {
+        self.bpf.load(Ordering::Relaxed)
     }
 
     fn enabled(&self) -> bool {

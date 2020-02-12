@@ -13,7 +13,7 @@ use super::stat::*;
 #[serde(deny_unknown_fields)]
 pub struct SchedulerConfig {
     #[serde(default)]
-    ebpf: AtomicBool,
+    bpf: AtomicBool,
     #[serde(default)]
     enabled: AtomicBool,
     #[serde(default)]
@@ -29,7 +29,7 @@ pub struct SchedulerConfig {
 impl Default for SchedulerConfig {
     fn default() -> Self {
         Self {
-            ebpf: Default::default(),
+            bpf: Default::default(),
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: default_percentiles(),
@@ -63,8 +63,8 @@ fn default_statistics() -> Vec<SchedulerStatistic> {
 impl SamplerConfig for SchedulerConfig {
     type Statistic = SchedulerStatistic;
 
-    fn ebpf(&self) -> bool {
-        self.ebpf.load(Ordering::Relaxed)
+    fn bpf(&self) -> bool {
+        self.bpf.load(Ordering::Relaxed)
     }
 
     fn enabled(&self) -> bool {

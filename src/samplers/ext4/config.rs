@@ -13,7 +13,7 @@ use super::stat::*;
 #[serde(deny_unknown_fields)]
 pub struct Ext4Config {
     #[serde(default)]
-    ebpf: AtomicBool,
+    bpf: AtomicBool,
     #[serde(default)]
     enabled: AtomicBool,
     #[serde(default)]
@@ -27,7 +27,7 @@ pub struct Ext4Config {
 impl Default for Ext4Config {
     fn default() -> Self {
         Self {
-            ebpf: Default::default(),
+            bpf: Default::default(),
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: default_percentiles(),
@@ -58,8 +58,8 @@ fn default_statistics() -> Vec<Ext4Statistic> {
 impl SamplerConfig for Ext4Config {
     type Statistic = Ext4Statistic;
 
-    fn ebpf(&self) -> bool {
-        self.ebpf.load(Ordering::Relaxed)
+    fn bpf(&self) -> bool {
+        self.bpf.load(Ordering::Relaxed)
     }
 
     fn enabled(&self) -> bool {

@@ -33,7 +33,7 @@ pub enum SchedulerStatistic {
 
 impl SchedulerStatistic {
     #[allow(dead_code)]
-    pub fn ebpf_table(self) -> Option<&'static str> {
+    pub fn bpf_table(self) -> Option<&'static str> {
         match self {
             Self::RunqueueLatency => Some("runqueue_latency"),
             _ => None,

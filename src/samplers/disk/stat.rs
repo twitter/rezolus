@@ -58,7 +58,7 @@ impl DiskStatistic {
         }
     }
 
-    pub fn ebpf_table(self) -> Option<&'static str> {
+    pub fn bpf_table(self) -> Option<&'static str> {
         match self {
             Self::LatencyRead => Some("latency_read"),
             Self::LatencyWrite => Some("latency_write"),
@@ -79,7 +79,7 @@ impl Statistic for DiskStatistic {
     }
 
     fn source(&self) -> metrics::Source {
-        if self.ebpf_table().is_some() {
+        if self.bpf_table().is_some() {
             metrics::Source::Distribution
         } else {
             metrics::Source::Counter

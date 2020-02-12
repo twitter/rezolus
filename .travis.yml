@@ -27,7 +27,7 @@ matrix:
         - cargo test --release
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: xenial / nightly / llvm 8.0 / bcc 0.10.0"
+    - name: "bpf: xenial / nightly / llvm 8.0 / bcc 0.10.0"
       os: linux
       dist: xenial
       rust: nightly
@@ -50,14 +50,14 @@ matrix:
         - make
         - sudo make install
         - cd ../..
-        - cargo build --features ebpf_v0_10_0
-        - cargo test --features ebpf_v0_10_0
-        - cargo build --release --features ebpf_v0_10_0
-        - cargo test --release --features ebpf_v0_10_0
-        - cargo run --release --features ebpf_v0_10_0 -- --version
+        - cargo build --features bpf_v0_10_0
+        - cargo test --features bpf_v0_10_0
+        - cargo build --release --features bpf_v0_10_0
+        - cargo test --release --features bpf_v0_10_0
+        - cargo run --release --features bpf_v0_10_0 -- --version
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: xenial / nightly / llvm 8.0 / bcc 0.11.0"
+    - name: "bpf: xenial / nightly / llvm 8.0 / bcc 0.11.0"
       os: linux
       dist: xenial
       rust: nightly
@@ -80,14 +80,14 @@ matrix:
         - make
         - sudo make install
         - cd ../..
-        - cargo build --features ebpf
-        - cargo test --features ebpf
-        - cargo build --release --features ebpf_v0_11_0
-        - cargo test --release --features ebpf_v0_11_0
-        - cargo run --release --features ebpf_v0_11_0 -- --version
+        - cargo build --features bpf
+        - cargo test --features bpf
+        - cargo build --release --features bpf_v0_11_0
+        - cargo test --release --features bpf_v0_11_0
+        - cargo run --release --features bpf_v0_11_0 -- --version
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: xenial / nightly / llvm 8.0 / bcc latest"
+    - name: "bpf: xenial / nightly / llvm 8.0 / bcc latest"
       os: linux
       dist: xenial
       rust: nightly
@@ -110,14 +110,14 @@ matrix:
         - make
         - sudo make install
         - cd ../..
-        - cargo build --features ebpf
-        - cargo test --features ebpf
-        - cargo build --release --features ebpf
-        - cargo test --release --features ebpf
-        - cargo run --release --features ebpf -- --version
+        - cargo build --features bpf
+        - cargo test --features bpf
+        - cargo build --release --features bpf
+        - cargo test --release --features bpf
+        - cargo run --release --features bpf -- --version
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: xenial / nightly / llvm 9.0 / bcc 0.10.0"
+    - name: "bpf: xenial / nightly / llvm 9.0 / bcc 0.10.0"
       os: linux
       dist: xenial
       rust: nightly
@@ -140,14 +140,14 @@ matrix:
         - make
         - sudo make install
         - cd ../..
-        - cargo build --features ebpf_v0_10_0
-        - cargo test --features ebpf_v0_10_0
-        - cargo build --release --features ebpf_v0_10_0
-        - cargo test --release --features ebpf_v0_10_0
-        - cargo run --release --features ebpf_v0_10_0 -- --version
+        - cargo build --features bpf_v0_10_0
+        - cargo test --features bpf_v0_10_0
+        - cargo build --release --features bpf_v0_10_0
+        - cargo test --release --features bpf_v0_10_0
+        - cargo run --release --features bpf_v0_10_0 -- --version
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: xenial / nightly / llvm 9.0 / bcc 0.11.0"
+    - name: "bpf: xenial / nightly / llvm 9.0 / bcc 0.11.0"
       os: linux
       dist: xenial
       rust: nightly
@@ -170,14 +170,14 @@ matrix:
         - make
         - sudo make install
         - cd ../..
-        - cargo build --features ebpf
-        - cargo test --features ebpf
-        - cargo build --release --features ebpf_v0_11_0
-        - cargo test --release --features ebpf_v0_11_0
-        - cargo run --release --features ebpf_v0_11_0 -- --version
+        - cargo build --features bpf
+        - cargo test --features bpf
+        - cargo build --release --features bpf_v0_11_0
+        - cargo test --release --features bpf_v0_11_0
+        - cargo run --release --features bpf_v0_11_0 -- --version
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: xenial / nightly / llvm 9.0 / bcc latest"
+    - name: "bpf: xenial / nightly / llvm 9.0 / bcc latest"
       os: linux
       dist: xenial
       rust: nightly
@@ -200,14 +200,14 @@ matrix:
         - make
         - sudo make install
         - cd ../..
-        - cargo build --features ebpf
-        - cargo test --features ebpf
-        - cargo build --release --features ebpf
-        - cargo test --release --features ebpf
-        - cargo run --release --features ebpf -- --version
+        - cargo build --features bpf
+        - cargo test --features bpf
+        - cargo build --release --features bpf
+        - cargo test --release --features bpf
+        - cargo run --release --features bpf -- --version
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: bionic / nightly / llvm 10.0 / bcc 0.10.0"
+    - name: "bpf: bionic / nightly / llvm 10.0 / bcc 0.10.0"
       os: linux
       dist: bionic
       rust: nightly
@@ -230,14 +230,14 @@ matrix:
         - make
         - sudo make install
         - cd ../..
-        - cargo build --features ebpf_v0_10_0
-        - cargo test --features ebpf_v0_10_0
-        - cargo build --release --features ebpf_v0_10_0
-        - cargo test --release --features ebpf_v0_10_0
-        - cargo run --release --features ebpf_v0_10_0 -- --version
+        - cargo build --features bpf_v0_10_0
+        - cargo test --features bpf_v0_10_0
+        - cargo build --release --features bpf_v0_10_0
+        - cargo test --release --features bpf_v0_10_0
+        - cargo run --release --features bpf_v0_10_0 -- --version
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: bionic / nightly / llvm 10.0 / bcc 0.11.0"
+    - name: "bpf: bionic / nightly / llvm 10.0 / bcc 0.11.0"
       os: linux
       dist: bionic
       rust: nightly
@@ -260,14 +260,14 @@ matrix:
         - make
         - sudo make install
         - cd ../..
-        - cargo build --features ebpf
-        - cargo test --features ebpf
-        - cargo build --release --features ebpf_v0_11_0
-        - cargo test --release --features ebpf_v0_11_0
-        - cargo run --release --features ebpf_v0_11_0 -- --version
+        - cargo build --features bpf
+        - cargo test --features bpf
+        - cargo build --release --features bpf_v0_11_0
+        - cargo test --release --features bpf_v0_11_0
+        - cargo run --release --features bpf_v0_11_0 -- --version
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "ebpf: bionic / nightly / llvm 10.0 / bcc latest"
+    - name: "bpf: bionic / nightly / llvm 10.0 / bcc latest"
       os: linux
       dist: bionic
       rust: nightly
@@ -290,11 +290,11 @@ matrix:
         - make
         - sudo make install
         - cd ../..
-        - cargo build --features ebpf
-        - cargo test --features ebpf
-        - cargo build --release --features ebpf
-        - cargo test --release --features ebpf
-        - cargo run --release --features ebpf -- --version
+        - cargo build --features bpf
+        - cargo test --features bpf
+        - cargo build --release --features bpf
+        - cargo test --release --features bpf
+        - cargo run --release --features bpf -- --version
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "push_kafka: xenial / nightly"
@@ -368,4 +368,4 @@ matrix:
       env: TYPE=clippy RUST_BACKTRACE=1
       script:
         - rustup component add clippy
-        - cargo clippy --features ebpf
+        - cargo clippy --features bpf

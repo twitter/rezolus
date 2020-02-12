@@ -2,24 +2,24 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-#[cfg(feature = "ebpf")]
+#[cfg(feature = "bpf")]
 use std::fs::File;
-#[cfg(feature = "ebpf")]
+#[cfg(feature = "bpf")]
 use std::io::prelude::*;
-#[cfg(feature = "ebpf")]
+#[cfg(feature = "bpf")]
 use std::io::BufReader;
 
-#[cfg(feature = "ebpf")]
+#[cfg(feature = "bpf")]
 use bcc;
-#[cfg(feature = "ebpf")]
+#[cfg(feature = "bpf")]
 pub struct BPF {
     pub inner: bcc::core::BPF,
 }
 
-#[cfg(not(feature = "ebpf"))]
+#[cfg(not(feature = "bpf"))]
 pub struct BPF {}
 
-#[cfg(feature = "ebpf")]
+#[cfg(feature = "bpf")]
 pub fn key_to_value(index: u64) -> Option<u64> {
     let index = index;
     if index < 100 {
@@ -38,7 +38,7 @@ pub fn key_to_value(index: u64) -> Option<u64> {
 }
 
 // TODO: a result is probably more appropriate
-#[cfg(feature = "ebpf")]
+#[cfg(feature = "bpf")]
 pub fn symbol_lookup(name: &str) -> Option<String> {
     let symbols = File::open("/proc/kallsyms");
     if symbols.is_err() {
@@ -58,7 +58,7 @@ pub fn symbol_lookup(name: &str) -> Option<String> {
     None
 }
 
-#[cfg(feature = "ebpf")]
+#[cfg(feature = "bpf")]
 pub fn map_from_table(table: &mut bcc::table::Table) -> std::collections::HashMap<u64, u32> {
     let mut current = std::collections::HashMap::new();
 

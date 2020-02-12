@@ -125,7 +125,7 @@ impl Config {
 
 pub trait SamplerConfig {
     type Statistic;
-    fn ebpf(&self) -> bool {
+    fn bpf(&self) -> bool {
         false
     }
     fn enabled(&self) -> bool {

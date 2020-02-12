@@ -13,7 +13,7 @@ documentation.
 
 Rezolus collects telemetry from several different sources. Currently, Rezolus
 collects telemetry from traditional sources (procfs, sysfs), the perf_events
-subsystem, and from eBPF. Each sampler implements a consistent set of functions
+subsystem, and from BPF. Each sampler implements a consistent set of functions
 so that new ones can be easily added to further extend the capabilities of
 Rezolus.
 
@@ -22,7 +22,7 @@ time interval. This histogram allows us to capture variations which will appear
 in the far upper and lower percentiles. This oversampling approach is one of
 the key differentiators of Rezolus when compared to other telemetry agents.
 
-With its support for eBPF as well as more common telemetry sources, Rezolus is
+With its support for BPF as well as more common telemetry sources, Rezolus is
 a very sophisticated tool for capturing performance anomalies, profiling
 systems performance, and conducting performance diagnostics.
 
@@ -33,7 +33,7 @@ design can be found in the [DESIGN](docs/DESIGN.md) documentation.
 
 * traditional telemetry sources (procfs, sysfs, ...)
 * perf_events support for hardware performance counters
-* eBPF support to instrument kernel and user space activities
+* BPF support to instrument kernel and user space activities
 * oversampling and percentile metrics to capture bursts
 
 ### Traditional Telemetry Sources
@@ -59,10 +59,10 @@ about how a workload is running on the underlying hardware.
 These metrics are typically used for advanced performance debugging, as well as
 for tuning and optimization efforts.
 
-### eBPF
+### BPF
 
 There is an expansive amount of performance information that can be exposed
-through eBPF, which allows us to have the Linux Kernel perform telemetry
+through BPF, which allows us to have the Linux Kernel perform telemetry
 capture and aggregation at very fine-grained levels.
 
 Rezolus comes with samplers that capture block IO size distribution, EXT4 and
@@ -75,7 +75,7 @@ is then exposed to external aggregators.
 
 By collecting telemetry in-kernel, we're able to gather data about events that
 happen at extremely high rates - e.g., task scheduling - with minimal
-performance overhead for collecting the telemetry. The eBPF samplers can be
+performance overhead for collecting the telemetry. The BPF samplers can be
 used to both capture runtime performance anomalies as well as characterize
 workloads.
 
@@ -142,11 +142,11 @@ curl --silent http://localhost:4242/vars
 ### Building with eBPF Support
 
 By default, eBPF support is not compiled in. If you wish to produce a build with
-eBPF support enabled, follow the steps below:
+BPF support enabled, follow the steps below:
 
 #### Prerequisites
 
-eBPF support requires that we link against the [BPF Compiler Collection]. You
+BPF support requires that we link against the [BPF Compiler Collection]. You
 may either use the version provided by your distribution, or can build BCC and
 install from source. It is critical to know which version of BCC you have
 installed. Rezolus supports multiple versions by utilizing different feature
@@ -155,17 +155,17 @@ flags at build time.
 #### Building
 
 As mentioned above, we provide different feature flags to map to various
-supported BCC versions. The `ebpf` feature will map to the newest version
+supported BCC versions. The `bpf` feature will map to the newest version
 supported by the [rust-bcc] project. For most users, this will be the right flag
 to use. However, if you must link against an older BCC version, you will need
 to use a more specific form of the feature flag. These version-specific flags
-take the form of `ebpf_v0_10_0` with the BCC version being reflected in the name
+take the form of `bpf_v0_10_0` with the BCC version being reflected in the name
 of the feature. You can find a complete list of the feature flags in the
 [cargo manifest] for this project.
 
 ```bash
-# create an optimized release build with eBPF support
-cargo build --release --features ebpf
+# create an optimized release build with BPF support
+cargo build --release --features bpf
 sudo target/release/rezolus --config configs/example.toml
 
 # metrics can be viewed in human-readable form with curl

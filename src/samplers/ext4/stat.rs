@@ -27,7 +27,7 @@ pub enum Ext4Statistic {
 
 impl Ext4Statistic {
     #[allow(dead_code)]
-    pub fn ebpf_table(self) -> Option<&'static str> {
+    pub fn bpf_table(self) -> Option<&'static str> {
         match self {
             Self::ReadLatency => Some("read"),
             Self::WriteLatency => Some("write"),

@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use async_trait::async_trait;
-#[cfg(feature = "ebpf")]
+#[cfg(feature = "bpf")]
 use bcc;
 use metrics::*;
 use tokio::fs::File;
@@ -45,7 +45,7 @@ impl Sampler for Tcp {
             common: Common::new(config, metrics),
         };
 
-        if let Err(e) = sampler.initialize_ebpf() {
+        if let Err(e) = sampler.initialize_bpf() {
             if !fault_tolerant {
                 return Err(e);
             }
@@ -120,15 +120,15 @@ impl Sampler for Tcp {
             }
         }
 
-        // sample ebpf
-        #[cfg(feature = "ebpf")]
+        // sample bpf
+        #[cfg(feature = "bpf")]
         {
             if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
                 if let Some(ref bpf) = self.bpf {
                     let bpf = bpf.lock().unwrap();
                     let time = time::precise_time_ns();
                     for statistic in self.sampler_config().statistics() {
-                        if let Some(table) = statistic.ebpf_table() {
+                        if let Some(table) = statistic.bpf_table() {
                             let mut table = (*bpf).inner.table(table);
 
                             for (&value, &count) in &map_from_table(&mut table) {
@@ -152,13 +152,13 @@ impl Sampler for Tcp {
     }
 
     fn summary(&self, statistic: &Self::Statistic) -> Option<Summary> {
-        let precision = if statistic.ebpf_table().is_some() {
+        let precision = if statistic.bpf_table().is_some() {
             2
         } else {
             3
         };
 
-        let max = if statistic.ebpf_table().is_some() {
+        let max = if statistic.bpf_table().is_some() {
             1_000_000
         } else {
             1_000_000_000_000
@@ -200,12 +200,12 @@ async fn nested_map_from_file<T: AsRef<Path>>(
 }
 
 impl Tcp {
-    // checks that ebpf is enabled in config and one or more ebpf stats enabled
-    #[cfg(feature = "ebpf")]
-    fn ebpf_enabled(&self) -> bool {
-        if self.sampler_config().ebpf() {
+    // checks that bpf is enabled in config and one or more bpf stats enabled
+    #[cfg(feature = "bpf")]
+    fn bpf_enabled(&self) -> bool {
+        if self.sampler_config().bpf() {
             for statistic in self.sampler_config().statistics() {
-                if statistic.ebpf_table().is_some() {
+                if statistic.bpf_table().is_some() {
                     return true;
                 }
             }
@@ -213,11 +213,11 @@ impl Tcp {
         false
     }
 
-    fn initialize_ebpf(&mut self) -> Result<(), failure::Error> {
-        #[cfg(feature = "ebpf")]
+    fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
+        #[cfg(feature = "bpf")]
         {
-            if self.ebpf_enabled() {
-                debug!("initializing ebpf");
+            if self.bpf_enabled() {
+                debug!("initializing bpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");
                 let mut bpf = bcc::core::BPF::new(code)?;
