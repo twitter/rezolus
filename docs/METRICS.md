@@ -211,37 +211,42 @@ Provides system-wide network telemetry
 
 ### Basic
 
-* `network/receive/bytes`
-* `network/receive/compressed`
-* `network/receive/drops`
-* `network/receive/errors`
-* `network/receive/fifo`
-* `network/receive/frame`
-* `network/receive/multicast`
-* `network/receive/packets`
-* `network/transmit/bytes`
-* `network/transmit/carrier`
-* `network/transmit/collisions`
-* `network/transmit/compressed`
-* `network/transmit/drops`
-* `network/transmit/errors`
-* `network/transmit/fifo`
-* `network/transmit/packets`
+* `network/receive/bytes` - number of bytes received on all network interfaces
+* `network/receive/compressed` - number of compressed packets received
+* `network/receive/drops` - number of received packets which were dropped by the
+  device driver
+* `network/receive/errors` - number of receive errors detected by the device
+  driver
+* `network/receive/fifo` - number of FIFO buffer errors on receive
+* `network/receive/frame` - number of packets received with framming errors
+* `network/receive/multicast` - number of multicast packets received
+* `network/receive/packets` - total number of packets received
+* `network/transmit/bytes` - number of bytes transmitted on all network
+  interfaces
+* `network/transmit/carrier` - number of carrier losses detected by the device
+ driver
+* `network/transmit/collisions` - number of collisions detected
+* `network/transmit/compressed` - number of compressed packets transmitted
+* `network/transmit/drops` - number of packets to transmit which were dropped by
+  the device driver
+* `network/transmit/errors` - total number of errors when transmitting packets
+* `network/transmit/fifo` - number of FIFO buffer errors on transmit
+* `network/transmit/packets` - total number of packets transmitted
 
 ### eBPF
 
-* `network/receive/size`
-* `network/transmit/size`
+* `network/receive/size` - size distribution, in bytes, of received packets
+* `network/transmit/size` - size distribution, in bytes, of transmitted packets
 
 ## Rezolus
 
 Provides telemetry about Rezolus itself
 
 ### Basic
-* `rezolus/cpu/user`
-* `rezolus/cpu/system`
-* `rezolus/memory/virtual`
-* `rezolus/memory/resident`
+* `rezolus/cpu/user` - nanoseconds spent in user mode running Rezolus
+* `rezolus/cpu/system` - nanoseconds spent in system mode running Rezolus
+* `rezolus/memory/virtual` - total virtual memory allocated to Rezolus
+* `rezolus/memory/resident` - amount of memory actually used by Rezolus
 
 
 ## Scheduler
@@ -250,67 +255,77 @@ Provides telemetry about the Linux Scheduler
 
 ### Basic
 
-* `scheduler/context_switches`
-* `scheduler/processes/created`
-* `scheduler/processes/running`
-* `scheduler/processes/blocked`
+* `scheduler/context_switches` - number of context switches
+* `scheduler/processes/created` - number of processes created
+* `scheduler/processes/running` - number of processes currently running
+* `scheduler/processes/blocked` - number of processes currently blocked
 
 ### perf_events
 
-* `scheduler/cpu_migrations`
+* `scheduler/cpu_migrations` - number of times processes have been migrated
+  across CPUs
 
 ### eBPF
 
-* `scheduler/runqueue/latency`
-
+* `scheduler/runqueue/latency` - the distribution of time that runnable tasks
+  were waiting on the runqueue
 
 ## Softnet
 
 ### Basic
 
-* `softnet/processed`
-* `softnet/dropped`
-* `softnet/time_squeezed`
-* `softnet/cpu_collision`
-* `softnet/received_rps`
-* `softnet/flow_limit_count`
-
-
+* `softnet/processed` - the total number of packets processed in the softnet
+  layer
+* `softnet/dropped` - the number of packets dropped
+* `softnet/time_squeezed` - number of times that packet processing did not
+  complete within the time slice
+* `softnet/cpu_collision` - collisions occurring obtaining device lock while
+  transmitting
+* `softnet/received_rps` - number of times cpus woken up for received rps
+* `softnet/flow_limit_count` - number of times the flow limit count was reached
 
 ## TCP
 
-* `tcp/receive/checksum_error`
-* `tcp/receive/collapsed`
-* `tcp/receive/error`
-* `tcp/receive/listen_drops`
-* `tcp/receive/listen_overflows`
-* `tcp/receive/ofo_pruned`
-* `tcp/receive/prune_called`
-* `tcp/receive/pruned`
-* `tcp/receive/segment`
-* `tcp/syncookies/failed`
-* `tcp/syncookies/received`
-* `tcp/syncookies/sent`
-* `tcp/transmit/delayed_ack`
-* `tcp/transmit/reset`
-* `tcp/transmit/retransmit`
-* `tcp/transmit/segment`
+## Basic
+
+* `tcp/receive/checksum_error` - segments received with invalid checksum
+* `tcp/receive/collapsed` - segments collapsed in the receive queue
+* `tcp/receive/error` - total number of errors on receive
+* `tcp/receive/listen_drops` - number of SYNs to LISTEN sockets ignored
+* `tcp/receive/listen_overflows` - times the listen queue of a socket overflowed
+* `tcp/receive/ofo_pruned` - number of packets pruned from the out-of-order
+  queue due to socket buffer overrun
+* `tcp/receive/prune_called` - number of packets pruned from the receive queue
+  because of socket buffer overrun
+* `tcp/receive/pruned` - packets pruned from the receive queue
+* `tcp/receive/segment` - total number of segments received
+* `tcp/syncookies/failed` - number of invalid SYN cookies received
+* `tcp/syncookies/received` - number of SYN cookies received
+* `tcp/syncookies/sent` - number of SYN cookies sent
+* `tcp/transmit/delayed_ack` - number of delayed ACKs sent
+* `tcp/transmit/reset` - number of RSTs sent
+* `tcp/transmit/retransmit` - number of segments retransmitted
+* `tcp/transmit/segment` - number of segments transmitted
 
 ### eBPF
 
-* `tcp/connect/latency`
-
+* `tcp/connect/latency` - end-to-end latency, in nanoseconds, from an active
+  outbount `connect()` until the socket is established
 
 ## UDP
 
-* `udp/receive/datagrams`
-* `udp/receive/errors`
-* `udp/transmit/datagrams`
+* `udp/receive/datagrams` - number of datagrams received
+* `udp/receive/errors` - number of errors on receive
+* `udp/transmit/datagrams` - number of datagrams transmitted
 
 
 ## XFS
 
-* `xfs/fsync/latency`
-* `xfs/open/latency`
-* `xfs/read/latency`
-* `xfs/write/latency`
+* `xfs/fsync/latency` - latency distribution, in nanoseconds, for `fsync()` on
+  xfs filesystems
+* `xfs/open/latency` - latency distribution, in nanoseconds, for `open()` on
+  xfs filesystems
+* `xfs/read/latency` - latency distribution, in nanoseconds, for `read()` on
+  xfs filesystems
+* `xfs/write/latency` - latency distribution, in nanoseconds, for `write()` on
+  xfs filesystems
