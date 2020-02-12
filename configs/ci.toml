@@ -8,32 +8,32 @@ enabled = true
 perf_events = true
 
 [samplers.disk]
-ebpf = true
+bpf = true
 enabled = true
 
 [samplers.ext4]
-ebpf = true
+bpf = true
 enabled = true
 
 [samplers.memory]
 enabled = true
 
 [samplers.network]
-ebpf = true
+bpf = true
 enabled = true
 
 [samplers.rezolus]
 enabled = true
 
 [samplers.scheduler]
-ebpf = true
+bpf = true
 perf_events = true
 
 [samplers.softnet]
 enabled = true
 
 [samplers.tcp]
-ebpf = true
+bpf = true
 enabled = true
 
 [samplers.udp]
@@ -41,5 +41,5 @@ enabled = true
 
 [samplers.xfs]
 # no xfs present on ci
-# ebpf = true
+# bpf = true
 enabled = true
