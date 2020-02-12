@@ -25,8 +25,7 @@ use samplers::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // get config
-    let config = Config::new();
-    let config = Arc::new(config);
+    let config = Arc::new(Config::new());
 
     // initialize logging
     Logger::new()
