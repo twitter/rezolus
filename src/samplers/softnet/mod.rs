@@ -1,74 +1,50 @@
-// Copyright 2019 Twitter, Inc.
+// Copyright 2019-2020 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-mod statistics;
-
-use self::statistics::Statistic;
-use crate::common::*;
-use crate::config::*;
-use crate::samplers::{Common, Sampler};
-
-use failure::Error;
-use logger::*;
-use metrics::*;
-use time;
-
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::Path;
 use std::sync::Arc;
 
-const SOFTNET_STAT: &str = "/proc/net/softnet_stat";
+use async_trait::async_trait;
+use metrics::*;
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::runtime::Handle;
+
+use crate::config::{Config, SamplerConfig};
+use crate::samplers::Common;
+use crate::Sampler;
+
+mod config;
+mod stat;
+
+pub use config::*;
+pub use stat::*;
 
 pub struct Softnet {
     common: Common,
 }
 
-pub fn read_softnet_stat<P: AsRef<Path>>(path: P) -> HashMap<Statistic, u64> {
-    let mut result = HashMap::new();
-    let file = File::open(path)
-        .map_err(|e| debug!("could not read softnet_stat: {}", e))
-        .expect("failed to open file");
-
-    let file = BufReader::new(file);
-    for line in file.lines() {
-        let line = line.unwrap();
-        let tokens: Vec<&str> = line.split_whitespace().collect();
-        if tokens.len() != 11 {
-            continue;
-        }
-        for statistic in &[
-            Statistic::Processed,
-            Statistic::Dropped,
-            Statistic::TimeSqueezed,
-            Statistic::CpuCollision,
-            Statistic::ReceivedRps,
-            Statistic::FlowLimitCount,
-        ] {
-            if !result.contains_key(statistic) {
-                result.insert(*statistic, 0);
-            }
-            let current = result.get_mut(statistic).unwrap();
-            *current += u64::from_str_radix(tokens[statistic.field_number()], 16).unwrap_or(0);
-        }
+#[async_trait]
+impl Sampler for Softnet {
+    type Statistic = SoftnetStatistic;
+    fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        Ok(Self {
+            common: Common::new(config, metrics),
+        })
     }
 
-    result
-}
-
-impl Sampler for Softnet {
-    fn new(
-        config: Arc<Config>,
-        metrics: Metrics<AtomicU32>,
-    ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        if config.softnet().enabled() {
-            Ok(Some(Box::new(Self {
-                common: Common::new(config, metrics),
-            }) as Box<dyn Sampler>))
+    fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
+        if let Ok(mut sampler) = Self::new(config.clone(), metrics) {
+            handle.spawn(async move {
+                loop {
+                    let _ = sampler.sample().await;
+                }
+            });
+        } else if !config.fault_tolerant() {
+            fatal!("failed to initialize softnet sampler");
         } else {
-            Ok(None)
+            error!("failed to initialize softnet sampler");
         }
     }
 
@@ -76,60 +52,56 @@ impl Sampler for Softnet {
         &self.common
     }
 
-    fn name(&self) -> String {
-        "softnet".to_string()
+    fn common_mut(&mut self) -> &mut Common {
+        &mut self.common
     }
 
-    fn sample(&mut self) -> Result<(), ()> {
-        trace!("sample {}", self.name());
-        let time = time::precise_time_ns();
-        let data = read_softnet_stat(SOFTNET_STAT);
-        self.register();
-        for (statistic, value) in data {
-            self.common.record_counter(&statistic, time, value);
+    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        self.common.config().samplers().softnet()
+    }
+
+    async fn sample(&mut self) -> Result<(), std::io::Error> {
+        if let Some(ref mut delay) = self.delay() {
+            delay.tick().await;
         }
+
+        if !self.sampler_config().enabled() {
+            return Ok(());
+        }
+
+        debug!("sampling");
+        self.register();
+
+        let file = File::open("/proc/net/softnet_stat").await?;
+        let reader = BufReader::new(file);
+        let mut lines = reader.lines();
+
+        let mut result = HashMap::new();
+
+        while let Some(line) = lines.next_line().await? {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            for statistic in self.sampler_config().statistics() {
+                if !result.contains_key(statistic) {
+                    result.insert(*statistic, 0);
+                }
+                let current = result.get_mut(statistic).unwrap();
+                *current += u64::from_str_radix(parts[*statistic as usize], 16).unwrap_or(0);
+            }
+        }
+
+        let time = time::precise_time_ns();
+        for (stat, value) in result {
+            self.metrics().record_counter(&stat, time, value);
+        }
+
         Ok(())
     }
 
-    fn interval(&self) -> usize {
-        self.common()
-            .config()
-            .softnet()
-            .interval()
-            .unwrap_or_else(|| self.common().config().interval())
-    }
-
-    fn register(&mut self) {
-        if !self.common.initialized() {
-            trace!("register {}", self.name());
-            let data = read_softnet_stat(SOFTNET_STAT);
-            for statistic in data.keys() {
-                self.common
-                    .register_counter(statistic, TRILLION, 3, PERCENTILES);
-            }
-            self.common.set_initialized(true);
-        }
-    }
-
-    fn deregister(&mut self) {
-        trace!("deregister {}", self.name());
-        let data = read_softnet_stat(SOFTNET_STAT);
-        for statistic in data.keys() {
-            self.common.delete_channel(statistic);
-        }
-        self.common.set_initialized(false);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn parse_softnet_stat() {
-        let data = read_softnet_stat(format!("tests/data{}", SOFTNET_STAT));
-        assert_eq!(data.get(&Statistic::Processed), Some(&18035263));
-        assert_eq!(data.get(&Statistic::Dropped), Some(&0));
-        assert_eq!(data.get(&Statistic::TimeSqueezed), Some(&135098));
+    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
+        Some(Summary::histogram(
+            1_000_000_000_000,
+            3,
+            Some(self.general_config().window()),
+        ))
     }
 }

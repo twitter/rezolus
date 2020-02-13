@@ -1,88 +1,72 @@
-// Copyright 2019 Twitter, Inc.
+// Copyright 2019-2020 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-mod device;
-mod entry;
-mod statistics;
-
-pub use self::device::Device;
-pub use self::entry::Entry;
-pub(crate) use self::statistics::Statistic;
-
-use crate::common::*;
-use crate::config::*;
-use crate::samplers::{Common, Sampler};
-
-use failure::Error;
-use logger::*;
-use metrics::*;
-use regex::Regex;
-use time;
-use walkdir::WalkDir;
-
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
-const REFRESH: u64 = 60_000_000_000;
+use async_trait::async_trait;
+#[cfg(feature = "bpf")]
+use bcc;
+use metrics::*;
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::runtime::Handle;
 
+use crate::common::bpf::*;
+use crate::common::*;
+use crate::config::{Config, SamplerConfig};
+use crate::samplers::Common;
+use crate::Sampler;
+
+mod config;
+mod stat;
+
+pub use config::*;
+pub use stat::*;
+
+#[allow(dead_code)]
 pub struct Disk {
+    bpf: Option<Arc<Mutex<BPF>>>,
+    bpf_last: Arc<Mutex<Instant>>,
     common: Common,
-    devices: Vec<Device>,
-    last_refreshed: u64,
 }
 
-impl Disk {
-    /// send deltas to the stats library
-    fn record(&self, time: u64, reading: Entry) {
-        self.common
-            .record_counter(&Statistic::BandwidthDiscard, time, reading.discard_bytes());
-        self.common
-            .record_counter(&Statistic::BandwidthRead, time, reading.read_bytes());
-        self.common
-            .record_counter(&Statistic::BandwidthWrite, time, reading.write_bytes());
-        self.common
-            .record_counter(&Statistic::OperationsDiscard, time, reading.discard_ops());
-        self.common
-            .record_counter(&Statistic::OperationsRead, time, reading.read_ops());
-        self.common
-            .record_counter(&Statistic::OperationsWrite, time, reading.write_ops());
-    }
+#[async_trait]
+impl Sampler for Disk {
+    type Statistic = DiskStatistic;
 
-    /// identifies the set of all primary block `Device`s on the host
-    fn get_devices(&self) -> Vec<Device> {
-        let sd = Regex::new(r"^[a-z]+$").unwrap();
-        let nvme = Regex::new(r"^nvme[0-9]+n[0-9]+$").unwrap();
-        let mut result = Vec::new();
-        for entry in WalkDir::new("/sys/class/block/").max_depth(1) {
-            if let Ok(entry) = entry {
-                if let Some(s) = entry.file_name().to_str() {
-                    if s != "block" && (sd.is_match(s) || nvme.is_match(s)) {
-                        trace!("Found block dev: {}", s);
-                        result.push(Device::new(Some(s.to_owned())));
-                    } else {
-                        trace!("Ignore block dev: {}", s);
-                    }
-                }
+    fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
+        let fault_tolerant = config.general().fault_tolerant();
+
+        #[allow(unused_mut)]
+        let mut sampler = Self {
+            bpf: None,
+            bpf_last: Arc::new(Mutex::new(Instant::now())),
+            common: Common::new(config, metrics),
+        };
+
+        if let Err(e) = sampler.initialize_bpf() {
+            if !fault_tolerant {
+                return Err(e);
             }
         }
-        result
-    }
-}
 
-impl Sampler for Disk {
-    fn new(
-        config: Arc<Config>,
-        metrics: Metrics<AtomicU32>,
-    ) -> Result<Option<Box<dyn Sampler>>, Error> {
-        if config.disk().enabled() {
-            Ok(Some(Box::new(Self {
-                common: Common::new(config, metrics),
-                devices: Vec::new(),
-                last_refreshed: 0,
-            }) as Box<dyn Sampler>))
+        Ok(sampler)
+    }
+
+    fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
+        if let Ok(mut sampler) = Self::new(config.clone(), metrics) {
+            handle.spawn(async move {
+                loop {
+                    let _ = sampler.sample().await;
+                }
+            });
+        } else if !config.fault_tolerant() {
+            fatal!("failed to initialize disk sampler");
         } else {
-            Ok(None)
+            error!("failed to initialize disk sampler");
         }
     }
 
@@ -90,72 +74,144 @@ impl Sampler for Disk {
         &self.common
     }
 
-    fn name(&self) -> String {
-        "disk".to_string()
+    fn common_mut(&mut self) -> &mut Common {
+        &mut self.common
     }
 
-    fn sample(&mut self) -> Result<(), ()> {
-        trace!("sample {}", self.name());
-        let time = time::precise_time_ns();
-        let mut current = HashMap::new();
-        if (time - self.last_refreshed) >= REFRESH {
-            self.devices = self.get_devices();
-            self.last_refreshed = time;
+    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        self.common.config().samplers().disk()
+    }
+
+    async fn sample(&mut self) -> Result<(), std::io::Error> {
+        if let Some(ref mut delay) = self.delay() {
+            delay.tick().await;
         }
-        for device in self.devices.clone() {
-            let entry = Entry::for_device(&device);
-            current.insert(device, entry);
+
+        if !self.sampler_config().enabled() {
+            return Ok(());
         }
+
+        debug!("sampling");
         self.register();
-        self.record(time, current.values().sum());
+
+        // process diskstats
+        let file = File::open("/proc/diskstats").await?;
+        let reader = BufReader::new(file);
+        let mut lines = reader.lines();
+        let mut result = HashMap::new();
+        while let Some(line) = lines.next_line().await? {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts[1] == "0" {
+                for statistic in self.sampler_config().statistics() {
+                    if let Some(field) = statistic.diskstat_field() {
+                        if !result.contains_key(statistic) {
+                            result.insert(*statistic, 0);
+                        }
+                        let current = result.get_mut(statistic).unwrap();
+                        *current += parts[field].parse().unwrap_or(0);
+                    }
+                }
+            }
+        }
+
+        let time = time::precise_time_ns();
+        for (stat, value) in result {
+            let value = match stat {
+                DiskStatistic::BandwidthWrite
+                | DiskStatistic::BandwidthRead
+                | DiskStatistic::BandwidthDiscard => value * 512,
+                _ => value,
+            };
+            self.metrics().record_counter(&stat, time, value);
+        }
+
+        // process bpf
+        #[cfg(feature = "bpf")]
+        {
+            if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+                if let Some(ref bpf) = self.bpf {
+                    let bpf = bpf.lock().unwrap();
+                    for statistic in self.sampler_config().statistics() {
+                        if let Some(table) = statistic.bpf_table() {
+                            let mut table = (*bpf).inner.table(table);
+
+                            for (&value, &count) in &map_from_table(&mut table) {
+                                if count > 0 {
+                                    self.metrics().record_distribution(
+                                        statistic,
+                                        time,
+                                        value * MICROSECOND,
+                                        count,
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+                *self.bpf_last.lock().unwrap() = Instant::now();
+            }
+        }
+
         Ok(())
     }
 
-    fn interval(&self) -> usize {
-        self.common()
-            .config()
-            .disk()
-            .interval()
-            .unwrap_or_else(|| self.common().config().interval())
+    fn summary(&self, statistic: &Self::Statistic) -> Option<Summary> {
+        let precision = if statistic.bpf_table().is_some() {
+            2
+        } else {
+            3
+        };
+
+        let max = if statistic.bpf_table().is_some() {
+            SECOND
+        } else {
+            TEBIBYTE
+        };
+
+        Some(Summary::histogram(
+            max,
+            precision,
+            Some(self.general_config().window()),
+        ))
+    }
+}
+
+impl Disk {
+    // checks that bpf is enabled in config and one or more bpf stats enabled
+    #[cfg(feature = "bpf")]
+    fn bpf_enabled(&self) -> bool {
+        if self.sampler_config().bpf() {
+            for statistic in self.sampler_config().statistics() {
+                if statistic.bpf_table().is_some() {
+                    return true;
+                }
+            }
+        }
+        false
     }
 
-    fn register(&mut self) {
-        if !self.common.initialized() {
-            trace!("register {}", self.name());
-            self.devices = self.get_devices();
-            self.last_refreshed = time::precise_time_ns();
-            for statistic in &[
-                Statistic::BandwidthDiscard,
-                Statistic::BandwidthRead,
-                Statistic::BandwidthWrite,
-            ] {
-                self.common
-                    .register_counter(statistic, TRILLION, 3, PERCENTILES);
-            }
-            for statistic in &[
-                Statistic::OperationsDiscard,
-                Statistic::OperationsRead,
-                Statistic::OperationsWrite,
-            ] {
-                self.common
-                    .register_counter(statistic, BILLION, 3, PERCENTILES);
-            }
-            self.common.set_initialized(true);
-        }
-    }
+    fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
+        #[cfg(feature = "bpf")]
+        {
+            if self.bpf_enabled() {
+                debug!("initializing bpf");
+                // load the code and compile
+                let code = include_str!("bpf.c");
+                let mut bpf = bcc::core::BPF::new(code)?;
+                // load + attach kprobes!
+                let trace_pid_start = bpf.load_kprobe("trace_pid_start")?;
+                let trace_req_start = bpf.load_kprobe("trace_req_start")?;
+                let trace_mq_req_start = bpf.load_kprobe("trace_req_start")?;
+                let do_count = bpf.load_kprobe("do_count")?;
 
-    fn deregister(&mut self) {
-        trace!("deregister {}", self.name());
-        for statistic in &[
-            Statistic::BandwidthDiscard,
-            Statistic::BandwidthRead,
-            Statistic::BandwidthWrite,
-            Statistic::OperationsDiscard,
-            Statistic::OperationsRead,
-            Statistic::OperationsWrite,
-        ] {
-            self.common.delete_channel(statistic);
+                bpf.attach_kprobe("blk_account_io_start", trace_pid_start)?;
+                bpf.attach_kprobe("blk_start_request", trace_req_start)?;
+                bpf.attach_kprobe("blk_mq_start_request", trace_mq_req_start)?;
+                bpf.attach_kprobe("blk_account_io_completion", do_count)?;
+                self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+            }
         }
-        self.common.set_initialized(false);
+
+        Ok(())
     }
 }

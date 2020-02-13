@@ -1,37 +1,24 @@
-// Copyright 2019 Twitter, Inc.
+// Copyright 2019-2020 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-mod container;
-mod cpu;
-mod cpuidle;
-mod disk;
-mod ebpf;
+mod exposition;
 mod general;
-mod kafka;
-mod network;
-mod perf;
-mod softnet;
-
-use self::container::Container;
-use self::cpu::Cpu;
-use self::cpuidle::CpuIdle;
-use self::disk::Disk;
-use self::ebpf::Ebpf;
-use self::general::General;
-use self::kafka::Kafka;
-use self::network::Network;
-use self::perf::Perf;
-use self::softnet::Softnet;
-
-use crate::*;
+mod samplers;
 
 use std::io::Read;
 use std::net::{SocketAddr, ToSocketAddrs};
 
 use clap::{App, Arg};
 use logger::Level;
+use metrics::Percentile;
 use serde_derive::*;
+
+use crate::*;
+
+use config::exposition::*;
+pub use config::general::General;
+use config::samplers::*;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const NAME: &str = env!("CARGO_PKG_NAME");
@@ -40,25 +27,11 @@ pub const NAME: &str = env!("CARGO_PKG_NAME");
 #[serde(deny_unknown_fields)]
 pub struct Config {
     #[serde(default)]
-    container: Container,
-    #[serde(default)]
-    cpu: Cpu,
-    #[serde(default)]
-    cpuidle: CpuIdle,
-    #[serde(default)]
-    disk: Disk,
-    #[serde(default)]
-    ebpf: Ebpf,
+    exposition: Exposition,
     #[serde(default)]
     general: General,
     #[serde(default)]
-    kafka: Kafka,
-    #[serde(default)]
-    network: Network,
-    #[serde(default)]
-    perf: Perf,
-    #[serde(default)]
-    softnet: Softnet,
+    samplers: Samplers,
 }
 
 impl Config {
@@ -117,60 +90,17 @@ impl Config {
         self.general.logging()
     }
 
-    pub fn memcache(&self) -> Option<SocketAddr> {
-        self.general
-            .memcache()
-            .map(|v| v.to_socket_addrs().unwrap().next().unwrap())
-    }
-
-    pub fn stats_log(&self) -> Option<String> {
-        self.general.stats_log()
-    }
-
-    pub fn container(&self) -> &Container {
-        &self.container
-    }
-
-    pub fn cpu(&self) -> &Cpu {
-        &self.cpu
-    }
-
-    pub fn cpuidle(&self) -> &CpuIdle {
-        &self.cpuidle
-    }
-
-    pub fn disk(&self) -> &Disk {
-        &self.disk
+    #[allow(dead_code)]
+    pub fn exposition(&self) -> &Exposition {
+        &self.exposition
     }
 
     pub fn general(&self) -> &General {
         &self.general
     }
 
-    pub fn interval(&self) -> usize {
-        self.general().interval()
-    }
-
-    pub fn kafka(&self) -> &Kafka {
-        &self.kafka
-    }
-
-    pub fn network(&self) -> &Network {
-        &self.network
-    }
-
-    #[cfg(feature = "perf")]
-    pub fn perf(&self) -> &Perf {
-        &self.perf
-    }
-
-    pub fn softnet(&self) -> &Softnet {
-        &self.softnet
-    }
-
-    #[allow(dead_code)]
-    pub fn ebpf(&self) -> &Ebpf {
-        &self.ebpf
+    pub fn samplers(&self) -> &Samplers {
+        &self.samplers
     }
 
     pub fn fault_tolerant(&self) -> bool {
@@ -194,6 +124,17 @@ impl Config {
 }
 
 pub trait SamplerConfig {
-    fn enabled(&self) -> bool;
+    type Statistic;
+    fn bpf(&self) -> bool {
+        false
+    }
+    fn enabled(&self) -> bool {
+        false
+    }
     fn interval(&self) -> Option<usize>;
+    fn percentiles(&self) -> &[Percentile];
+    fn perf_events(&self) -> bool {
+        false
+    }
+    fn statistics(&self) -> &[<Self as config::SamplerConfig>::Statistic];
 }

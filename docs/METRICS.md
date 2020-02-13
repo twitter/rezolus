@@ -11,231 +11,321 @@ by:
 * `/maximum/offset_ms` - the offset into the minute at which the maximum
   occurred
 
-## Container
-
-Instruments the container Rezolus is running within. Providing enhanced
-telemetry for containerized environments like Mesos by running as a sidecar
-process.
-
-* `container/cpu/system` - the amount of time, in nanoseconds, the container has
-  spent in kernel-space
-* `container/cpu/total` - the amount of time, in nanoseconds, the container has
-  been running
-* `container/cpu/user` - the amount of time, in nanoseconds, the container has
-  spent in user-space
+Sampler configurations will refer to the metrics according to their basenames as
+used in the descriptions below.
 
 ## CPU
 
-Provides system-wide CPU utilization telemetry. The following are taken from
-`/proc/stat`
+Provides system-wide CPU telemetry.
 
-* `cpu/user` - the amount of time, in nanoseconds, spent in user-space
-* `cpu/nice` - the amount of time, in nanoseconds, spent on lower-priority
-  tasks
-* `cpu/system` - the amount of time, in nanoseconds, spent in kernel-space
-* `cpu/idle` - the amount of time, in nanoseconds, where nothing is running
-* `cpu/irq` - the amount of time, in nanoseconds, handling interrupts
-* `cpu/softirq` - the amount of time, in nanoseconds, handling soft interrupts
-* `cpu/steal` - the amount of time, in nanoseconds, stolen by the hypervisor
-* `cpu/guest` - the amount of time, in nanoseconds, running a guest VM
-* `cpu/guest_nice` - the amount of time, in nanoseconds, running a low-priority
-  guest VM
+### Basic
+* `cpu/cstate/c0/time` - nanoseconds spent in c0 state, Active Mode
+* `cpu/cstate/c1/time` - nanoseconds spent in c1 state, Auto Halt
+* `cpu/cstate/c1e/time` - nanoseconds spent in c1e state, Auto Halt + low
+  frequency + low voltage
+* `cpu/cstate/c2/time` - nanoseconds spent in c2 state, temporary before c3 with
+  memory paths still open
+* `cpu/cstate/c3/time` - nanoseconds spent in c3 state, L1/L2 flush + clocks off
+* `cpu/cstate/c6/time` - nanoseconds spent in c6 state, save core states before
+  shutdown and PLL off
+* `cpu/cstate/c7/time` - nanoseconds spent in c7 state, c6 + LLC may flush
+* `cpu/cstate/c8/time` - nanoseconds spent in c8 state, c7 + LLC must flush
+* `cpu/usage/guest` - nanoseconds spent running a guest VM
+* `cpu/usage/guestnice` - nanoseconds spent running a low-priority guest VM
+* `cpu/usage/idle` - nanoseconds spent idle
+* `cpu/usage/irq` - nanoseconds spent handling interrupts
+* `cpu/usage/nice` - nanoseconds spent on lower-priority tasks
+* `cpu/usage/softirq` - nanoseconds spent handling soft interrupts
+* `cpu/usage/steal` - nanoseconds stolen by the hypervisor
+* `cpu/usage/system` - nanoseconds spent in kernel-space
+* `cpu/usage/user` - nanoseconds spent in user-space
 
-## CPU Idle
+### perf_events
+* `cpu/bpu/branch` - total branch instructions
+* `cpu/bpu/miss` - branch predictions resulting in miss
+* `cpu/cache/access` - total cache accesses
+* `cpu/cache/miss` - cache accesses resulting in miss
+* `cpu/cycles` - cpu cycles elapsed, may not be accurate with frequency scaling.
+  consult processor documentation for details and consider using
+  `cpu/reference_cycles` metric
+* `cpu/dtlb/load/access` - total dtlb loads
+* `cpu/dtlb/load/miss` - dtlb loads resulting in miss
+* `cpu/dtlb/store/access` - total dtlb stores
+* `cpu/dtlb/store/miss` - dtlb stores resulting in miss
+* `cpu/instructions` - instructions retired
+* `cpu/reference_cycles` - reference number of cpu cycles elapsed, may not be
+  present on all processors. consult processor documentation
+* `cpu/stalled_cycles/backend` - cycles stalled waiting on backend, eg memory
+  access
+* `cpu/stalled_cycles/frontend` - cycles stalled waiting on frontend, eg
+  instructions
 
-Provides system-wide telemetry for CPU idle states. The following are taken from
-`/sys/devices/system/cpu/...`
-
-* `cpuidle/state0` - the number of nanoseconds the CPUs have spent in State 0
-* `cpuidle/state1` - the number of nanoseconds the CPUs have spent in State 1
-* `cpuidle/state2` - the number of nanoseconds the CPUs have spent in State 2
-* `cpuidle/state3` - the number of nanoseconds the CPUs have spent in State 3
 
 ## Disk
 
-Provides system-wide telemetry for block storage. The following are taken from
-`/sys/class/block/...`
+Provides system-wide telemetry for disk devices
 
-* `disk/bandwidth/read` - the number of bytes read from disk
-* `disk/bandwidth/write` - the number of bytes written to disk
-* `disk/operations/read` - the number of IOs servicing reads
-* `disk/operations/write` - the number of IOs servicing writes
+### Basic
 
-## Rezolus
+* `disk/discard/bytes` - bytes marked as unused on SSD devices 
+* `disk/discard/operations` - total number of discards completed
+* `disk/read/bytes` - bytes read from disk devices
+* `disk/read/operations` - total number of reads completed
+* `disk/write/bytes` - bytes written to disk devices
+* `disk/write/operations` - total number of writes completed
 
-The following capture the resource utilization of Rezolus
+### eBPF
 
-* `rezolus/memory/virtual` - the virtual address space in bytes
-* `rezolus/memory/resident` - the number of bytes of RAM occupied
-* `rezolus/cpu/kernel` - the amount of time, in nanoseconds, spent in
-  kernel-mode
-* `rezolus/cpu/user` - the amount of time, in nanoseconds, spent in user-space
+* `disk/read/device_latency` - latency distribution, in nanoseconds, waiting for
+  disk to complete a read operation
+* `disk/read/latency` - end-to-end latency distribution, in nanoseconds, for
+  read operations
+* `disk/read/io_size` - size distribution, in bytes, for read operations
+* `disk/read/queue_latency` - latency distribution, in nanoseconds, where read
+  was waiting on the device queue
+* `disk/write/device_latency` - latency distribution, in nanoseconds, waiting
+  for disk to complete a write operation
+* `disk/write/io_size` - size distribution, in bytes, for write operations
+* `disk/write/latency` - end-to-end latency distribution, in nanoseconds, for
+  write operations
+* `disk/write/queue_latency` - latency distribution, in nanoseconds, where write
+  was waiting on the device queue
 
-## eBPF
+## EXT4
 
-All of the following subsections are eBPF telemetry
+Provides system-wide telemetry for EXT4 filesystems
 
-### Block
+### eBPF
 
-Captures system-wide telemetry about block IO
+* `ext4/fsync/latency` - latency distribution, in nanoseconds, for `fsync()` on
+  ext4 filesystems
+* `ext4/open/latency` - latency distribution, in nanoseconds, for `open()` on
+  ext4 filesystems
+* `ext4/read/latency` - latency distribution, in nanoseconds, for `read()` on
+  ext4 filesystems
+* `ext4/write/latency` - latency distribution, in nanoseconds, for `write()` on
+  ext4 filesystems
 
-* `block/device_latency/read` - distribution of device latency for read
-* `block/device_latency/write` - distribution of device latency for write
-* `block/latency/read` - distribution of end-to-end latency for read
-* `block/latency/write` - distribution of end-to-end latency for write
-* `block/queue_latency/read` - distribution of queue latency for read
-* `block/queue_latency/write` - distribution of queue latency for write
-* `block/size/read` - distribution of sizes in kilobytes for reads
-* `block/size/write` - distribution of sizes in kilobytes for writes
+## Memory
 
+### Basic
 
-### EXT4
-
-Capture system-wide filesystem latency for EXT4
-
-* `ext4/read` - distribution of latency for read operations in nanoseconds
-* `ext4/write` - distribution of latency for write operations in nanoseconds
-* `ext4/fsync` - distribution of latency for fsync operations in nanoseconds
-* `ext4/open` - distribution of latency for open operations in nanoseconds
-
-### Network
-
-Provides additional system-wide telemetry for networking
-
-* `network/receive/size` - distribution of received packet sizes in bytes
-* `network/transmit/size` - distribution of transmitted packet sizes in bytes
-
-### Scheduler
-
-Captures system-wide scheduler telemetry
-
-* `scheduler/runqueue_latency_ns` - distribution of the amount of time in
-  nanoseconds that runnable tasks are waiting to be scheduled onto a core
-
-### TCP
-
-Captures additional system-wide telemetry for TCP
-
-* `network/tcp/connect/latency` - distribution of latency for establishing
-active (outbound) connections
-
-### XFS
-
-Capture system-wide filesystem latency for XFS
-
-* `xfs/read` - distribution of latency for read operations in nanoseconds
-* `xfs/write` - distribution of latency for write operations in nanoseconds
-* `xfs/fsync` - distribution of latency for fsync operations in nanoseconds
-* `xfs/open` - distribution of latency for open operations in nanoseconds
+* `memory/active/anon` - the amount of anonymous and tmpfs/shmem memory, in
+  bytes, that is in active use, or was in active use since the last time the
+  system moved something to swap.
+* `memory/active/file` - the amount of file cache memory, in bytes, that is in
+  active use, or was in active use since the last time the system reclaimed
+  memory.
+* `memory/active/total` - the amount of memory, in bytes, that has been used
+  more recently and is usually not reclaimed unless absolutely necessary.
+* `memory/anon_hugepages` - the total amount of memory, in bytes, used by huge
+  pages that are not backed by files and are mapped into userspace page tables.
+* `memory/anon_pages` - the total amount of memory, in bytes, used by pages that
+  are not backed by files and are mapped into userspace page tables.
+* `memory/available` - estimate of the amount of memory, in bytes, available on
+  the system to allocate without swapping
+* `memory/bounce` - the amount of memory, in bytes, used for the block device
+  "bounce buffers".
+* `memory/buffers` - the amount, in bytes, of temporary storage for raw disk
+  blocks
+* `memory/cached` - the amount of physical RAM, in bytes, used as cache memory
+* `memory/commit/committed` - the total amount of memory, in bytes, estimated to
+  complete the workload. This value represents the worst case scenario value,
+  and also includes swap memory.
+* `memory/commit/limit` - total amount of memory, inb bytes, currently available
+  to be allocated on the system based on the overcommit ratio
+* `memory/directmap/1G` - the amount of memory, in bytes, mapped into kernel
+  address space with 1 GB page mappings.
+* `memory/directmap/2M` - the amount of memory, in bytes, mapped into kernel
+  address space with 2 MB page mappings.
+* `memory/directmap/4k` - the amount of memory, in bytes, mapped into kernel
+  address space with 4 kB page mappings.
+* `memory/dirty` - the total amount of memory, in bytes, waiting to be written
+  back to the disk.
+* `memory/free` - the amount of physical RAM, in bytes, left unused by the
+  system
+* `memory/hardware_corrupted` - the amount of memory, in bytes, with physical
+  memory corruption problems, identified by the hardware and set aside by the
+  kernel so it does not get used.
+* `memory/hugepage_size` - the size for each hugepages unit in bytes.
+* `memory/hugepages/free` - the total number of hugepages available for the
+  system.
+* `memory/hugepages/reserved` - the number of unused huge pages reserved for
+  hugetlbfs.
+* `memory/hugepages/surplus` - the number of surplus huge pages.
+* `memory/hugepages/total` - the total number of hugepages for the system.
+* `memory/hugetlb`
+* `memory/inactive/anon` - the amount of anonymous and tmpfs/shmem memory, in
+  bytes, that is a candidate for eviction.
+* `memory/inactive/file` - the amount of file cache memory, in bytes, that is
+  newly loaded from the disk, or is a candidate for reclaiming.
+* `memory/inactive/total` - the amount of memory, in bytes, that has been used
+  less recently and is more eligible to be reclaimed for other purposes.
+* `memory/kernel_stack` - the amount of memory, in bytes, used by the kernel
+  stack allocations done for each task in the system.
+* `memory/mapped` - the memory, in bytes, used for files that have been mmaped,
+  such as libraries.
+* `memory/mlocked` - the total amount of memory, in bytes, that is not evictable
+  because it is locked into memory by user programs.
+* `memory/nfs_unstable` - the amount, in bytes, of NFS pages sent to the server
+  but not yet committed to the stable storage.
+* `memory/page_tables` - the total amount of memory, in bytes, dedicated to the
+  lowest page table level.
+* `memory/shmem_hugepages` - the number of hugepages which are used for shared
+  memory allocated as transparent hugepages
+* `memory/shmem_pmd_mapped` - the number of hugepages which are used for
+  application transparent hugepages
+* `memory/shmem` - the total amount of memory, in bytes, used by shared memory
+  (shmem) and tmpfs.
+* `memory/slab/reclaimable` - the part of Slab that can be reclaimed, such as
+  caches.
+* `memory/slab/total` - the total amount of memory, in bytes, used by the kernel
+  to cache data structures for its own use.
+* `memory/slab/unreclaimable` - the part of Slab that cannot be reclaimed even
+  when lacking memory.
+* `memory/swap/cached` - the amount of memory, in bytes, that has once been
+  moved into swap, then back into the main memory, but still also remains in the
+  swapfile. This saves I/O, because the memory does not need to be moved into
+  swap again.
+* `memory/swap/free` - the total amount of swap free, in bytes.
+* `memory/swap/total` - the total amount of swap available, in bytes.
+* `memory/total` - total amount of usable RAM, in bytes, which is physical RAM
+  minus a number of reserved bits and the kernel binary code
+* `memory/unevictable` - the amount of memory, in bytes, discovered by the
+  pageout code, that is not evictable because it is locked into memory by user
+  programs.
+* `memory/vmalloc/chunk` - the largest contiguous block of memory, in bytes, of
+  available virtual address space.
+* `memory/vmalloc/total` -  total amount of memory, in bytes, of total allocated
+  virtual address space.
+* `memory/vmalloc/used` - total amount of memory, in bytes, of used virtual
+  address space.
+* `memory/writeback_temp` - the amount of memory, in bytes, used by FUSE for
+  temporary writeback buffers.
+* `memory/writeback` - the total amount of memory, in bytes, actively being
+  written back to the disk.
 
 ## Network
 
-Capture system-wide telemetry for network interfaces and protocols. Reads from
-`/sys/class/net/...`, `/proc/net/snmp`, and `/proc/net/netstat`
+Provides system-wide network telemetry
 
-### Interface telemetry
+### Basic
 
-* `network/receive/bytes` - `rx_bytes` number of bytes received
-* `network/receive/errors/crc` - `rx_crc_errors` number of packets with CRC
-  error. Specific meaning may vary depending on the MAC layer, but could mean
-  there is packet corruption.
-* `network/receive/errors/discards_phy` - `rx_discards_phy` number of packets
-  dropped due to lack of buffer space on the NIC. Implies the adapter is
-  congested and cannot absorb the traffic coming from the network.
-* `network/receive/dropped` - `rx_dropped_errors` number of packets dropped and
-  not forwarded to the upper layers for packet processing. Exact meaning varies
-  with network driver.
-* `network/receive/errors/total` - `rx_errors` the number of errors on receive
-* `network/reveive/errors/fifo` - `rx_fifo_errors` Indicates number of receive
-  FIFO errors seen by this network device. Applies to: `mlx4`
-* `network/receive/errors/misses` - `rx_missed_errors` Indicates number of
-  packets which have been missed due to lack of capacity in the receive side.
-  Applies to: `ixgbe`
-* `network/receive/packets` - `rx_packets` the total number of packets received
-* `network/transmit/bytes` - `tx_bytes` the number of bytes transmitted
-* `network/transmit/errors/discards_phy` - `tx_discards_phy` the number of
-  packets dropped due to lack of buffers on transmit. Implies the adapter is
-  congested and cannot absorb the traffic. Applies to: `mlx5`
-* `network/transmit/dropped` - `tx_dropped` number of packets dropped on
-  transmit
-* `network/transmit/errors/total` - `tx_errors` number of errors on transmit
-* `network/transmit/errors/fifo` - `tx_fifo_errors` Indicates number of
-  transmit FIFO errors seen by this network device. Applies to: `mlx4`
-* `network/transmit/packets` - `tx_packets` number of packets transmitted
+* `network/receive/bytes` - number of bytes received on all network interfaces
+* `network/receive/compressed` - number of compressed packets received
+* `network/receive/drops` - number of received packets which were dropped by the
+  device driver
+* `network/receive/errors` - number of receive errors detected by the device
+  driver
+* `network/receive/fifo` - number of FIFO buffer errors on receive
+* `network/receive/frame` - number of packets received with framming errors
+* `network/receive/multicast` - number of multicast packets received
+* `network/receive/packets` - total number of packets received
+* `network/transmit/bytes` - number of bytes transmitted on all network
+  interfaces
+* `network/transmit/carrier` - number of carrier losses detected by the device
+ driver
+* `network/transmit/collisions` - number of collisions detected
+* `network/transmit/compressed` - number of compressed packets transmitted
+* `network/transmit/drops` - number of packets to transmit which were dropped by
+  the device driver
+* `network/transmit/errors` - total number of errors when transmitting packets
+* `network/transmit/fifo` - number of FIFO buffer errors on transmit
+* `network/transmit/packets` - total number of packets transmitted
 
-### Protocol telemetry
+### eBPF
 
-#### TCP Telemetry
+* `network/receive/size` - size distribution, in bytes, of received packets
+* `network/transmit/size` - size distribution, in bytes, of transmitted packets
 
-* `network/tcp/receive/segments` - `tcp_in_segs` number of TCP segments
-  received
-* `network/tcp/transmit/segments` - `tcp_out_segs` number of TCP segments sent
-* `network/tcp/receive/prune_called` - `tcp_prune_called` indicates extreme
-  memory pressure on the TCP buffers and that the kernel is dropping packets.
-  This is very bad.
-* `network/tcp/receive/collapsed` - `tcp_rcv_collapsed` indicates memory
-  pressure on the TCP buffers
-* `network/tcp/transmit/retransmits` - `tcp_retrans_segs` indicates number of
-  segments which have been retransmitted
+## Rezolus
 
-#### UDP Telemetry
+Provides telemetry about Rezolus itself
 
-* `network/udp/receive/datagrams` - `udp_in_datagrams` indicates number of
-  datagrams received
-* `network/udp/receive/errors` - `udp_in_errors` indicates number of errors on
-  incoming datagrams
-* `network/udp/transmit/datagrams` - `udp_out_datagrams` indicates number of
-  datagrams transmitted
+### Basic
+* `rezolus/cpu/user` - nanoseconds spent in user mode running Rezolus
+* `rezolus/cpu/system` - nanoseconds spent in system mode running Rezolus
+* `rezolus/memory/virtual` - total virtual memory allocated to Rezolus
+* `rezolus/memory/resident` - amount of memory actually used by Rezolus
 
-## Perf
 
-The following telemetry is gathered from the perf events subsystem and provides
-a view into hardware and software performance system-wide
+## Scheduler
 
-* `perf/cache/dtlb/read/references` - `dtlb_loads` total number of read
-  references to the dTLB
-* `perf/cache/dtlb/read/misses` - `dtlb_load_misses` number of dTLB reads
-  resulting in miss
-* `perf/cache/dtlb/write/references` - `dtlb_stores` total number of write
-  references to the dTLB
-* `perf/cache/dtlb/write/misses` - `dtlb_store_misses` number of dTLB writes
-  resulting in miss
-* `perf/cache/misses` - `cache_misses` number of cache references resulting in
-  miss
-* `perf/cache/references` - `cache_references` total number of cache references
-* `perf/cpu/branch_instructions` - `cpu_branch_instruction` total number of
-  branch instructions
-* `perf/cpu/branch_misses` - `cpu_branch_misses` number of branch predictions
-  missed
-* `perf/cpu/cycles` - `cpu_cycles` number of cycles **may not be accurate with
-  frequency scaling**
-* `perf/cpu/cycles/stalled/backend` - `stalled_cycles_backend` number of cycles
-  stalled waiting on backend
-* `perf/cpu/cycles/stalled/frontend` - `stalled_cycles_frontend` number of
-  cycles stalled waiting on frontend
-* `perf/cpu/instructions` - `cpu_instructions` number of instructions retired
-* `perf/cpu/reference_cycles` - `cpu_ref_cycles` number of cycles **accurate**
-* `perf/memory/read/references` - `memory_loads` number of memory read accesses
-* `perf/memory/read/misses` - `memory_load_misses` number of memory reads
-  resulting in miss
-* `perf/memory/write/references` - `memory_stores` number of memory write
-  accesses
-* `perf/memory/write/misses` - `memory_store_misses` number of memory writes
-  resulting in miss
-* `perf/system/context_switches` - `context_switches` number of context switches
-* `perf/system/cpu_migrations` - `cpu_migrations` number of times a task
-  migrated between cores
-* `perf/system/page_faults` - `page_faults` number of page faults
+Provides telemetry about the Linux Scheduler
+
+### Basic
+
+* `scheduler/context_switches` - number of context switches
+* `scheduler/processes/created` - number of processes created
+* `scheduler/processes/running` - number of processes currently running
+* `scheduler/processes/blocked` - number of processes currently blocked
+
+### perf_events
+
+* `scheduler/cpu_migrations` - number of times processes have been migrated
+  across CPUs
+
+### eBPF
+
+* `scheduler/runqueue/latency` - the distribution of time that runnable tasks
+  were waiting on the runqueue
 
 ## Softnet
 
-Provides system-wide telemetry about packet processing gathered from
-`/proc/net/softnet_stat`
+### Basic
 
-* `softnet/processed` - total number of packets processed by the kernel network
-  stack
-* `softnet/dropped` - number of packets dropped by the kernel network stack
-* `softnet/time_squeezed` - number of times the kernel network stack could not
-  complete its work within its working interval. Indicates that the network
-  stack is overwhelmed or unable to get sufficient CPU time.
+* `softnet/processed` - the total number of packets processed in the softnet
+  layer
+* `softnet/dropped` - the number of packets dropped
+* `softnet/time_squeezed` - number of times that packet processing did not
+  complete within the time slice
+* `softnet/cpu_collision` - collisions occurring obtaining device lock while
+  transmitting
+* `softnet/received_rps` - number of times cpus woken up for received rps
+* `softnet/flow_limit_count` - number of times the flow limit count was reached
 
+## TCP
+
+## Basic
+
+* `tcp/receive/checksum_error` - segments received with invalid checksum
+* `tcp/receive/collapsed` - segments collapsed in the receive queue
+* `tcp/receive/error` - total number of errors on receive
+* `tcp/receive/listen_drops` - number of SYNs to LISTEN sockets ignored
+* `tcp/receive/listen_overflows` - times the listen queue of a socket overflowed
+* `tcp/receive/ofo_pruned` - number of packets pruned from the out-of-order
+  queue due to socket buffer overrun
+* `tcp/receive/prune_called` - number of packets pruned from the receive queue
+  because of socket buffer overrun
+* `tcp/receive/pruned` - packets pruned from the receive queue
+* `tcp/receive/segment` - total number of segments received
+* `tcp/syncookies/failed` - number of invalid SYN cookies received
+* `tcp/syncookies/received` - number of SYN cookies received
+* `tcp/syncookies/sent` - number of SYN cookies sent
+* `tcp/transmit/delayed_ack` - number of delayed ACKs sent
+* `tcp/transmit/reset` - number of RSTs sent
+* `tcp/transmit/retransmit` - number of segments retransmitted
+* `tcp/transmit/segment` - number of segments transmitted
+
+### eBPF
+
+* `tcp/connect/latency` - end-to-end latency, in nanoseconds, from an active
+  outbount `connect()` until the socket is established
+
+## UDP
+
+* `udp/receive/datagrams` - number of datagrams received
+* `udp/receive/errors` - number of errors on receive
+* `udp/transmit/datagrams` - number of datagrams transmitted
+
+
+## XFS
+
+* `xfs/fsync/latency` - latency distribution, in nanoseconds, for `fsync()` on
+  xfs filesystems
+* `xfs/open/latency` - latency distribution, in nanoseconds, for `open()` on
+  xfs filesystems
+* `xfs/read/latency` - latency distribution, in nanoseconds, for `read()` on
+  xfs filesystems
+* `xfs/write/latency` - latency distribution, in nanoseconds, for `write()` on
+  xfs filesystems
