@@ -1,4 +1,13 @@
 # [Unreleased]
+# [2.0.0] - 2020-02-14
+## Changed
+- Config format updated to be more flexible in configuring individual samplers
+- Moved BPF and perf functionality into each sampler so that samplers focus on
+  particular aspects of performance and not method of gathering telemetry
+- Runtime is now async and samplers rewritten to use async/await
+
+## Added
+- Push-based exposition of metrics to Kafka
 
 # [1.3.0] - 2019-12-20
 ## Added
@@ -42,7 +51,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/twitter/rezolus/compare/v1.3.0...v2.0.0
 [1.3.0]: https://github.com/twitter/rezolus/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/twitter/rezolus/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/twitter/rezolus/compare/v1.0.1...v1.1.0
