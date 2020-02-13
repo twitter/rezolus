@@ -17,6 +17,8 @@ pub struct General {
     logging: Level,
     #[serde(default = "default_interval")]
     interval: AtomicUsize,
+    #[serde(default = "default_threads")]
+    threads: usize,
     #[serde(default = "default_window")]
     window: AtomicUsize,
     #[serde(default = "default_fault_tolerant")]
@@ -41,6 +43,10 @@ impl General {
         self.interval.load(Ordering::Relaxed)
     }
 
+    pub fn threads(&self) -> usize {
+        self.threads
+    }
+
     /// window for histogram lookback
     pub fn window(&self) -> Duration {
         Duration::new(self.window.load(Ordering::Relaxed) as u64, 0)
@@ -61,6 +67,7 @@ impl Default for General {
             listen: None,
             logging: default_logging_level(),
             interval: default_interval(),
+            threads: default_threads(),
             window: default_window(),
             fault_tolerant: default_fault_tolerant(),
         }
@@ -69,6 +76,10 @@ impl Default for General {
 
 fn default_interval() -> AtomicUsize {
     AtomicUsize::new(1000)
+}
+
+fn default_threads() -> usize {
+    1
 }
 
 fn default_window() -> AtomicUsize {

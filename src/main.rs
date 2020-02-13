@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let runtime = Builder::new()
         .threaded_scheduler()
         .enable_time()
-        .core_threads(4)
+        .core_threads(config.general().threads())
         .build()
         .unwrap();
 
