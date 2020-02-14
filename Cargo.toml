@@ -49,6 +49,7 @@ bpf_v0_8_0 = ["bpf", "bcc/v0_8_0"]
 bpf_v0_9_0 = ["bpf", "bcc/v0_9_0"]
 bpf_v0_10_0 = ["bpf", "bcc/v0_10_0"]
 bpf_v0_11_0 = ["bpf", "bcc/v0_11_0"]
+bpf_v0_12_0 = ["bpf", "bcc/v0_12_0"]
 perf = ["perfcnt"]
 push_kafka = ["kafka"]
 

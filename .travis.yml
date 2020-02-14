@@ -9,306 +9,105 @@ matrix:
       rust: nightly
       env: RUST_BACKTRACE=1
       script:
-        - cargo build
-        - cargo test
-        - cargo build --release
-        - cargo test --release
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+        - bash build/ci.sh
     - name: "default: bionic / nightly"
       os: linux
       dist: bionic
       rust: nightly
       env: RUST_BACKTRACE=1
       script:
-        - cargo build
-        - cargo test
-        - cargo build --release
-        - cargo test --release
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "bpf: xenial / nightly / llvm 8.0 / bcc 0.10.0"
+        - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 8 / bcc 0.10.0"
       os: linux
       dist: xenial
       rust: nightly
-      env: RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.10.0" FEATURES="bpf_v0_10_0"
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        - sudo apt-get update
-        - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-8-dev libelf-dev libllvm8 libz-dev lldb-8 llvm-8 llvm-8-dev llvm-8-runtime
-        - git clone https://github.com/iovisor/bcc || true
-        - cd bcc
-        - git checkout master
-        - git pull
-        - git checkout remotes/origin/tag_v0.10.0
-        - mkdir -p _build
-        - cd _build
-        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-        - make
-        - sudo make install
-        - cd ../..
-        - cargo build --features bpf_v0_10_0
-        - cargo test --features bpf_v0_10_0
-        - cargo build --release --features bpf_v0_10_0
-        - cargo test --release --features bpf_v0_10_0
-        - cargo run --release --features bpf_v0_10_0 -- --version
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "bpf: xenial / nightly / llvm 8.0 / bcc 0.11.0"
+        - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 8 / bcc 0.11.0"
       os: linux
       dist: xenial
       rust: nightly
-      env: RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.11.0" FEATURES="bpf_v0_11_0"
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        - sudo apt-get update
-        - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-8-dev libelf-dev libllvm8 libz-dev lldb-8 llvm-8 llvm-8-dev llvm-8-runtime
-        - git clone https://github.com/iovisor/bcc || true
-        - cd bcc
-        - git checkout master
-        - git pull
-        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
-        - mkdir -p _build
-        - cd _build
-        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-        - make
-        - sudo make install
-        - cd ../..
-        - cargo build --features bpf
-        - cargo test --features bpf
-        - cargo build --release --features bpf_v0_11_0
-        - cargo test --release --features bpf_v0_11_0
-        - cargo run --release --features bpf_v0_11_0 -- --version
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "bpf: xenial / nightly / llvm 8.0 / bcc latest"
+        - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 8 / bcc 0.12.0"
       os: linux
       dist: xenial
       rust: nightly
-      env: RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.12.0" FEATURES="bpf_v0_12_0"
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        - sudo apt-get update
-        - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-8-dev libelf-dev libllvm8 libz-dev lldb-8 llvm-8 llvm-8-dev llvm-8-runtime
-        - git clone https://github.com/iovisor/bcc || true
-        - cd bcc
-        - git checkout master
-        - git pull
-        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
-        - mkdir -p _build
-        - cd _build
-        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-        - make
-        - sudo make install
-        - cd ../..
-        - cargo build --features bpf
-        - cargo test --features bpf
-        - cargo build --release --features bpf
-        - cargo test --release --features bpf
-        - cargo run --release --features bpf -- --version
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "bpf: xenial / nightly / llvm 9.0 / bcc 0.10.0"
+        - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 8 / bcc latest"
       os: linux
       dist: xenial
       rust: nightly
-      env: RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="latest" FEATURES="bpf"
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        - sudo apt-get update
-        - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-9-dev libelf-dev libllvm9 libz-dev lldb-9 llvm-9 llvm-9-dev llvm-9-runtime
-        - git clone https://github.com/iovisor/bcc || true
-        - cd bcc
-        - git checkout master
-        - git pull
-        - git checkout remotes/origin/tag_v0.10.0
-        - mkdir -p _build
-        - cd _build
-        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-        - make
-        - sudo make install
-        - cd ../..
-        - cargo build --features bpf_v0_10_0
-        - cargo test --features bpf_v0_10_0
-        - cargo build --release --features bpf_v0_10_0
-        - cargo test --release --features bpf_v0_10_0
-        - cargo run --release --features bpf_v0_10_0 -- --version
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "bpf: xenial / nightly / llvm 9.0 / bcc 0.11.0"
+        - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 9 / bcc 0.10.0"
       os: linux
       dist: xenial
       rust: nightly
-      env: RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.10.0" FEATURES="bpf_v0_10_0"
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        - sudo apt-get update
-        - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-9-dev libelf-dev libllvm9 libz-dev lldb-9 llvm-9 llvm-9-dev llvm-9-runtime
-        - git clone https://github.com/iovisor/bcc || true
-        - cd bcc
-        - git checkout master
-        - git pull
-        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
-        - mkdir -p _build
-        - cd _build
-        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-        - make
-        - sudo make install
-        - cd ../..
-        - cargo build --features bpf
-        - cargo test --features bpf
-        - cargo build --release --features bpf_v0_11_0
-        - cargo test --release --features bpf_v0_11_0
-        - cargo run --release --features bpf_v0_11_0 -- --version
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "bpf: xenial / nightly / llvm 9.0 / bcc latest"
+        - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 9 / bcc 0.11.0"
       os: linux
       dist: xenial
       rust: nightly
-      env: RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.11.0" FEATURES="bpf_v0_11_0"
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        - sudo apt-get update
-        - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-9-dev libelf-dev libllvm9 libz-dev lldb-9 llvm-9 llvm-9-dev llvm-9-runtime
-        - git clone https://github.com/iovisor/bcc || true
-        - cd bcc
-        - git checkout master
-        - git pull
-        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
-        - mkdir -p _build
-        - cd _build
-        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-        - make
-        - sudo make install
-        - cd ../..
-        - cargo build --features bpf
-        - cargo test --features bpf
-        - cargo build --release --features bpf
-        - cargo test --release --features bpf
-        - cargo run --release --features bpf -- --version
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "bpf: bionic / nightly / llvm 10.0 / bcc 0.10.0"
+        - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 9 / bcc 0.12.0"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.12.0" FEATURES="bpf_v0_12_0"
+      script:
+        - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 9 / bcc latest"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="latest" FEATURES="bpf"
+      script:
+        - bash build/ci.sh
+    - name: "bpf: bionic / nightly / llvm 10 / bcc 0.10.0"
       os: linux
       dist: bionic
       rust: nightly
-      env: RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.10.0" FEATURES="bpf_v0_10_0"
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        - sudo apt-get update
-        - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex libfl-dev git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
-        - git clone https://github.com/iovisor/bcc || true
-        - cd bcc
-        - git checkout master
-        - git pull
-        - git checkout remotes/origin/tag_v0.10.0
-        - mkdir -p _build
-        - cd _build
-        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-        - make
-        - sudo make install
-        - cd ../..
-        - cargo build --features bpf_v0_10_0
-        - cargo test --features bpf_v0_10_0
-        - cargo build --release --features bpf_v0_10_0
-        - cargo test --release --features bpf_v0_10_0
-        - cargo run --release --features bpf_v0_10_0 -- --version
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "bpf: bionic / nightly / llvm 10.0 / bcc 0.11.0"
+        - bash build/ci.sh
+    - name: "bpf: bionic / nightly / llvm 10 / bcc 0.11.0"
       os: linux
       dist: bionic
       rust: nightly
-      env: RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.11.0" FEATURES="bpf_v0_11_0"
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        - sudo apt-get update
-        - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex libfl-dev git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
-        - git clone https://github.com/iovisor/bcc || true
-        - cd bcc
-        - git checkout master
-        - git pull
-        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
-        - mkdir -p _build
-        - cd _build
-        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-        - make
-        - sudo make install
-        - cd ../..
-        - cargo build --features bpf
-        - cargo test --features bpf
-        - cargo build --release --features bpf_v0_11_0
-        - cargo test --release --features bpf_v0_11_0
-        - cargo run --release --features bpf_v0_11_0 -- --version
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-    - name: "bpf: bionic / nightly / llvm 10.0 / bcc latest"
+        - bash build/ci.sh
+    - name: "bpf: bionic / nightly / llvm 10 / bcc 0.12.0"
       os: linux
       dist: bionic
       rust: nightly
-      env: RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.12.0" FEATURES="bpf_v0_12_0"
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        - sudo apt-get update
-        - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex libfl-dev git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
-        - git clone https://github.com/iovisor/bcc || true
-        - cd bcc
-        - git checkout master
-        - git pull
-        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
-        - mkdir -p _build
-        - cd _build
-        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-        - make
-        - sudo make install
-        - cd ../..
-        - cargo build --features bpf
-        - cargo test --features bpf
-        - cargo build --release --features bpf
-        - cargo test --release --features bpf
-        - cargo run --release --features bpf -- --version
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+        - bash build/ci.sh
+    - name: "bpf: bionic / nightly / llvm 10 / bcc latest"
+      os: linux
+      dist: bionic
+      rust: nightly
+      env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="latest" FEATURES="bpf"
+      script:
+        - bash build/ci.sh
     - name: "push_kafka: xenial / nightly"
       os: linux
       dist: xenial
       rust: nightly
-      env: RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1 FEATURES="push_kafka"
       script:
-        - cargo build --features push_kafka
-        - cargo test --features push_kafka
-        - cargo build --release --features push_kafka
-        - cargo test --release --features push_kafka
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-        - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+        - bash build/ci.sh
     - name: "no-default: xenial / stable"
       os: linux
       dist: xenial
