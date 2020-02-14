@@ -2,7 +2,7 @@
 
 ## Install toolchain
 if [[ "${TRAVIS_DIST}" == "xenial" ]]; then
-	if ${LLVM_VERSION} = "8"; then
+	if [[ "${LLVM_VERSION}" == "8" ]]; then
 		wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
         echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" | sudo tee -a /etc/apt/sources.list
         sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
