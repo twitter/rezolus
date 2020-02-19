@@ -163,8 +163,8 @@ matrix:
     - name: "clippy"
       os: linux
       dist: bionic
-      rust: nightly
-      env: TYPE=clippy RUST_BACKTRACE=1
+      rust: stable
+      env: RUST_BACKTRACE=1
       script:
         - rustup component add clippy
         - cargo clippy --features bpf
@@ -172,6 +172,5 @@ matrix:
       os: linux
       dist: bionic
       rust: stable
-      env: TYPE=shellcheck RUST_BACKTRACE=1
       script:
         - shellcheck build/*.sh
