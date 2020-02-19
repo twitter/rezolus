@@ -19,7 +19,7 @@ if [[ "${TRAVIS_DIST}" == "bionic" ]]; then
 fi
 
 ## Optionally build/install BCC
-if [ ! -z "${BCC_VERSION}" ]; then
+if [ -n "${BCC_VERSION}" ]; then
     git clone https://github.com/iovisor/bcc || true
     cd bcc
     git checkout master
