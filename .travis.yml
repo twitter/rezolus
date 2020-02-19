@@ -168,3 +168,10 @@ matrix:
       script:
         - rustup component add clippy
         - cargo clippy --features bpf
+    - name: "shellcheck"
+      os: linux
+      dist: bionic
+      rust: stable
+      env: TYPE=shellcheck RUST_BACKTRACE=1
+      script:
+        - shellcheck build/*.sh

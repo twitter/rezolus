@@ -2,32 +2,20 @@
 
 ## Install toolchain
 if [[ "${TRAVIS_DIST}" == "xenial" ]]; then
-    if [[ "${LLVM_VERSION}" == "8" ]]; then
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" | sudo tee -a /etc/apt/sources.list
-        sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        sudo apt-get update
-        sudo apt-get install linux-headers-`uname -r`
-        sudo apt-get --yes install bison build-essential cmake flex git libclang-common-8-dev libelf-dev libllvm8 libz-dev lldb-8 llvm-8 llvm-8-dev llvm-8-runtime
-    fi
-    if [[ "${LLVM_VERSION}" == "9" ]]; then
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" | sudo tee -a /etc/apt/sources.list
-        sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        sudo apt-get update
-        sudo apt-get install linux-headers-`uname -r`
-        sudo apt-get --yes install bison build-essential cmake flex git libclang-common-9-dev libelf-dev libllvm9 libz-dev lldb-9 llvm-9 llvm-9-dev llvm-9-runtime
-    fi
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+    echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-${LLVM_VERSION} main" | sudo tee -a /etc/apt/sources.list
+    sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+    sudo apt-get update
+    sudo apt-get install linux-headers-"$(uname -r)"
+    sudo apt-get --yes install bison build-essential cmake flex git libclang-common-"${LLVM_VERSION}"-dev libelf-dev libllvm"${LLVM_VERSION}" libz-dev lldb-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}"-dev llvm-"${LLVM_VERSION}"-runtime
 fi
 if [[ "${TRAVIS_DIST}" == "bionic" ]]; then
-    if [[ "${LLVM_VERSION}" == "10" ]]; then
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main" | sudo tee -a /etc/apt/sources.list
-        sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-        sudo apt-get update
-        sudo apt-get install linux-headers-`uname -r`
-        sudo apt-get --yes install bison build-essential cmake flex libfl-dev git libclang-common-10-dev libelf-dev libllvm10 libz-dev lldb-10 llvm-10 llvm-10-dev llvm-10-runtime
-    fi
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+    echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${LLVM_VERSION} main" | sudo tee -a /etc/apt/sources.list
+    sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+    sudo apt-get update
+    sudo apt-get install linux-headers-"$(uname -r)"
+    sudo apt-get --yes install bison build-essential cmake flex libfl-dev git libclang-common-"${LLVM_VERSION}"-dev libelf-dev libllvm"${LLVM_VERSION}" libz-dev lldb-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}"-dev llvm-"${LLVM_VERSION}"-runtime
 fi
 
 ## Optionally build/install BCC
@@ -58,21 +46,14 @@ fi
 
 ## Build and test
 if [ -z "${FEATURES}" ]; then
-    cargo build
-    cargo test
-    sudo timeout --signal 15 --preserve-status 5.0m target/debug/rezolus --config configs/example.toml
-    sudo timeout --signal 15 --preserve-status 5.0m target/debug/rezolus --config configs/ci.toml
-    cargo build --release
-    cargo test --release
-    sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-    sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-else
-    cargo build --features ${FEATURES}
-    cargo test --features ${FEATURES}
-    sudo timeout --signal 15 --preserve-status 5.0m target/debug/rezolus --config configs/example.toml
-    sudo timeout --signal 15 --preserve-status 5.0m target/debug/rezolus --config configs/ci.toml
-    cargo build --release --features ${FEATURES}
-    cargo test --release --features ${FEATURES}
-    sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-    sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+    FEATURES="default"
 fi
+
+cargo build --features ${FEATURES}
+cargo test --features ${FEATURES}
+sudo timeout --signal 15 --preserve-status 5.0m target/debug/rezolus --config configs/example.toml
+sudo timeout --signal 15 --preserve-status 5.0m target/debug/rezolus --config configs/ci.toml
+cargo build --release --features ${FEATURES}
+cargo test --release --features ${FEATURES}
+sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
