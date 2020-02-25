@@ -364,7 +364,7 @@ matrix:
     - name: "clippy"
       os: linux
       dist: bionic
-      rust: nightly
+      rust: stable
       env: TYPE=clippy RUST_BACKTRACE=1
       script:
         - rustup component add clippy
