@@ -365,7 +365,7 @@ matrix:
       os: linux
       dist: bionic
       rust: stable
-      env: TYPE=clippy RUST_BACKTRACE=1
+      env: RUST_BACKTRACE=1
       script:
         - rustup component add clippy
         - cargo clippy --features bpf
