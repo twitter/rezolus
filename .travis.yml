@@ -367,5 +367,5 @@ matrix:
       rust: stable
       env: RUST_BACKTRACE=1
       script:
-        - rustup component add clippy
-        - cargo clippy --features bpf
+        - rustup component add clippy --toolchain stable
+        - cargo +stable clippy --features bpf
