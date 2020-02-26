@@ -1,5 +1,5 @@
 # [Unreleased]
-# [2.0.0] - 2020-02-24
+# [2.0.0] - 2020-02-26
 ## Changed
 - Many metrics have been renamed to improve consistency
 - Config format updated to be more flexible in configuring individual samplers
