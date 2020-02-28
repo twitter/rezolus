@@ -249,7 +249,8 @@ impl Cpu {
                                 let mut name_content = Vec::new();
                                 name_file.read_to_end(&mut name_content).await?;
                                 if let Ok(name_string) = std::str::from_utf8(&name_content) {
-                                    if let Ok(state) = name_string.parse() {
+                                    let parts: Vec<&str> = name_string.split_whitespace().collect();
+                                    if let Some(Ok(state)) = parts.get(0).map(|v| v.parse()) {
                                         // get the time spent in the state
                                         let time_file = format!(
                                             "/sys/devices/system/cpu/{}/cpuidle/{}/time",

@@ -2,11 +2,12 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::path::Path;
 use std::collections::HashMap;
+use std::io::BufRead;
+use std::path::Path;
+
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
-use std::io::{BufRead};
 
 pub mod bpf;
 
