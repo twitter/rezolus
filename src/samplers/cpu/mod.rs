@@ -45,18 +45,16 @@ pub fn nanos_per_tick() -> u64 {
 
 impl Cpu {
     pub fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
-        if config.samplers().cpu().enabled() {
-            if let Ok(mut cpu) = Cpu::new(config.clone(), metrics) {
-                handle.spawn(async move {
-                    loop {
-                        let _ = cpu.sample().await;
-                    }
-                });
-            } else if !config.fault_tolerant() {
-                fatal!("failed to initialize cpu sampler");
-            } else {
-                error!("failed to initialize cpu sampler");
-            }
+        if let Ok(mut cpu) = Cpu::new(config.clone(), metrics) {
+            handle.spawn(async move {
+                loop {
+                    let _ = cpu.sample().await;
+                }
+            });
+        } else if !config.fault_tolerant() {
+            fatal!("failed to initialize cpu sampler");
+        } else {
+            error!("failed to initialize cpu sampler");
         }
     }
 }
