@@ -99,18 +99,16 @@ impl Sampler for Scheduler {
     }
 
     fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
-        if config.samplers().scheduler().enabled() {
-            if let Ok(mut sampler) = Self::new(config.clone(), metrics) {
-                handle.spawn(async move {
-                    loop {
-                        let _ = sampler.sample().await;
-                    }
-                });
-            } else if !config.fault_tolerant() {
-                fatal!("failed to initialize scheduler sampler");
-            } else {
-                error!("failed to initialize scheduler sampler");
-            }
+        if let Ok(mut sampler) = Self::new(config.clone(), metrics) {
+            handle.spawn(async move {
+                loop {
+                    let _ = sampler.sample().await;
+                }
+            });
+        } else if !config.fault_tolerant() {
+            fatal!("failed to initialize scheduler sampler");
+        } else {
+            error!("failed to initialize scheduler sampler");
         }
     }
 
