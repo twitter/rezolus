@@ -45,16 +45,18 @@ pub fn nanos_per_tick() -> u64 {
 
 impl Cpu {
     pub fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
-        if let Ok(mut cpu) = Cpu::new(config.clone(), metrics) {
-            handle.spawn(async move {
-                loop {
-                    let _ = cpu.sample().await;
-                }
-            });
-        } else if !config.fault_tolerant() {
-            fatal!("failed to initialize cpu sampler");
-        } else {
-            error!("failed to initialize cpu sampler");
+        if config.samplers().cpu().enabled() {
+            if let Ok(mut cpu) = Cpu::new(config.clone(), metrics) {
+                handle.spawn(async move {
+                    loop {
+                        let _ = cpu.sample().await;
+                    }
+                });
+            } else if !config.fault_tolerant() {
+                fatal!("failed to initialize cpu sampler");
+            } else {
+                error!("failed to initialize cpu sampler");
+            }
         }
     }
 }
@@ -66,7 +68,7 @@ impl Sampler for Cpu {
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
         let fault_tolerant = config.general().fault_tolerant();
         let perf_counters = CHashMap::new();
-        if config.samplers().cpu().perf_events() {
+        if config.samplers().cpu().enabled() && config.samplers().cpu().perf_events() {
             #[cfg(feature = "perf")]
             {
                 if let Ok(cores) = crate::common::hardware_threads() {

@@ -47,7 +47,7 @@ impl Sampler for Scheduler {
         let fault_tolerant = config.general().fault_tolerant();
 
         let perf_counters = CHashMap::new();
-        if config.samplers().scheduler().perf_events() {
+        if config.samplers().scheduler().enabled() && config.samplers().scheduler().perf_events() {
             #[cfg(feature = "perf")]
             {
                 if let Ok(cores) = crate::common::hardware_threads() {
@@ -99,16 +99,18 @@ impl Sampler for Scheduler {
     }
 
     fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
-        if let Ok(mut sampler) = Self::new(config.clone(), metrics) {
-            handle.spawn(async move {
-                loop {
-                    let _ = sampler.sample().await;
-                }
-            });
-        } else if !config.fault_tolerant() {
-            fatal!("failed to initialize scheduler sampler");
-        } else {
-            error!("failed to initialize scheduler sampler");
+        if config.samplers().scheduler().enabled() {
+            if let Ok(mut sampler) = Self::new(config.clone(), metrics) {
+                handle.spawn(async move {
+                    loop {
+                        let _ = sampler.sample().await;
+                    }
+                });
+            } else if !config.fault_tolerant() {
+                fatal!("failed to initialize scheduler sampler");
+            } else {
+                error!("failed to initialize scheduler sampler");
+            }
         }
     }
 
@@ -282,7 +284,7 @@ impl Scheduler {
     fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "bpf")]
         {
-            if self.bpf_enabled() {
+            if self.enabled() && self.bpf_enabled() {
                 debug!("initializing bpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");

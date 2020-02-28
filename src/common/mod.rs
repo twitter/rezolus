@@ -2,7 +2,11 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::io::BufRead;
+use std::path::Path;
+use std::collections::HashMap;
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, BufReader};
+use std::io::{BufRead};
 
 pub mod bpf;
 
@@ -43,4 +47,35 @@ pub fn hardware_threads() -> Result<u64, ()> {
         .parse::<u64>()
         .map_err(|e| debug!("could not parse num cpus from file ({:?}): {}", path, e))
         .map(|i| i + 1)
+}
+
+/// helper function to create a nested map from files with the form of
+/// pkey1 lkey1 lkey2 ... lkeyN
+/// pkey1 value1 value2 ... valueN
+/// pkey2 ...
+pub async fn nested_map_from_file<T: AsRef<Path>>(
+    path: T,
+) -> Result<HashMap<String, HashMap<String, u64>>, std::io::Error> {
+    let mut ret = HashMap::<String, HashMap<String, u64>>::new();
+    let file = File::open(path).await?;
+    let reader = BufReader::new(file);
+    let mut lines = reader.lines();
+    while let Some(keys) = lines.next_line().await? {
+        if let Some(values) = lines.next_line().await? {
+            let keys: Vec<&str> = keys.trim().split_whitespace().collect();
+            let values: Vec<&str> = values.trim().split_whitespace().collect();
+            if keys.len() > 2 {
+                let pkey = keys[0];
+                if !ret.contains_key(pkey) {
+                    ret.insert(pkey.to_string(), Default::default());
+                }
+                let inner = ret.get_mut(&pkey.to_string()).unwrap();
+                for (i, key) in keys.iter().enumerate().skip(1) {
+                    let value: u64 = values.get(i).unwrap_or(&"0").parse().unwrap_or(0);
+                    inner.insert((*key).to_string(), value);
+                }
+            }
+        }
+    }
+    Ok(ret)
 }
