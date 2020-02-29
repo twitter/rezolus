@@ -249,8 +249,8 @@ impl Cpu {
                                 let mut name_content = Vec::new();
                                 name_file.read_to_end(&mut name_content).await?;
                                 if let Ok(name_string) = std::str::from_utf8(&name_content) {
-                                    let parts: Vec<&str> = name_string.split_whitespace().collect();
-                                    if let Some(Ok(state)) = parts.get(0).map(|v| v.parse()) {
+                                    let name_parts: Vec<&str> = name_string.split_whitespace().collect();
+                                    if let Some(Ok(state)) = name_parts.get(0).map(|v| v.parse()) {
                                         // get the time spent in the state
                                         let time_file = format!(
                                             "/sys/devices/system/cpu/{}/cpuidle/{}/time",
@@ -261,7 +261,8 @@ impl Cpu {
                                         time_file.read_to_end(&mut time_content).await?;
                                         if let Ok(time_string) = std::str::from_utf8(&time_content)
                                         {
-                                            if let Ok(time) = time_string.parse::<u64>() {
+                                            let time_parts: Vec<&str> = time_string.split_whitespace().collect();
+                                            if let Some(Ok(time)) = time_parts.get(0).map(|v| v.parse::<u64>()) {
                                                 let metric = match state {
                                                     CState::C0 => CpuStatistic::CstateC0Time,
                                                     CState::C1 => CpuStatistic::CstateC1Time,
