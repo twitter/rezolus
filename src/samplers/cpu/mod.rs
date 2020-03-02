@@ -278,7 +278,7 @@ impl Cpu {
                                                     CState::C8 => CpuStatistic::CstateC8Time,
                                                 };
                                                 let counter = result.entry(metric).or_insert(0);
-                                                *counter += time;
+                                                *counter += time * MICROSECOND;
                                             }
                                         }
                                     }
