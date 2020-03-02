@@ -71,12 +71,10 @@ impl Sampler for Scheduler {
                             }
                         }
                     }
+                } else if !fault_tolerant {
+                    fatal!("failed to detect number of hardware threads");
                 } else {
-                    if !fault_tolerant {
-                        fatal!("failed to detect number of hardware threads");
-                    } else {
-                        error!("failed to detect number of hardware threads. skipping scheduler perf telemetry");
-                    }
+                    error!("failed to detect number of hardware threads. skipping scheduler perf telemetry");
                 }
             }
         }

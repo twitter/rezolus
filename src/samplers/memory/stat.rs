@@ -112,7 +112,7 @@ pub enum MemoryStatistic {
 }
 
 impl MemoryStatistic {
-    pub fn multiplier(&self) -> u64 {
+    pub fn multiplier(self) -> u64 {
         match self {
             Self::HugePagesTotal
             | Self::HugePagesFree

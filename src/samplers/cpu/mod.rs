@@ -90,12 +90,12 @@ impl Sampler for Cpu {
                             }
                         }
                     }
+                } else if !fault_tolerant {
+                    fatal!("failed to detect number of hardware threads");
                 } else {
-                    if !fault_tolerant {
-                        fatal!("failed to detect number of hardware threads");
-                    } else {
-                        error!("failed to detect number of hardware threads. skipping cpu perf telemetry");
-                    }
+                    error!(
+                        "failed to detect number of hardware threads. skipping cpu perf telemetry"
+                    );
                 }
             }
         }
@@ -249,7 +249,8 @@ impl Cpu {
                                 let mut name_content = Vec::new();
                                 name_file.read_to_end(&mut name_content).await?;
                                 if let Ok(name_string) = std::str::from_utf8(&name_content) {
-                                    let name_parts: Vec<&str> = name_string.split_whitespace().collect();
+                                    let name_parts: Vec<&str> =
+                                        name_string.split_whitespace().collect();
                                     if let Some(Ok(state)) = name_parts.get(0).map(|v| v.parse()) {
                                         // get the time spent in the state
                                         let time_file = format!(
@@ -261,8 +262,11 @@ impl Cpu {
                                         time_file.read_to_end(&mut time_content).await?;
                                         if let Ok(time_string) = std::str::from_utf8(&time_content)
                                         {
-                                            let time_parts: Vec<&str> = time_string.split_whitespace().collect();
-                                            if let Some(Ok(time)) = time_parts.get(0).map(|v| v.parse::<u64>()) {
+                                            let time_parts: Vec<&str> =
+                                                time_string.split_whitespace().collect();
+                                            if let Some(Ok(time)) =
+                                                time_parts.get(0).map(|v| v.parse::<u64>())
+                                            {
                                                 let metric = match state {
                                                     CState::C0 => CpuStatistic::CstateC0Time,
                                                     CState::C1 => CpuStatistic::CstateC1Time,
