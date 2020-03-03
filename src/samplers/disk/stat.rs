@@ -48,12 +48,12 @@ pub enum DiskStatistic {
 impl DiskStatistic {
     pub fn diskstat_field(self) -> Option<usize> {
         match self {
-            Self::BandwidthRead => Some(2),
-            Self::BandwidthWrite => Some(6),
-            Self::BandwidthDiscard => Some(13),
-            Self::OperationsRead => Some(0),
-            Self::OperationsWrite => Some(4),
-            Self::OperationsDiscard => Some(11),
+            Self::BandwidthRead => Some(5),
+            Self::BandwidthWrite => Some(9),
+            Self::BandwidthDiscard => Some(16),
+            Self::OperationsRead => Some(3),
+            Self::OperationsWrite => Some(7),
+            Self::OperationsDiscard => Some(14),
             _ => None,
         }
     }
