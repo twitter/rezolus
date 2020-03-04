@@ -166,9 +166,9 @@ matrix:
       rust: nightly
       env: RUST_BACKTRACE=1
       script:
-        - rustup toolchain install nightly-2020-02-28
-        - rustup component add clippy --toolchain nightly-2020-02-28
-        - cargo +nightly-2020-02-28 clippy --features bpf
+        - rustup toolchain install nightly-2020-02-01
+        - rustup component add clippy --toolchain nightly-2020-02-01
+        - cargo +nightly-2020-02-01 clippy --features bpf
     - name: "shellcheck"
       os: linux
       dist: bionic
