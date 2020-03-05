@@ -101,58 +101,62 @@ impl Memory {
 
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
-            let label: String = parts[0].to_owned();
-            let value: u64 = parts[1].parse().unwrap_or(0);
-            let parts: Vec<&str> = label.split(':').collect();
-            if let Some(stat) = match parts[0] {
-                "MemTotal" => Some(Stat::Total),
-                "MemFree" => Some(Stat::Free),
-                "MemAvailable" => Some(Stat::Available),
-                "Buffers" => Some(Stat::Buffers),
-                "Cached" => Some(Stat::Cached),
-                "SwapCached" => Some(Stat::SwapCached),
-                "Active" => Some(Stat::Active),
-                "Inactive" => Some(Stat::Inactive),
-                "Active(anon)" => Some(Stat::ActiveAnon),
-                "Inactive(anon)" => Some(Stat::InactiveAnon),
-                "Unevictable" => Some(Stat::Unevictable),
-                "Mlocked" => Some(Stat::Mlocked),
-                "SwapTotal" => Some(Stat::SwapTotal),
-                "SwapFree" => Some(Stat::SwapFree),
-                "Dirty" => Some(Stat::Dirty),
-                "Writeback" => Some(Stat::Writeback),
-                "AnonPages" => Some(Stat::AnonPages),
-                "Mapped" => Some(Stat::Mapped),
-                "Shmem" => Some(Stat::Shmem),
-                "Slab" => Some(Stat::SlabTotal),
-                "SReclaimable" => Some(Stat::SlabReclaimable),
-                "SUnreclaim" => Some(Stat::SlabUnreclaimable),
-                "KernelStack" => Some(Stat::KernelStack),
-                "PageTables" => Some(Stat::PageTables),
-                "NFS_Unstable" => Some(Stat::NFSUnstable),
-                "Bounce" => Some(Stat::Bounce),
-                "WritebackTmp" => Some(Stat::WritebackTmp),
-                "CommitLimit" => Some(Stat::CommitLimit),
-                "Committed_AS" => Some(Stat::CommittedAS),
-                "VmallocTotal" => Some(Stat::VmallocTotal),
-                "VmallocUsed" => Some(Stat::VmallocUsed),
-                "VmallocChunk" => Some(Stat::VmallocChunk),
-                "HardwareCorrupted" => Some(Stat::HardwareCorrupted),
-                "AnonHugePages" => Some(Stat::AnonHugePages),
-                "ShmemHugePages" => Some(Stat::ShmemHugePages),
-                "ShmemPmdMapped" => Some(Stat::ShmemPmdMapped),
-                "HugePages_Total" => Some(Stat::HugePagesTotal),
-                "HugePages_Free" => Some(Stat::HugePagesFree),
-                "HugePages_Rsvd" => Some(Stat::HugePagesRsvd),
-                "HugePages_Surp" => Some(Stat::HugePagesSurp),
-                "Hugepagesize" => Some(Stat::Hugepagesize),
-                "Hugetlb" => Some(Stat::Hugetlb),
-                "DirectMap4k" => Some(Stat::DirectMap4k),
-                "DirectMap2M" => Some(Stat::DirectMap2M),
-                "DirectMap1G" => Some(Stat::DirectMap1G),
-                _ => None,
-            } {
-                result.insert(stat, value);
+            if parts.len() > 1 {
+                let label: String = parts[0].to_owned();
+                let value: u64 = parts[1].parse().unwrap_or(0);
+                let parts: Vec<&str> = label.split(':').collect();
+                if !parts.is_empty() {
+                    if let Some(stat) = match parts[0] {
+                        "MemTotal" => Some(Stat::Total),
+                        "MemFree" => Some(Stat::Free),
+                        "MemAvailable" => Some(Stat::Available),
+                        "Buffers" => Some(Stat::Buffers),
+                        "Cached" => Some(Stat::Cached),
+                        "SwapCached" => Some(Stat::SwapCached),
+                        "Active" => Some(Stat::Active),
+                        "Inactive" => Some(Stat::Inactive),
+                        "Active(anon)" => Some(Stat::ActiveAnon),
+                        "Inactive(anon)" => Some(Stat::InactiveAnon),
+                        "Unevictable" => Some(Stat::Unevictable),
+                        "Mlocked" => Some(Stat::Mlocked),
+                        "SwapTotal" => Some(Stat::SwapTotal),
+                        "SwapFree" => Some(Stat::SwapFree),
+                        "Dirty" => Some(Stat::Dirty),
+                        "Writeback" => Some(Stat::Writeback),
+                        "AnonPages" => Some(Stat::AnonPages),
+                        "Mapped" => Some(Stat::Mapped),
+                        "Shmem" => Some(Stat::Shmem),
+                        "Slab" => Some(Stat::SlabTotal),
+                        "SReclaimable" => Some(Stat::SlabReclaimable),
+                        "SUnreclaim" => Some(Stat::SlabUnreclaimable),
+                        "KernelStack" => Some(Stat::KernelStack),
+                        "PageTables" => Some(Stat::PageTables),
+                        "NFS_Unstable" => Some(Stat::NFSUnstable),
+                        "Bounce" => Some(Stat::Bounce),
+                        "WritebackTmp" => Some(Stat::WritebackTmp),
+                        "CommitLimit" => Some(Stat::CommitLimit),
+                        "Committed_AS" => Some(Stat::CommittedAS),
+                        "VmallocTotal" => Some(Stat::VmallocTotal),
+                        "VmallocUsed" => Some(Stat::VmallocUsed),
+                        "VmallocChunk" => Some(Stat::VmallocChunk),
+                        "HardwareCorrupted" => Some(Stat::HardwareCorrupted),
+                        "AnonHugePages" => Some(Stat::AnonHugePages),
+                        "ShmemHugePages" => Some(Stat::ShmemHugePages),
+                        "ShmemPmdMapped" => Some(Stat::ShmemPmdMapped),
+                        "HugePages_Total" => Some(Stat::HugePagesTotal),
+                        "HugePages_Free" => Some(Stat::HugePagesFree),
+                        "HugePages_Rsvd" => Some(Stat::HugePagesRsvd),
+                        "HugePages_Surp" => Some(Stat::HugePagesSurp),
+                        "Hugepagesize" => Some(Stat::Hugepagesize),
+                        "Hugetlb" => Some(Stat::Hugetlb),
+                        "DirectMap4k" => Some(Stat::DirectMap4k),
+                        "DirectMap2M" => Some(Stat::DirectMap2M),
+                        "DirectMap1G" => Some(Stat::DirectMap1G),
+                        _ => None,
+                    } {
+                        result.insert(stat, value);
+                    }
+                }
             }
         }
 
