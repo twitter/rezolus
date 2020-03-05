@@ -123,8 +123,8 @@ impl Rezolus {
         let mut lines = reader.lines();
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
-            let vm = parts[0].parse().unwrap_or(0);
-            let rss = parts[1].parse().unwrap_or(0);
+            let vm = parts.get(0).map(|v| v.parse().unwrap_or(0)).unwrap_or(0);
+            let rss = parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0);
             result_memory.insert(RezolusStatistic::MemoryVirtual, vm);
             result_memory.insert(RezolusStatistic::MemoryResident, rss);
         }
