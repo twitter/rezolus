@@ -101,7 +101,7 @@ impl Sampler for Disk {
         let mut result = HashMap::new();
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts[1] == "0" {
+            if parts.get(1) == Some(&"0") {
                 for statistic in self.sampler_config().statistics() {
                     if let Some(field) = statistic.diskstat_field() {
                         if !result.contains_key(statistic) {
