@@ -100,7 +100,7 @@ impl Memory {
 
         let mut result = HashMap::<MemoryStatistic, u64>::new();
 
-        let re = Regex::new(r"(?P<stat>\w+)\s+(?P<value>\d+)").expect("failed to compile regex");
+        let re = Regex::new(r"(?P<stat>\w+):\s+(?P<value>\d+)").expect("failed to compile regex");
 
         while let Some(line) = lines.next_line().await? {
             if let Some(caps) = re.captures(&line) {
