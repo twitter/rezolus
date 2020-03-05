@@ -108,7 +108,10 @@ impl Sampler for Disk {
                             result.insert(*statistic, 0);
                         }
                         let current = result.get_mut(statistic).unwrap();
-                        *current += parts.get(field).map(|v| v.parse().unwrap_or(0)).unwrap_or(0);
+                        *current += parts
+                            .get(field)
+                            .map(|v| v.parse().unwrap_or(0))
+                            .unwrap_or(0);
                     }
                 }
             }

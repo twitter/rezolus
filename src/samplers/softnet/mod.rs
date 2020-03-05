@@ -85,7 +85,10 @@ impl Sampler for Softnet {
                     result.insert(*statistic, 0);
                 }
                 let current = result.get_mut(statistic).unwrap();
-                *current += u64::from_str_radix(parts[*statistic as usize], 16).unwrap_or(0);
+                *current += parts
+                    .get(*statistic as usize)
+                    .map(|v| u64::from_str_radix(v, 16).unwrap_or(0))
+                    .unwrap_or(0);
             }
         }
 
