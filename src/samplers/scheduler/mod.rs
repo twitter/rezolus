@@ -173,33 +173,36 @@ impl Scheduler {
         let time = time::precise_time_ns();
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts[0] == "ctxt" && parts.len() == 2 {
-                self.metrics().record_counter(
-                    &SchedulerStatistic::ContextSwitches,
-                    time,
-                    parts[1].parse().unwrap_or(0),
-                );
-            }
-            if parts[0] == "processes" && parts.len() == 2 {
-                self.metrics().record_counter(
-                    &SchedulerStatistic::ProcessesCreated,
-                    time,
-                    parts[1].parse().unwrap_or(0),
-                );
-            }
-            if parts[0] == "procs_running" && parts.len() == 2 {
-                self.metrics().record_gauge(
-                    &SchedulerStatistic::ProcessesRunning,
-                    time,
-                    parts[1].parse().unwrap_or(0),
-                );
-            }
-            if parts[0] == "procs_blocked" && parts.len() == 2 {
-                self.metrics().record_gauge(
-                    &SchedulerStatistic::ProcessesBlocked,
-                    time,
-                    parts[1].parse().unwrap_or(0),
-                );
+            match parts.get(0) {
+                Some(&"ctxt") => {
+                    self.metrics().record_counter(
+                        &SchedulerStatistic::ContextSwitches,
+                        time,
+                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
+                    );
+                }
+                Some(&"processes") => {
+                    self.metrics().record_counter(
+                        &SchedulerStatistic::ProcessesCreated,
+                        time,
+                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
+                    );
+                }
+                Some(&"procs_running") => {
+                    self.metrics().record_gauge(
+                        &SchedulerStatistic::ProcessesRunning,
+                        time,
+                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
+                    );
+                }
+                Some(&"procs_blocked") => {
+                    self.metrics().record_gauge(
+                        &SchedulerStatistic::ProcessesBlocked,
+                        time,
+                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
+                    );
+                }
+                Some(_) | None => {}
             }
         }
 
