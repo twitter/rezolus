@@ -162,7 +162,7 @@ impl Memory {
         let time = time::precise_time_ns();
         for stat in self.sampler_config().statistics() {
             if let Some(value) = result.get(stat) {
-                self.metrics().record_gauge(stat, time, *value * 1024);
+                self.metrics().record_gauge(stat, time, *value * stat.multiplier());
             }
         }
         Ok(())
