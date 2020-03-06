@@ -65,12 +65,11 @@ pub async fn nested_map_from_file<T: AsRef<Path>>(
         if let Some(values) = lines.next_line().await? {
             let keys: Vec<&str> = keys.trim().split_whitespace().collect();
             let values: Vec<&str> = values.trim().split_whitespace().collect();
-            if keys.len() > 2 {
-                let pkey = keys[0];
-                if !ret.contains_key(pkey) {
-                    ret.insert(pkey.to_string(), Default::default());
+            if let Some(pkey) = keys.get(0).map(|v| v.to_string()) {
+                if !ret.contains_key(&pkey) {
+                    ret.insert(pkey.clone(), Default::default());
                 }
-                let inner = ret.get_mut(&pkey.to_string()).unwrap();
+                let inner = ret.get_mut(&pkey).unwrap();
                 for (i, key) in keys.iter().enumerate().skip(1) {
                     let value: u64 = values.get(i).unwrap_or(&"0").parse().unwrap_or(0);
                     inner.insert((*key).to_string(), value);
