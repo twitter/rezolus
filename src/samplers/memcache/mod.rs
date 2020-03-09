@@ -117,7 +117,7 @@ impl Sampler for Memcache {
                 if length > 0 {
                     let stats = std::str::from_utf8(&buffer).unwrap().to_string();
                     let lines: Vec<&str> = stats.split("\r\n").collect();
-                    if lines[lines.len() - 2] == "END" {
+                    if lines.len() >= 2 && lines[lines.len() - 2] == "END" {
                         break;
                     }
                 }

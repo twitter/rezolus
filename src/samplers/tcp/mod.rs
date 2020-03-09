@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::collections::HashMap;
-use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
@@ -11,8 +9,6 @@ use async_trait::async_trait;
 #[cfg(feature = "bpf")]
 use bcc;
 use metrics::*;
-use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::runtime::Handle;
 
 use crate::common::bpf::*;
@@ -93,7 +89,7 @@ impl Sampler for Tcp {
         self.register();
 
         // sample /proc/net/snmp
-        if let Ok(snmp) = nested_map_from_file("/proc/net/snmp").await {
+        if let Ok(snmp) = crate::common::nested_map_from_file("/proc/net/snmp").await {
             let time = time::precise_time_ns();
             for statistic in self.sampler_config().statistics() {
                 if let Some((pkey, lkey)) = statistic.keys() {
@@ -107,11 +103,11 @@ impl Sampler for Tcp {
         }
 
         // sample /proc/net/netstat
-        if let Ok(snmp) = nested_map_from_file("/proc/net/netstat").await {
+        if let Ok(netstat) = crate::common::nested_map_from_file("/proc/net/netstat").await {
             let time = time::precise_time_ns();
             for statistic in self.sampler_config().statistics() {
                 if let Some((pkey, lkey)) = statistic.keys() {
-                    if let Some(inner) = snmp.get(pkey) {
+                    if let Some(inner) = netstat.get(pkey) {
                         if let Some(value) = inner.get(lkey) {
                             self.metrics().record_counter(statistic, time, *value);
                         }
@@ -172,33 +168,6 @@ impl Sampler for Tcp {
     }
 }
 
-async fn nested_map_from_file<T: AsRef<Path>>(
-    path: T,
-) -> Result<HashMap<String, HashMap<String, u64>>, std::io::Error> {
-    let mut ret = HashMap::<String, HashMap<String, u64>>::new();
-    let file = File::open(path).await?;
-    let reader = BufReader::new(file);
-    let mut lines = reader.lines();
-    while let Some(keys) = lines.next_line().await? {
-        while let Some(values) = lines.next_line().await? {
-            let keys: Vec<&str> = keys.trim().split_whitespace().collect();
-            let values: Vec<&str> = values.trim().split_whitespace().collect();
-            if keys.len() > 2 {
-                let pkey = keys[0];
-                if !ret.contains_key(pkey) {
-                    ret.insert(pkey.to_string(), Default::default());
-                }
-                let inner = ret.get_mut(&pkey.to_string()).unwrap();
-                for (i, key) in keys.iter().enumerate().skip(1) {
-                    let value: u64 = values.get(i).unwrap_or(&"0").parse().unwrap_or(0);
-                    inner.insert((*key).to_string(), value);
-                }
-            }
-        }
-    }
-    Ok(ret)
-}
-
 impl Tcp {
     // checks that bpf is enabled in config and one or more bpf stats enabled
     #[cfg(feature = "bpf")]
@@ -216,7 +185,7 @@ impl Tcp {
     fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "bpf")]
         {
-            if self.bpf_enabled() {
+            if self.enabled() && self.bpf_enabled() {
                 debug!("initializing bpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");

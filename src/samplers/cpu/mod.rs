@@ -66,7 +66,7 @@ impl Sampler for Cpu {
     fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
         let fault_tolerant = config.general().fault_tolerant();
         let perf_counters = CHashMap::new();
-        if config.samplers().cpu().perf_events() {
+        if config.samplers().cpu().enabled() && config.samplers().cpu().perf_events() {
             #[cfg(feature = "perf")]
             {
                 if let Ok(cores) = crate::common::hardware_threads() {
@@ -90,12 +90,12 @@ impl Sampler for Cpu {
                             }
                         }
                     }
+                } else if !fault_tolerant {
+                    fatal!("failed to detect number of hardware threads");
                 } else {
-                    if !fault_tolerant {
-                        fatal!("failed to detect number of hardware threads");
-                    } else {
-                        error!("failed to detect number of hardware threads. skipping cpu perf telemetry");
-                    }
+                    error!(
+                        "failed to detect number of hardware threads. skipping cpu perf telemetry"
+                    );
                 }
             }
         }
@@ -249,7 +249,9 @@ impl Cpu {
                                 let mut name_content = Vec::new();
                                 name_file.read_to_end(&mut name_content).await?;
                                 if let Ok(name_string) = std::str::from_utf8(&name_content) {
-                                    if let Ok(state) = name_string.parse() {
+                                    let name_parts: Vec<&str> =
+                                        name_string.split_whitespace().collect();
+                                    if let Some(Ok(state)) = name_parts.get(0).map(|v| v.parse()) {
                                         // get the time spent in the state
                                         let time_file = format!(
                                             "/sys/devices/system/cpu/{}/cpuidle/{}/time",
@@ -260,7 +262,11 @@ impl Cpu {
                                         time_file.read_to_end(&mut time_content).await?;
                                         if let Ok(time_string) = std::str::from_utf8(&time_content)
                                         {
-                                            if let Ok(time) = time_string.parse::<u64>() {
+                                            let time_parts: Vec<&str> =
+                                                time_string.split_whitespace().collect();
+                                            if let Some(Ok(time)) =
+                                                time_parts.get(0).map(|v| v.parse::<u64>())
+                                            {
                                                 let metric = match state {
                                                     CState::C0 => CpuStatistic::CstateC0Time,
                                                     CState::C1 => CpuStatistic::CstateC1Time,
@@ -272,7 +278,7 @@ impl Cpu {
                                                     CState::C8 => CpuStatistic::CstateC8Time,
                                                 };
                                                 let counter = result.entry(metric).or_insert(0);
-                                                *counter += time;
+                                                *counter += time * MICROSECOND;
                                             }
                                         }
                                     }

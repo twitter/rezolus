@@ -71,6 +71,10 @@ pub trait Sampler: Sized + Send {
     /// Access the specific sampler config
     fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic>;
 
+    fn enabled(&self) -> bool {
+        self.sampler_config().enabled()
+    }
+
     /// Access the general config
     fn general_config(&self) -> &GeneralConfig {
         self.common().config().general()

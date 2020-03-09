@@ -47,7 +47,7 @@ impl Sampler for Scheduler {
         let fault_tolerant = config.general().fault_tolerant();
 
         let perf_counters = CHashMap::new();
-        if config.samplers().scheduler().perf_events() {
+        if config.samplers().scheduler().enabled() && config.samplers().scheduler().perf_events() {
             #[cfg(feature = "perf")]
             {
                 if let Ok(cores) = crate::common::hardware_threads() {
@@ -71,12 +71,10 @@ impl Sampler for Scheduler {
                             }
                         }
                     }
+                } else if !fault_tolerant {
+                    fatal!("failed to detect number of hardware threads");
                 } else {
-                    if !fault_tolerant {
-                        fatal!("failed to detect number of hardware threads");
-                    } else {
-                        error!("failed to detect number of hardware threads. skipping scheduler perf telemetry");
-                    }
+                    error!("failed to detect number of hardware threads. skipping scheduler perf telemetry");
                 }
             }
         }
@@ -175,33 +173,36 @@ impl Scheduler {
         let time = time::precise_time_ns();
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts[0] == "ctxt" && parts.len() == 2 {
-                self.metrics().record_counter(
-                    &SchedulerStatistic::ContextSwitches,
-                    time,
-                    parts[1].parse().unwrap_or(0),
-                );
-            }
-            if parts[0] == "processes" && parts.len() == 2 {
-                self.metrics().record_counter(
-                    &SchedulerStatistic::ProcessesCreated,
-                    time,
-                    parts[1].parse().unwrap_or(0),
-                );
-            }
-            if parts[0] == "procs_running" && parts.len() == 2 {
-                self.metrics().record_gauge(
-                    &SchedulerStatistic::ProcessesRunning,
-                    time,
-                    parts[1].parse().unwrap_or(0),
-                );
-            }
-            if parts[0] == "procs_blocked" && parts.len() == 2 {
-                self.metrics().record_gauge(
-                    &SchedulerStatistic::ProcessesBlocked,
-                    time,
-                    parts[1].parse().unwrap_or(0),
-                );
+            match parts.get(0) {
+                Some(&"ctxt") => {
+                    self.metrics().record_counter(
+                        &SchedulerStatistic::ContextSwitches,
+                        time,
+                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
+                    );
+                }
+                Some(&"processes") => {
+                    self.metrics().record_counter(
+                        &SchedulerStatistic::ProcessesCreated,
+                        time,
+                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
+                    );
+                }
+                Some(&"procs_running") => {
+                    self.metrics().record_gauge(
+                        &SchedulerStatistic::ProcessesRunning,
+                        time,
+                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
+                    );
+                }
+                Some(&"procs_blocked") => {
+                    self.metrics().record_gauge(
+                        &SchedulerStatistic::ProcessesBlocked,
+                        time,
+                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
+                    );
+                }
+                Some(_) | None => {}
             }
         }
 
@@ -282,7 +283,7 @@ impl Scheduler {
     fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "bpf")]
         {
-            if self.bpf_enabled() {
+            if self.enabled() && self.bpf_enabled() {
                 debug!("initializing bpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");

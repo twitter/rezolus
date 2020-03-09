@@ -104,14 +104,17 @@ impl Sampler for Network {
 
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts[1].parse::<u64>().is_ok() {
+            if !parts.is_empty() && parts[1].parse::<u64>().is_ok() {
                 for statistic in self.sampler_config().statistics() {
                     if let Some(field) = statistic.field_number() {
                         if !result.contains_key(statistic) {
                             result.insert(*statistic, 0);
                         }
                         let current = result.get_mut(statistic).unwrap();
-                        *current += parts[field].parse().unwrap_or(0);
+                        *current += parts
+                            .get(field)
+                            .map(|v| v.parse().unwrap_or(0))
+                            .unwrap_or(0);
                     }
                 }
             }
@@ -186,7 +189,7 @@ impl Network {
     fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "bpf")]
         {
-            if self.bpf_enabled() {
+            if self.enabled() && self.bpf_enabled() {
                 debug!("initializing bpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");

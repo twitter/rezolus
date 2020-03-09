@@ -148,7 +148,7 @@ impl Xfs {
     fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "bpf")]
         {
-            if self.bpf_enabled() {
+            if self.enabled() && self.bpf_enabled() {
                 debug!("initializing bpf");
 
                 // load the code and compile

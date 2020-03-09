@@ -101,14 +101,17 @@ impl Sampler for Disk {
         let mut result = HashMap::new();
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts[1] == "0" {
+            if parts.get(1) == Some(&"0") {
                 for statistic in self.sampler_config().statistics() {
                     if let Some(field) = statistic.diskstat_field() {
                         if !result.contains_key(statistic) {
                             result.insert(*statistic, 0);
                         }
                         let current = result.get_mut(statistic).unwrap();
-                        *current += parts[field].parse().unwrap_or(0);
+                        *current += parts
+                            .get(field)
+                            .map(|v| v.parse().unwrap_or(0))
+                            .unwrap_or(0);
                     }
                 }
             }
@@ -193,7 +196,7 @@ impl Disk {
     fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "bpf")]
         {
-            if self.bpf_enabled() {
+            if self.enabled() && self.bpf_enabled() {
                 debug!("initializing bpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");
