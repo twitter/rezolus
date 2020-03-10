@@ -3,7 +3,6 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
-use std::sync::Arc;
 
 use async_trait::async_trait;
 use chashmap::CHashMap;
@@ -14,10 +13,9 @@ use regex::Regex;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::prelude::*;
-use tokio::runtime::Handle;
 
 use crate::common::*;
-use crate::config::{Config, SamplerConfig};
+use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
 
@@ -43,34 +41,19 @@ pub fn nanos_per_tick() -> u64 {
     SECOND / ticks_per_second
 }
 
-impl Cpu {
-    pub fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
-        if let Ok(mut cpu) = Cpu::new(config.clone(), metrics) {
-            handle.spawn(async move {
-                loop {
-                    let _ = cpu.sample().await;
-                }
-            });
-        } else if !config.fault_tolerant() {
-            fatal!("failed to initialize cpu sampler");
-        } else {
-            error!("failed to initialize cpu sampler");
-        }
-    }
-}
-
 #[async_trait]
 impl Sampler for Cpu {
     type Statistic = CpuStatistic;
 
-    fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
-        let fault_tolerant = config.general().fault_tolerant();
+    fn new(common: Common) -> Result<Self, failure::Error> {
+        let fault_tolerant = common.config.general().fault_tolerant();
         let perf_counters = CHashMap::new();
-        if config.samplers().cpu().enabled() && config.samplers().cpu().perf_events() {
+        if common.config.samplers().cpu().enabled() && common.config.samplers().cpu().perf_events()
+        {
             #[cfg(feature = "perf")]
             {
                 if let Ok(cores) = crate::common::hardware_threads() {
-                    for statistic in config.samplers().cpu().statistics().iter() {
+                    for statistic in common.config.samplers().cpu().statistics().iter() {
                         if let Some(mut builder) = statistic.perf_counter_builder() {
                             let mut event_counters = Vec::new();
                             for core in 0..cores {
@@ -100,20 +83,20 @@ impl Sampler for Cpu {
             }
         }
         Ok(Self {
-            common: Common::new(config, metrics),
+            common,
             perf_counters,
             tick_duration: nanos_per_tick(),
         })
     }
 
-    fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
-        if let Ok(mut cpu) = Cpu::new(config.clone(), metrics) {
-            handle.spawn(async move {
+    fn spawn(common: Common) {
+        if let Ok(mut cpu) = Cpu::new(common.clone()) {
+            common.handle.spawn(async move {
                 loop {
                     let _ = cpu.sample().await;
                 }
             });
-        } else if !config.fault_tolerant() {
+        } else if !common.config.fault_tolerant() {
             fatal!("failed to initialize cpu sampler");
         } else {
             error!("failed to initialize cpu sampler");

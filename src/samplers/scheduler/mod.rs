@@ -2,8 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use async_trait::async_trait;
@@ -15,11 +14,10 @@ use metrics::*;
 use perfcnt::*;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
-use tokio::runtime::Handle;
 
 use crate::common::bpf::*;
 use crate::common::*;
-use crate::config::{Config, SamplerConfig};
+use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
 
@@ -43,15 +41,17 @@ pub struct Scheduler {
 #[async_trait]
 impl Sampler for Scheduler {
     type Statistic = SchedulerStatistic;
-    fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
-        let fault_tolerant = config.general().fault_tolerant();
+    fn new(common: Common) -> Result<Self, failure::Error> {
+        let fault_tolerant = common.config.general().fault_tolerant();
 
         let perf_counters = CHashMap::new();
-        if config.samplers().scheduler().enabled() && config.samplers().scheduler().perf_events() {
+        if common.config.samplers().scheduler().enabled()
+            && common.config.samplers().scheduler().perf_events()
+        {
             #[cfg(feature = "perf")]
             {
                 if let Ok(cores) = crate::common::hardware_threads() {
-                    for statistic in config.samplers().scheduler().statistics().iter() {
+                    for statistic in common.config.samplers().scheduler().statistics().iter() {
                         if let Some(mut builder) = statistic.perf_counter_builder() {
                             let mut event_counters = Vec::new();
                             for core in 0..cores {
@@ -83,7 +83,7 @@ impl Sampler for Scheduler {
         let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
-            common: Common::new(config, metrics),
+            common,
             perf_counters,
         };
 
@@ -96,14 +96,14 @@ impl Sampler for Scheduler {
         Ok(sampler)
     }
 
-    fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
-        if let Ok(mut sampler) = Self::new(config.clone(), metrics) {
-            handle.spawn(async move {
+    fn spawn(common: Common) {
+        if let Ok(mut sampler) = Self::new(common.clone()) {
+            common.handle.spawn(async move {
                 loop {
                     let _ = sampler.sample().await;
                 }
             });
-        } else if !config.fault_tolerant() {
+        } else if !common.config.fault_tolerant() {
             fatal!("failed to initialize scheduler sampler");
         } else {
             error!("failed to initialize scheduler sampler");
