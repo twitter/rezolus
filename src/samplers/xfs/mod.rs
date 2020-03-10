@@ -12,7 +12,7 @@ use metrics::*;
 
 use crate::common::bpf::*;
 use crate::common::*;
-use crate::config::{SamplerConfig};
+use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
 
