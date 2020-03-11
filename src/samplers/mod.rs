@@ -43,13 +43,13 @@ pub trait Sampler: Sized + Send {
     type Statistic: Statistic;
 
     /// Create a new instance of the sampler
-    fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error>;
+    fn new(common: Common) -> Result<Self, failure::Error>;
 
     /// Access common fields shared between samplers
     fn common(&self) -> &Common;
     fn common_mut(&mut self) -> &mut Common;
 
-    fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle);
+    fn spawn(common: Common);
 
     /// Run the sampler and write new observations to the metrics library and
     /// wait until next sample interval
@@ -108,14 +108,27 @@ pub trait Sampler: Sized + Send {
 
 pub struct Common {
     config: Arc<Config>,
+    handle: Handle,
     interval: Option<Interval>,
     metrics: Arc<Metrics<AtomicU32>>,
 }
 
+impl Clone for Common {
+    fn clone(&self) -> Self {
+        Self {
+            config: self.config.clone(),
+            handle: self.handle.clone(),
+            interval: None,
+            metrics: self.metrics.clone(),
+        }
+    }
+}
+
 impl Common {
-    pub fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Self {
+    pub fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: Handle) -> Self {
         Self {
             config,
+            handle,
             interval: None,
             metrics,
         }

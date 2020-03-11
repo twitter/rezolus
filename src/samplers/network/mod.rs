@@ -3,8 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use async_trait::async_trait;
@@ -13,11 +12,10 @@ use bcc;
 use metrics::*;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
-use tokio::runtime::Handle;
 
 use crate::common::bpf::*;
 use crate::common::*;
-use crate::config::{Config, SamplerConfig};
+use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
 
@@ -38,14 +36,14 @@ pub struct Network {
 impl Sampler for Network {
     type Statistic = NetworkStatistic;
 
-    fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Result<Self, failure::Error> {
-        let fault_tolerant = config.general().fault_tolerant();
+    fn new(common: Common) -> Result<Self, failure::Error> {
+        let fault_tolerant = common.config.general().fault_tolerant();
 
         #[allow(unused_mut)]
         let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
-            common: Common::new(config, metrics),
+            common,
         };
 
         if let Err(e) = sampler.initialize_bpf() {
@@ -57,14 +55,14 @@ impl Sampler for Network {
         Ok(sampler)
     }
 
-    fn spawn(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: &Handle) {
-        if let Ok(mut sampler) = Self::new(config.clone(), metrics) {
-            handle.spawn(async move {
+    fn spawn(common: Common) {
+        if let Ok(mut sampler) = Self::new(common.clone()) {
+            common.handle.spawn(async move {
                 loop {
                     let _ = sampler.sample().await;
                 }
             });
-        } else if !config.fault_tolerant() {
+        } else if !common.config.fault_tolerant() {
             fatal!("failed to initialize network sampler");
         } else {
             error!("failed to initialize network sampler");
