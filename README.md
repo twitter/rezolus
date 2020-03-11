@@ -139,9 +139,9 @@ sudo target/release/rezolus --config configs/example.toml
 curl --silent http://localhost:4242/vars
 ```
 
-### Building with eBPF Support
+### Building with BPF Support
 
-By default, eBPF support is not compiled in. If you wish to produce a build with
+By default, BPF support is not compiled in. If you wish to produce a build with
 BPF support enabled, follow the steps below:
 
 #### Prerequisites
@@ -151,6 +151,8 @@ may either use the version provided by your distribution, or can build BCC and
 install from source. It is critical to know which version of BCC you have
 installed. Rezolus supports multiple versions by utilizing different feature
 flags at build time.
+
+The supported BCC versions are the latest patch release for 0.10.0 - 0.12.0
 
 #### Building
 
