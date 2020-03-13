@@ -139,9 +139,9 @@ sudo target/release/rezolus --config configs/example.toml
 curl --silent http://localhost:4242/vars
 ```
 
-### Building with eBPF Support
+### Building with BPF Support
 
-By default, eBPF support is not compiled in. If you wish to produce a build with
+By default, BPF support is not compiled in. If you wish to produce a build with
 BPF support enabled, follow the steps below:
 
 #### Prerequisites
@@ -151,6 +151,15 @@ may either use the version provided by your distribution, or can build BCC and
 install from source. It is critical to know which version of BCC you have
 installed. Rezolus supports multiple versions by utilizing different feature
 flags at build time.
+
+Our current policy is to support BCC versions back to the version in the
+distribution repository for Debian Stable or CentOS 7 (whichever is older) to
+the most recent version of BCC.
+
+This policy provides coverage for current stable and testing versions of Debian,
+Ubuntu, CentOS, Fedora, Arch, and Gentoo. Users of other distributions may need
+to build a supported version of BCC from source. See [BCC Installation Guide]
+for details.
 
 #### Building
 
@@ -220,3 +229,4 @@ Please report sensitive security issues via Twitter's bug-bounty program
 [rust-bcc]: https://github.com/rust-bpf/rust-bcc
 [BPF Compiler Collection]: https://github.com/iovisor/bcc
 [Open Source Code of Conduct]: https://github.com/twitter/code-of-conduct/blob/master/code-of-conduct.md
+[BCC Installation Guide]: https://github.com/iovisor/bcc/blob/master/INSTALL.md
