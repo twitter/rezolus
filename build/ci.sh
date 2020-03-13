@@ -25,6 +25,12 @@ if [ -n "${BCC_VERSION}" ]; then
     cd bcc
     git checkout master
     git pull
+    if [[ "${BCC_VERSION}" == "0.8.0" ]]; then
+        git checkout remotes/origin/tag_v0.8.0
+    fi
+    if [[ "${BCC_VERSION}" == "0.9.0" ]]; then
+        git checkout remotes/origin/tag_v0.9.0
+    fi
     if [[ "${BCC_VERSION}" == "0.10.0" ]]; then
         git checkout remotes/origin/tag_v0.10.0
     fi

@@ -17,6 +17,20 @@ matrix:
       env: RUST_BACKTRACE=1
       script:
         - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 8 / bcc 0.8.0"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.8.0" FEATURES="bpf_v0_8_0"
+      script:
+        - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 8 / bcc 0.9.0"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.9.0" FEATURES="bpf_v0_9_0"
+      script:
+        - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 8 / bcc 0.10.0"
       os: linux
       dist: xenial
@@ -45,6 +59,20 @@ matrix:
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="latest" FEATURES="bpf"
       script:
         - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 9 / bcc 0.8.0"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.8.0" FEATURES="bpf_v0_8_0"
+      script:
+        - bash build/ci.sh
+    - name: "bpf: xenial / nightly / llvm 9 / bcc 0.9.0"
+      os: linux
+      dist: xenial
+      rust: nightly
+      env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.9.0" FEATURES="bpf_v0_9_0"
+      script:
+        - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 9 / bcc 0.10.0"
       os: linux
       dist: xenial
@@ -71,6 +99,20 @@ matrix:
       dist: xenial
       rust: nightly
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="latest" FEATURES="bpf"
+      script:
+        - bash build/ci.sh
+    - name: "bpf: bionic / nightly / llvm 10 / bcc 0.8.0"
+      os: linux
+      dist: bionic
+      rust: nightly
+      env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.8.0" FEATURES="bpf_v0_8_0"
+      script:
+        - bash build/ci.sh
+    - name: "bpf: bionic / nightly / llvm 10 / bcc 0.9.0"
+      os: linux
+      dist: bionic
+      rust: nightly
+      env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.9.0" FEATURES="bpf_v0_9_0"
       script:
         - bash build/ci.sh
     - name: "bpf: bionic / nightly / llvm 10 / bcc 0.10.0"

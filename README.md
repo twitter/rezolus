@@ -152,7 +152,14 @@ install from source. It is critical to know which version of BCC you have
 installed. Rezolus supports multiple versions by utilizing different feature
 flags at build time.
 
-The supported BCC versions are the latest patch release for 0.10.0 - 0.12.0
+Our current policy is to support BCC versions back to the version in the
+distribution repository for Debian Stable or CentOS 7 (whichever is older) to
+the most recent version of BCC.
+
+This policy provides coverage for current stable and testing versions of Debian,
+Ubuntu, CentOS, Fedora, Arch, and Gentoo. Users of other distributions may need
+to build a supported version of BCC from source. See [BCC Installation Guide]
+for details.
 
 #### Building
 
@@ -222,3 +229,4 @@ Please report sensitive security issues via Twitter's bug-bounty program
 [rust-bcc]: https://github.com/rust-bpf/rust-bcc
 [BPF Compiler Collection]: https://github.com/iovisor/bcc
 [Open Source Code of Conduct]: https://github.com/twitter/code-of-conduct/blob/master/code-of-conduct.md
+[BCC Installation Guide]: https://github.com/iovisor/bcc/blob/master/INSTALL.md
