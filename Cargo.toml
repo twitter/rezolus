@@ -6,6 +6,7 @@ license = "Apache-2.0"
 build = "build.rs"
 publish = false
 edition = '2018'
+description = "High resolution systems performance telemetry agent"
 
 [dependencies]
 async-trait = "0.1.23"
