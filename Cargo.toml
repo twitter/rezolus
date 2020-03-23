@@ -50,10 +50,12 @@ bpf_v0_12_0 = ["bpf", "bcc/v0_12_0"]
 perf = ["perfcnt"]
 push_kafka = ["kafka"]
 
-[profile.release]
-opt-level = 3
-debug = false
-rpath = false
+[profile.bench]
+debug = true
 lto = true
-debug-assertions = false
+codegen-units = 1
+
+[profile.release]
+debug = true
+lto = true
 codegen-units = 1
