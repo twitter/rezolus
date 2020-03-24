@@ -1,12 +1,12 @@
 # [Unreleased]
-# [2.0.0] - 2020-02-26
+# [2.0.0] - 2020-03-24
 ## Changed
 - Many metrics have been renamed to improve consistency
 - Config format updated to be more flexible in configuring individual samplers
 - Moved BPF and perf functionality into each sampler so that samplers focus on
   particular aspects of performance and not method of gathering telemetry
 - Runtime is now async and samplers rewritten to use async/await
-- Changed the default version of bcc to 0.12.0
+- Changed the default version of bcc to 0.13.0
 
 ## Added
 - Push-based exposition of metrics to Kafka
