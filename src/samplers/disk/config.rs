@@ -4,6 +4,7 @@
 
 use metrics::*;
 use serde_derive::Deserialize;
+use strum::IntoEnumIterator;
 
 use crate::config::SamplerConfig;
 
@@ -47,22 +48,7 @@ fn default_percentiles() -> Vec<Percentile> {
 }
 
 fn default_statistics() -> Vec<DiskStatistic> {
-    vec![
-        DiskStatistic::BandwidthDiscard,
-        DiskStatistic::BandwidthRead,
-        DiskStatistic::BandwidthWrite,
-        DiskStatistic::OperationsDiscard,
-        DiskStatistic::OperationsRead,
-        DiskStatistic::OperationsWrite,
-        DiskStatistic::LatencyRead,
-        DiskStatistic::LatencyWrite,
-        DiskStatistic::DeviceLatencyRead,
-        DiskStatistic::DeviceLatencyWrite,
-        DiskStatistic::QueueLatencyRead,
-        DiskStatistic::QueueLatencyWrite,
-        DiskStatistic::IoSizeRead,
-        DiskStatistic::IoSizeWrite,
-    ]
+    DiskStatistic::iter().collect()
 }
 
 impl SamplerConfig for DiskConfig {

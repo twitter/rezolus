@@ -4,6 +4,7 @@
 
 use metrics::*;
 use serde_derive::Deserialize;
+use strum::IntoEnumIterator;
 
 use crate::config::SamplerConfig;
 
@@ -44,14 +45,7 @@ fn default_percentiles() -> Vec<Percentile> {
 }
 
 fn default_statistics() -> Vec<SoftnetStatistic> {
-    vec![
-        SoftnetStatistic::Processed,
-        SoftnetStatistic::Dropped,
-        SoftnetStatistic::TimeSqueezed,
-        SoftnetStatistic::CpuCollision,
-        SoftnetStatistic::ReceivedRps,
-        SoftnetStatistic::FlowLimitCount,
-    ]
+    SoftnetStatistic::iter().collect()
 }
 
 impl SamplerConfig for SoftnetConfig {

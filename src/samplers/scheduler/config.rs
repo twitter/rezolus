@@ -4,6 +4,7 @@
 
 use metrics::*;
 use serde_derive::Deserialize;
+use strum::IntoEnumIterator;
 
 use crate::config::SamplerConfig;
 
@@ -50,14 +51,7 @@ fn default_percentiles() -> Vec<Percentile> {
 }
 
 fn default_statistics() -> Vec<SchedulerStatistic> {
-    vec![
-        SchedulerStatistic::ContextSwitches,
-        SchedulerStatistic::CpuMigrations,
-        SchedulerStatistic::ProcessesBlocked,
-        SchedulerStatistic::ProcessesCreated,
-        SchedulerStatistic::ProcessesRunning,
-        SchedulerStatistic::RunqueueLatency,
-    ]
+    SchedulerStatistic::iter().collect()
 }
 
 impl SamplerConfig for SchedulerConfig {

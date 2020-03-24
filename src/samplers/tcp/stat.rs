@@ -8,10 +8,20 @@ use core::str::FromStr;
 use metrics::Statistic;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
-use strum_macros::{EnumString, IntoStaticStr};
+use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
 #[derive(
-    Clone, Copy, Debug, Deserialize, EnumString, Eq, IntoStaticStr, PartialEq, Hash, Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    EnumIter,
+    EnumString,
+    Eq,
+    IntoStaticStr,
+    PartialEq,
+    Hash,
+    Serialize,
 )]
 #[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum TcpStatistic {

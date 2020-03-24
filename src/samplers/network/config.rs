@@ -4,6 +4,7 @@
 
 use metrics::*;
 use serde_derive::Deserialize;
+use strum::IntoEnumIterator;
 
 use crate::config::SamplerConfig;
 
@@ -47,27 +48,7 @@ fn default_percentiles() -> Vec<Percentile> {
 }
 
 fn default_statistics() -> Vec<NetworkStatistic> {
-    vec![
-        NetworkStatistic::ReceiveBytes,
-        NetworkStatistic::ReceivePackets,
-        NetworkStatistic::ReceiveErrors,
-        NetworkStatistic::ReceiveDrops,
-        NetworkStatistic::ReceiveFifo,
-        NetworkStatistic::ReceiveFrame,
-        NetworkStatistic::ReceiveCompressed,
-        NetworkStatistic::ReceiveMulticast,
-        NetworkStatistic::ReceiveBytes,
-        NetworkStatistic::TransmitBytes,
-        NetworkStatistic::TransmitPackets,
-        NetworkStatistic::TransmitErrors,
-        NetworkStatistic::TransmitDrops,
-        NetworkStatistic::TransmitFifo,
-        NetworkStatistic::TransmitCollisions,
-        NetworkStatistic::TransmitCarrier,
-        NetworkStatistic::TransmitCompressed,
-        NetworkStatistic::ReceiveSize,
-        NetworkStatistic::TransmitSize,
-    ]
+    NetworkStatistic::iter().collect()
 }
 
 impl SamplerConfig for NetworkConfig {
