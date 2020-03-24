@@ -4,6 +4,7 @@
 
 use metrics::*;
 use serde_derive::Deserialize;
+use strum::IntoEnumIterator;
 
 use crate::config::SamplerConfig;
 
@@ -47,25 +48,7 @@ fn default_percentiles() -> Vec<Percentile> {
 }
 
 fn default_statistics() -> Vec<TcpStatistic> {
-    vec![
-        TcpStatistic::ConnectLatency,
-        TcpStatistic::ReceiveChecksumErrors,
-        TcpStatistic::ReceiveCollapsed,
-        TcpStatistic::ReceiveErrors,
-        TcpStatistic::ReceiveListenOverflows,
-        TcpStatistic::ReceiveListenDrops,
-        TcpStatistic::ReceiveOfoPruned,
-        TcpStatistic::ReceivePruneCalled,
-        TcpStatistic::ReceivePruned,
-        TcpStatistic::ReceiveSegments,
-        TcpStatistic::Retransmits,
-        TcpStatistic::SyncookiesSent,
-        TcpStatistic::SyncookiesRecieved,
-        TcpStatistic::SyncookiesFailed,
-        TcpStatistic::TransmitDelayedAcks,
-        TcpStatistic::TransmitResets,
-        TcpStatistic::TransmitSegments,
-    ]
+    TcpStatistic::iter().collect()
 }
 
 impl SamplerConfig for TcpConfig {

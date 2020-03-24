@@ -4,6 +4,7 @@
 
 use metrics::*;
 use serde_derive::Deserialize;
+use strum::IntoEnumIterator;
 
 use crate::config::SamplerConfig;
 
@@ -47,12 +48,7 @@ fn default_percentiles() -> Vec<Percentile> {
 }
 
 fn default_statistics() -> Vec<XfsStatistic> {
-    vec![
-        XfsStatistic::FsyncLatency,
-        XfsStatistic::OpenLatency,
-        XfsStatistic::ReadLatency,
-        XfsStatistic::WriteLatency,
-    ]
+    XfsStatistic::iter().collect()
 }
 
 impl SamplerConfig for XfsConfig {

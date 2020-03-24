@@ -4,6 +4,7 @@
 
 use metrics::*;
 use serde_derive::Deserialize;
+use strum::IntoEnumIterator;
 
 use crate::config::SamplerConfig;
 
@@ -42,12 +43,9 @@ fn default_percentiles() -> Vec<Percentile> {
         Percentile::p99,
     ]
 }
+
 fn default_statistics() -> Vec<UdpStatistic> {
-    vec![
-        UdpStatistic::InDatagrams,
-        UdpStatistic::InErrors,
-        UdpStatistic::OutDatagrams,
-    ]
+    UdpStatistic::iter().collect()
 }
 
 impl SamplerConfig for UdpConfig {

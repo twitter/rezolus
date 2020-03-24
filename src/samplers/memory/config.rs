@@ -4,6 +4,7 @@
 
 use metrics::*;
 use serde_derive::Deserialize;
+use strum::IntoEnumIterator;
 
 use crate::config::SamplerConfig;
 
@@ -44,24 +45,7 @@ fn default_percentiles() -> Vec<Percentile> {
 }
 
 fn default_statistics() -> Vec<MemoryStatistic> {
-    vec![
-        MemoryStatistic::Total,
-        MemoryStatistic::Free,
-        MemoryStatistic::Available,
-        MemoryStatistic::Buffers,
-        MemoryStatistic::Cached,
-        MemoryStatistic::Active,
-        MemoryStatistic::Inactive,
-        MemoryStatistic::Unevictable,
-        MemoryStatistic::HardwareCorrupted,
-        MemoryStatistic::AnonHugePages,
-        MemoryStatistic::HugePagesTotal,
-        MemoryStatistic::HugePagesFree,
-        MemoryStatistic::HugePagesRsvd,
-        MemoryStatistic::HugePagesSurp,
-        MemoryStatistic::Hugepagesize,
-        MemoryStatistic::Hugetlb,
-    ]
+    MemoryStatistic::iter().collect()
 }
 
 impl SamplerConfig for MemoryConfig {

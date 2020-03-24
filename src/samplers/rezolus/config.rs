@@ -4,6 +4,7 @@
 
 use metrics::*;
 use serde_derive::Deserialize;
+use strum::IntoEnumIterator;
 
 use crate::config::SamplerConfig;
 
@@ -44,12 +45,7 @@ fn default_percentiles() -> Vec<Percentile> {
 }
 
 fn default_statistics() -> Vec<RezolusStatistic> {
-    vec![
-        RezolusStatistic::CpuUser,
-        RezolusStatistic::CpuSystem,
-        RezolusStatistic::MemoryResident,
-        RezolusStatistic::MemoryVirtual,
-    ]
+    RezolusStatistic::iter().collect()
 }
 
 impl SamplerConfig for RezolusConfig {
