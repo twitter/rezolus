@@ -289,7 +289,11 @@ impl Scheduler {
                 let code = include_str!("bpf.c");
                 let mut bpf = bcc::core::BPF::new(code)?;
 
-                if self.sampler_config().statistics().contains(SchedulerStatistic::RunqueueLatency) {
+                if self
+                    .sampler_config()
+                    .statistics()
+                    .contains(&SchedulerStatistic::RunqueueLatency)
+                {
                     let trace_run = bpf.load_kprobe("trace_run")?;
                     let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup")?;
                     let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task")?;
@@ -299,14 +303,18 @@ impl Scheduler {
                     bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)?;
                 }
 
-                if self.sampler_config().statistics().contains(SchedulerStatistic::CfsThrottled) {
+                if self
+                    .sampler_config()
+                    .statistics()
+                    .contains(&SchedulerStatistic::CfsThrottled)
+                {
                     let trace_throttle = bpf.load_kprobe("trace_throttle")?;
                     let trace_unthrottle = bpf.load_kprobe("trace_unthrottle")?;
-                    
+
                     bpf.attach_kprobe("throttle_cfs_rq", trace_throttle)?;
                     bpf.attach_kprobe("unthrottle_cfs_rq", trace_unthrottle)?;
                 }
-                
+
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }
