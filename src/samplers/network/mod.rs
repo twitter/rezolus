@@ -93,58 +93,9 @@ impl Sampler for Network {
         debug!("sampling");
         self.register();
 
-        // sample /proc/net/dev
-        let file = File::open("/proc/net/dev").await?;
-        let reader = BufReader::new(file);
-        let mut lines = reader.lines();
-
-        let mut result = HashMap::new();
-
-        while let Some(line) = lines.next_line().await? {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if !parts.is_empty() && parts[1].parse::<u64>().is_ok() {
-                for statistic in self.sampler_config().statistics() {
-                    if let Some(field) = statistic.field_number() {
-                        if !result.contains_key(statistic) {
-                            result.insert(*statistic, 0);
-                        }
-                        let current = result.get_mut(statistic).unwrap();
-                        *current += parts
-                            .get(field)
-                            .map(|v| v.parse().unwrap_or(0))
-                            .unwrap_or(0);
-                    }
-                }
-            }
-        }
-
-        let time = time::precise_time_ns();
-        for (stat, value) in result {
-            self.metrics().record_counter(&stat, time, value);
-        }
-
-        // sample bpf
+        self.map_result(self.sample_proc_net_dev().await)?;
         #[cfg(feature = "bpf")]
-        {
-            if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
-                if let Some(ref bpf) = self.bpf {
-                    let bpf = bpf.lock().unwrap();
-                    for statistic in self.sampler_config().statistics() {
-                        if let Some(table) = statistic.bpf_table() {
-                            let mut table = (*bpf).inner.table(table);
-
-                            for (&value, &count) in &map_from_table(&mut table) {
-                                if count > 0 {
-                                    self.metrics()
-                                        .record_distribution(statistic, time, value, count);
-                                }
-                            }
-                        }
-                    }
-                }
-                *self.bpf_last.lock().unwrap() = Instant::now();
-            }
-        }
+        self.map_result(self.sample_bpf())?;
 
         Ok(())
     }
@@ -203,6 +154,63 @@ impl Network {
             }
         }
 
+        Ok(())
+    }
+
+    async fn sample_proc_net_dev(&self) -> Result<(), std::io::Error> {
+        // sample /proc/net/dev
+        let file = File::open("/proc/net/dev").await?;
+        let reader = BufReader::new(file);
+        let mut lines = reader.lines();
+
+        let mut result = HashMap::new();
+
+        while let Some(line) = lines.next_line().await? {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if !parts.is_empty() && parts[1].parse::<u64>().is_ok() {
+                for statistic in self.sampler_config().statistics() {
+                    if let Some(field) = statistic.field_number() {
+                        if !result.contains_key(statistic) {
+                            result.insert(*statistic, 0);
+                        }
+                        let current = result.get_mut(statistic).unwrap();
+                        *current += parts
+                            .get(field)
+                            .map(|v| v.parse().unwrap_or(0))
+                            .unwrap_or(0);
+                    }
+                }
+            }
+        }
+
+        let time = time::precise_time_ns();
+        for (stat, value) in result {
+            self.metrics().record_counter(&stat, time, value);
+        }
+        Ok(())
+    }
+
+    #[cfg(feature = "bpf")]
+    fn sample_bpf(&self) -> Result<(), std::io::Error> {
+        if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+            let time = time::precise_time_ns();
+            if let Some(ref bpf) = self.bpf {
+                let bpf = bpf.lock().unwrap();
+                for statistic in self.sampler_config().statistics() {
+                    if let Some(table) = statistic.bpf_table() {
+                        let mut table = (*bpf).inner.table(table);
+
+                        for (&value, &count) in &map_from_table(&mut table) {
+                            if count > 0 {
+                                self.metrics()
+                                    .record_distribution(statistic, time, value, count);
+                            }
+                        }
+                    }
+                }
+            }
+            *self.bpf_last.lock().unwrap() = Instant::now();
+        }
         Ok(())
     }
 }

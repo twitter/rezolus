@@ -87,61 +87,12 @@ impl Sampler for Tcp {
         debug!("sampling");
         self.register();
 
-        // sample /proc/net/snmp
-        if let Ok(snmp) = crate::common::nested_map_from_file("/proc/net/snmp").await {
-            let time = time::precise_time_ns();
-            for statistic in self.sampler_config().statistics() {
-                if let Some((pkey, lkey)) = statistic.keys() {
-                    if let Some(inner) = snmp.get(pkey) {
-                        if let Some(value) = inner.get(lkey) {
-                            self.metrics().record_counter(statistic, time, *value);
-                        }
-                    }
-                }
-            }
-        }
-
-        // sample /proc/net/netstat
-        if let Ok(netstat) = crate::common::nested_map_from_file("/proc/net/netstat").await {
-            let time = time::precise_time_ns();
-            for statistic in self.sampler_config().statistics() {
-                if let Some((pkey, lkey)) = statistic.keys() {
-                    if let Some(inner) = netstat.get(pkey) {
-                        if let Some(value) = inner.get(lkey) {
-                            self.metrics().record_counter(statistic, time, *value);
-                        }
-                    }
-                }
-            }
-        }
+        self.map_result(self.sample_snmp().await)?;
+        self.map_result(self.sample_netstat().await)?;
 
         // sample bpf
         #[cfg(feature = "bpf")]
-        {
-            if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
-                if let Some(ref bpf) = self.bpf {
-                    let bpf = bpf.lock().unwrap();
-                    let time = time::precise_time_ns();
-                    for statistic in self.sampler_config().statistics() {
-                        if let Some(table) = statistic.bpf_table() {
-                            let mut table = (*bpf).inner.table(table);
-
-                            for (&value, &count) in &map_from_table(&mut table) {
-                                if count > 0 {
-                                    self.metrics().record_distribution(
-                                        statistic,
-                                        time,
-                                        value * 1000,
-                                        count,
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-                *self.bpf_last.lock().unwrap() = Instant::now();
-            }
-        }
+        self.map_result(self.sample_bpf())?;
 
         Ok(())
     }
@@ -202,6 +153,64 @@ impl Tcp {
             }
         }
 
+        Ok(())
+    }
+
+    async fn sample_snmp(&self) -> Result<(), std::io::Error> {
+        let snmp = crate::common::nested_map_from_file("/proc/net/snmp").await?;
+        let time = time::precise_time_ns();
+        for statistic in self.sampler_config().statistics() {
+            if let Some((pkey, lkey)) = statistic.keys() {
+                if let Some(inner) = snmp.get(pkey) {
+                    if let Some(value) = inner.get(lkey) {
+                        self.metrics().record_counter(statistic, time, *value);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    async fn sample_netstat(&self) -> Result<(), std::io::Error> {
+        let netstat = crate::common::nested_map_from_file("/proc/net/netstat").await?;
+        let time = time::precise_time_ns();
+        for statistic in self.sampler_config().statistics() {
+            if let Some((pkey, lkey)) = statistic.keys() {
+                if let Some(inner) = netstat.get(pkey) {
+                    if let Some(value) = inner.get(lkey) {
+                        self.metrics().record_counter(statistic, time, *value);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    #[cfg(feature = "bpf")]
+    fn sample_bpf(&self) -> Result<(), std::io::Error> {
+        if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+            if let Some(ref bpf) = self.bpf {
+                let bpf = bpf.lock().unwrap();
+                let time = time::precise_time_ns();
+                for statistic in self.sampler_config().statistics() {
+                    if let Some(table) = statistic.bpf_table() {
+                        let mut table = (*bpf).inner.table(table);
+
+                        for (&value, &count) in &map_from_table(&mut table) {
+                            if count > 0 {
+                                self.metrics().record_distribution(
+                                    statistic,
+                                    time,
+                                    value * 1000,
+                                    count,
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            *self.bpf_last.lock().unwrap() = Instant::now();
+        }
         Ok(())
     }
 }

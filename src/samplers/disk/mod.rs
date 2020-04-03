@@ -93,66 +93,9 @@ impl Sampler for Disk {
         debug!("sampling");
         self.register();
 
-        // process diskstats
-        let file = File::open("/proc/diskstats").await?;
-        let reader = BufReader::new(file);
-        let mut lines = reader.lines();
-        let mut result = HashMap::new();
-        while let Some(line) = lines.next_line().await? {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts.get(1) == Some(&"0") {
-                for statistic in self.sampler_config().statistics() {
-                    if let Some(field) = statistic.diskstat_field() {
-                        if !result.contains_key(statistic) {
-                            result.insert(*statistic, 0);
-                        }
-                        let current = result.get_mut(statistic).unwrap();
-                        *current += parts
-                            .get(field)
-                            .map(|v| v.parse().unwrap_or(0))
-                            .unwrap_or(0);
-                    }
-                }
-            }
-        }
-
-        let time = time::precise_time_ns();
-        for (stat, value) in result {
-            let value = match stat {
-                DiskStatistic::BandwidthWrite
-                | DiskStatistic::BandwidthRead
-                | DiskStatistic::BandwidthDiscard => value * 512,
-                _ => value,
-            };
-            self.metrics().record_counter(&stat, time, value);
-        }
-
-        // process bpf
+        self.map_result(self.sample_diskstats().await)?;
         #[cfg(feature = "bpf")]
-        {
-            if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
-                if let Some(ref bpf) = self.bpf {
-                    let bpf = bpf.lock().unwrap();
-                    for statistic in self.sampler_config().statistics() {
-                        if let Some(table) = statistic.bpf_table() {
-                            let mut table = (*bpf).inner.table(table);
-
-                            for (&value, &count) in &map_from_table(&mut table) {
-                                if count > 0 {
-                                    self.metrics().record_distribution(
-                                        statistic,
-                                        time,
-                                        value * MICROSECOND,
-                                        count,
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-                *self.bpf_last.lock().unwrap() = Instant::now();
-            }
-        }
+        self.map_result(self.sample_bpf())?;
 
         Ok(())
     }
@@ -214,6 +157,71 @@ impl Disk {
             }
         }
 
+        Ok(())
+    }
+
+    async fn sample_diskstats(&self) -> Result<(), std::io::Error> {
+        // process diskstats
+        let file = File::open("/proc/diskstats").await?;
+        let reader = BufReader::new(file);
+        let mut lines = reader.lines();
+        let mut result = HashMap::new();
+        while let Some(line) = lines.next_line().await? {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.get(1) == Some(&"0") {
+                for statistic in self.sampler_config().statistics() {
+                    if let Some(field) = statistic.diskstat_field() {
+                        if !result.contains_key(statistic) {
+                            result.insert(*statistic, 0);
+                        }
+                        let current = result.get_mut(statistic).unwrap();
+                        *current += parts
+                            .get(field)
+                            .map(|v| v.parse().unwrap_or(0))
+                            .unwrap_or(0);
+                    }
+                }
+            }
+        }
+
+        let time = time::precise_time_ns();
+        for (stat, value) in result {
+            let value = match stat {
+                DiskStatistic::BandwidthWrite
+                | DiskStatistic::BandwidthRead
+                | DiskStatistic::BandwidthDiscard => value * 512,
+                _ => value,
+            };
+            self.metrics().record_counter(&stat, time, value);
+        }
+        Ok(())
+    }
+
+    #[cfg(feature = "bpf")]
+    fn sample_bpf(&self) -> Result<(), std::io::Error> {
+        if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+            let time = time::precise_time_ns();
+            if let Some(ref bpf) = self.bpf {
+                let bpf = bpf.lock().unwrap();
+                for statistic in self.sampler_config().statistics() {
+                    if let Some(table) = statistic.bpf_table() {
+                        let mut table = (*bpf).inner.table(table);
+
+                        for (&value, &count) in &map_from_table(&mut table) {
+                            if count > 0 {
+                                self.metrics().record_distribution(
+                                    statistic,
+                                    time,
+                                    value * MICROSECOND,
+                                    count,
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            *self.bpf_last.lock().unwrap() = Instant::now();
+        }
         Ok(())
     }
 }

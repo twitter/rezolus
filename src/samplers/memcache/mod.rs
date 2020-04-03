@@ -105,7 +105,6 @@ impl Sampler for Memcache {
             return Ok(());
         }
 
-        debug!("sampling");
         if let Some(ref mut stream) = self.stream {
             stream.write_all(b"stats\r\n").await?;
             let mut buffer = [0_u8; 16355];

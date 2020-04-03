@@ -74,7 +74,7 @@ impl Sampler for Memory {
         debug!("sampling");
         self.register();
 
-        self.sample_meminfo().await?;
+        self.map_result(self.sample_meminfo().await)?;
 
         Ok(())
     }

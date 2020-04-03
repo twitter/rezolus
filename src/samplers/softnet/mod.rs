@@ -68,6 +68,22 @@ impl Sampler for Softnet {
         debug!("sampling");
         self.register();
 
+        self.map_result(self.sample_softnet_stats().await)?;
+
+        Ok(())
+    }
+
+    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
+        Some(Summary::histogram(
+            1_000_000_000_000,
+            3,
+            Some(self.general_config().window()),
+        ))
+    }
+}
+
+impl Softnet {
+    async fn sample_softnet_stats(&self) -> Result<(), std::io::Error> {
         let file = File::open("/proc/net/softnet_stat").await?;
         let reader = BufReader::new(file);
         let mut lines = reader.lines();
@@ -94,13 +110,5 @@ impl Sampler for Softnet {
         }
 
         Ok(())
-    }
-
-    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
-        Some(Summary::histogram(
-            1_000_000_000_000,
-            3,
-            Some(self.general_config().window()),
-        ))
     }
 }

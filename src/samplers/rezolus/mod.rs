@@ -77,8 +77,8 @@ impl Sampler for Rezolus {
         }
 
         debug!("sampling");
-        self.sample_memory().await?;
-        self.sample_cpu().await?;
+        self.map_result(self.sample_memory().await)?;
+        self.map_result(self.sample_cpu().await)?;
 
         Ok(())
     }

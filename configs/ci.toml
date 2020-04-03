@@ -4,8 +4,8 @@ listen = "0.0.0.0:4242"
 
 [samplers]
 [samplers.cpu]
-enabled = true
-perf_events = true
+enabled = false
+perf_events = false
 
 [samplers.disk]
 bpf = true
@@ -27,6 +27,7 @@ enabled = true
 
 [samplers.scheduler]
 bpf = true
+enabled = true
 perf_events = true
 
 [samplers.softnet]
@@ -40,6 +41,5 @@ enabled = true
 enabled = true
 
 [samplers.xfs]
-# no xfs present on ci
-# bpf = true
+bpf = false # no xfs present on ci, keep BPF disabled
 enabled = true
