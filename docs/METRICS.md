@@ -106,6 +106,31 @@ Provides system-wide telemetry for EXT4 filesystems
 * `ext4/write/latency` - latency distribution, in nanoseconds, for `write()` on
   ext4 filesystems
 
+## Interrupt
+
+Provides system-wide telemetry for IRQs
+
+### Basic
+
+* `interrupt/local_timer` - APIC interrupts which fire on a specific CPU as a
+  result of a local timer
+* `interrupt/machine_check_exception` - interrupts caused by machine check
+  exceptions
+* `interrupt/network` - interrupts for servicing network devices (NIC queues)
+* `interrupt/nmi` - Non-Maskable Interrupts
+* `interrupt/nvme` - interrupts for servicing NVMe queues
+* `interrupt/performance_monitoring` - interrupts generated when a performance
+  counter overflows or PEBS interrupt threshold is reached
+* `interrupt/rescheduling` - interrupts used to notify a core to schedule a
+  thread
+* `interrupt/rtc` - interrupts caused by the realtime clock
+* `interrupt/serial` - interrupts caused by serial ports
+* `interrupt/spurious` - interrupts which were marked spurious and not handled
+* `interrupt/thermal_event` - interrupts caused by thermal events, like
+  throttling
+* `interrupt/timer` - interrupts related to the system timer (PIT/HPET)
+* `interrupt/tlb_shootdowns` - interrupts caused to trigger TLB shootdowns
+
 ## Memory
 
 ### Basic
