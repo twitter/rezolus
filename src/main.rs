@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Softnet::spawn(common.clone());
     Tcp::spawn(common.clone());
     Udp::spawn(common.clone());
-    Xfs::spawn(common.clone());
+    Xfs::spawn(common);
 
     #[cfg(feature = "push_kafka")]
     {

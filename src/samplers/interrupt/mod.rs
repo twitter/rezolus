@@ -30,9 +30,7 @@ impl Sampler for Interrupt {
     type Statistic = InterruptStatistic;
 
     fn new(common: Common) -> Result<Self, failure::Error> {
-        Ok(Self {
-            common,
-        })
+        Ok(Self { common })
     }
 
     fn spawn(common: Common) {
@@ -116,26 +114,26 @@ impl Interrupt {
                 Some(&"TLB:") => InterruptStatistic::TlbShootdowns,
                 Some(&"TRM:") => InterruptStatistic::ThermalEvent,
                 Some(&"MCE:") => InterruptStatistic::MachineCheckException,
-                _ => {
-                    match parts.get(parts.len() - 1) {
-                        Some(&"timer") => InterruptStatistic::Timer,
-                        Some(&"rtc0") => InterruptStatistic::RealTimeClock,
-                        Some(label) => {
-                            if label.len() >= 3 && label[0..3] == *"mlx" {
-                                InterruptStatistic::Network
-                            } else if label.len() >= 3 && label[0..3] == *"eth" {
+                _ => match parts.last() {
+                    Some(&"timer") => InterruptStatistic::Timer,
+                    Some(&"rtc0") => InterruptStatistic::RealTimeClock,
+                    Some(label) => {
+                        if label.len() >= 3 {
+                            if label[0..3] == *"mlx" || label[0..3] == *"eth" {
                                 InterruptStatistic::Network
                             } else if label.len() >= 4 && label[0..4] == *"nvme" {
                                 InterruptStatistic::Nvme
                             } else {
                                 continue;
                             }
-                        }
-                        None => {
+                        } else {
                             continue;
                         }
                     }
-                }
+                    None => {
+                        continue;
+                    }
+                },
             };
             result.insert(stat, sum);
         }
@@ -143,8 +141,7 @@ impl Interrupt {
         let time = time::precise_time_ns();
         for stat in self.sampler_config().statistics() {
             if let Some(value) = result.get(stat) {
-                self.metrics()
-                    .record_counter(stat, time, *value);
+                self.metrics().record_counter(stat, time, *value);
             }
         }
 
