@@ -118,14 +118,10 @@ impl Interrupt {
                     Some(&"timer") => InterruptStatistic::Timer,
                     Some(&"rtc0") => InterruptStatistic::RealTimeClock,
                     Some(label) => {
-                        if label.len() >= 3 {
-                            if label[0..3] == *"mlx" || label[0..3] == *"eth" {
-                                InterruptStatistic::Network
-                            } else if label.len() >= 4 && label[0..4] == *"nvme" {
-                                InterruptStatistic::Nvme
-                            } else {
-                                continue;
-                            }
+                        if label.starts_with("mlx") || label.starts_with("eth") {
+                            InterruptStatistic::Network
+                        } else if label.starts_with("nvme") || label.starts_with("vmd") {
+                            InterruptStatistic::Nvme
                         } else {
                             continue;
                         }
