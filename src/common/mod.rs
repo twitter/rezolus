@@ -65,7 +65,7 @@ pub async fn nested_map_from_file<T: AsRef<Path>>(
         if let Some(values) = lines.next_line().await? {
             let keys: Vec<&str> = keys.trim().split_whitespace().collect();
             let values: Vec<&str> = values.trim().split_whitespace().collect();
-            if let Some(pkey) = keys.get(0).map(|v| v.to_string()) {
+            if let Some(pkey) = keys.get(0).map(|v| (*v).to_string()) {
                 if !ret.contains_key(&pkey) {
                     ret.insert(pkey.clone(), Default::default());
                 }
