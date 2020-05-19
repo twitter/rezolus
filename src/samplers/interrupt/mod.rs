@@ -117,10 +117,11 @@ impl Interrupt {
                 _ => match parts.last() {
                     Some(&"timer") => InterruptStatistic::Timer,
                     Some(&"rtc0") => InterruptStatistic::RealTimeClock,
+                    Some(&"vmd") => InterruptStatistic::Nvme,
                     Some(label) => {
                         if label.starts_with("mlx") || label.starts_with("eth") {
                             InterruptStatistic::Network
-                        } else if label.starts_with("nvme") || label.starts_with("vmd") {
+                        } else if label.starts_with("nvme") {
                             InterruptStatistic::Nvme
                         } else {
                             continue;
@@ -131,7 +132,11 @@ impl Interrupt {
                     }
                 },
             };
-            result.insert(stat, sum);
+            if let Some(previous) = result.get_mut(&stat) {
+                *previous += sum;
+            } else {
+                result.insert(stat, sum);
+            }
         }
 
         let time = time::precise_time_ns();
