@@ -59,11 +59,15 @@ if [ -z "${FEATURES}" ]; then
     FEATURES="default"
 fi
 
-cargo build --features ${FEATURES}
-cargo test --features ${FEATURES}
+if [ -z "${TRAVIS_RUST_VERSION}"]; then
+    TRAVIS_RUST_VERSION="stable"
+fi
+
+cargo +${TRAVIS_RUST_VERSION} build --features ${FEATURES}
+cargo +${TRAVIS_RUST_VERSION} test --features ${FEATURES}
 sudo timeout --signal 15 --preserve-status 5.0m target/debug/rezolus --config configs/example.toml
 sudo timeout --signal 15 --preserve-status 5.0m target/debug/rezolus --config configs/ci.toml
-cargo build --release --features ${FEATURES}
-cargo test --release --features ${FEATURES}
+cargo +${TRAVIS_RUST_VERSION} build --release --features ${FEATURES}
+cargo +${TRAVIS_RUST_VERSION} test --release --features ${FEATURES}
 sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
 sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml

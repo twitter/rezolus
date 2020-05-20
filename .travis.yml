@@ -177,10 +177,10 @@ matrix:
       rust: stable
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --no-default-features
-        - cargo test --no-default-features
-        - cargo build --release --no-default-features
-        - cargo test --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --release --no-default-features
         - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: bionic / stable"
       os: linux
@@ -188,10 +188,10 @@ matrix:
       rust: stable
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --no-default-features
-        - cargo test --no-default-features
-        - cargo build --release --no-default-features
-        - cargo test --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --release --no-default-features
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: xenial / nightly"
       os: linux
@@ -199,10 +199,10 @@ matrix:
       rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --no-default-features
-        - cargo test --no-default-features
-        - cargo build --release --no-default-features
-        - cargo test --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --release --no-default-features
         - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: bionic / nightly"
       os: linux
@@ -210,10 +210,10 @@ matrix:
       rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --no-default-features
-        - cargo test --no-default-features
-        - cargo build --release --no-default-features
-        - cargo test --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --release --no-default-features
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "rustfmt"
       os: linux
@@ -221,15 +221,16 @@ matrix:
       rust: stable
       env: RUST_BACKTRACE=1
       script:
-        - rustup component add rustfmt --toolchain stable
-        - cargo +stable fmt -- --check
+        - rustup component add rustfmt --toolchain +${TRAVIS_RUST_VERSION}
+        - cargo +${TRAVIS_RUST_VERSION} fmt -- --check
     - name: "clippy"
       os: linux
       dist: bionic
       rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1
       script:
-        - cargo clippy --features bpf
+        - rustup component add rustfmt --toolchain +${TRAVIS_RUST_VERSION}
+        - cargo +${TRAVIS_RUST_VERSION} clippy --features bpf
     - name: "shellcheck"
       os: linux
       dist: bionic
