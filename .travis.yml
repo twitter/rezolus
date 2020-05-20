@@ -221,7 +221,7 @@ matrix:
       rust: stable
       env: RUST_BACKTRACE=1
       script:
-        - rustup component add rustfmt --toolchain +${TRAVIS_RUST_VERSION}
+        - rustup component add rustfmt --toolchain ${TRAVIS_RUST_VERSION}
         - cargo +${TRAVIS_RUST_VERSION} fmt -- --check
     - name: "clippy"
       os: linux
@@ -229,7 +229,7 @@ matrix:
       rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1
       script:
-        - rustup component add rustfmt --toolchain +${TRAVIS_RUST_VERSION}
+        - rustup component add rustfmt --toolchain ${TRAVIS_RUST_VERSION}
         - cargo +${TRAVIS_RUST_VERSION} clippy --features bpf
     - name: "shellcheck"
       os: linux
