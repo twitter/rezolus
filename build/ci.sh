@@ -59,7 +59,7 @@ if [ -z "${FEATURES}" ]; then
     FEATURES="default"
 fi
 
-if [ -z "${TRAVIS_RUST_VERSION}"]; then
+if [ -z "${TRAVIS_RUST_VERSION}" ]; then
     TRAVIS_RUST_VERSION="stable"
 fi
 
