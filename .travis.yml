@@ -6,168 +6,168 @@ matrix:
     - name: "default: xenial / nightly"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1
       script:
         - bash build/ci.sh
     - name: "default: bionic / nightly"
       os: linux
       dist: bionic
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 8 / bcc 0.8.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.8.0" FEATURES="bpf_v0_8_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 8 / bcc 0.9.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.9.0" FEATURES="bpf_v0_9_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 8 / bcc 0.10.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.10.0" FEATURES="bpf_v0_10_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 8 / bcc 0.11.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.11.0" FEATURES="bpf_v0_11_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 8 / bcc 0.12.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.12.0" FEATURES="bpf_v0_12_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 8 / bcc 0.13.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.13.0" FEATURES="bpf_v0_13_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 8 / bcc latest"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="latest" FEATURES="bpf"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 9 / bcc 0.8.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.8.0" FEATURES="bpf_v0_8_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 9 / bcc 0.9.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.9.0" FEATURES="bpf_v0_9_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 9 / bcc 0.10.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.10.0" FEATURES="bpf_v0_10_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 9 / bcc 0.11.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.11.0" FEATURES="bpf_v0_11_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 9 / bcc 0.12.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.12.0" FEATURES="bpf_v0_12_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 9 / bcc 0.13.0"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.13.0" FEATURES="bpf_v0_13_0"
       script:
         - bash build/ci.sh
     - name: "bpf: xenial / nightly / llvm 9 / bcc latest"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="latest" FEATURES="bpf"
       script:
         - bash build/ci.sh
     - name: "bpf: bionic / nightly / llvm 10 / bcc 0.8.0"
       os: linux
       dist: bionic
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.8.0" FEATURES="bpf_v0_8_0"
       script:
         - bash build/ci.sh
     - name: "bpf: bionic / nightly / llvm 10 / bcc 0.9.0"
       os: linux
       dist: bionic
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.9.0" FEATURES="bpf_v0_9_0"
       script:
         - bash build/ci.sh
     - name: "bpf: bionic / nightly / llvm 10 / bcc 0.10.0"
       os: linux
       dist: bionic
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.10.0" FEATURES="bpf_v0_10_0"
       script:
         - bash build/ci.sh
     - name: "bpf: bionic / nightly / llvm 10 / bcc 0.11.0"
       os: linux
       dist: bionic
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.11.0" FEATURES="bpf_v0_11_0"
       script:
         - bash build/ci.sh
     - name: "bpf: bionic / nightly / llvm 10 / bcc 0.12.0"
       os: linux
       dist: bionic
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.12.0" FEATURES="bpf_v0_12_0"
       script:
         - bash build/ci.sh
     - name: "bpf: bionic / nightly / llvm 10 / bcc 0.13.0"
       os: linux
       dist: bionic
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.13.0" FEATURES="bpf_v0_13_0"
       script:
         - bash build/ci.sh
     - name: "bpf: bionic / nightly / llvm 10 / bcc latest"
       os: linux
       dist: bionic
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="latest" FEATURES="bpf"
       script:
         - bash build/ci.sh
     - name: "push_kafka: xenial / nightly"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1 FEATURES="push_kafka"
       script:
         - bash build/ci.sh
@@ -177,10 +177,10 @@ matrix:
       rust: stable
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --no-default-features
-        - cargo test --no-default-features
-        - cargo build --release --no-default-features
-        - cargo test --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --release --no-default-features
         - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: bionic / stable"
       os: linux
@@ -188,32 +188,32 @@ matrix:
       rust: stable
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --no-default-features
-        - cargo test --no-default-features
-        - cargo build --release --no-default-features
-        - cargo test --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --release --no-default-features
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: xenial / nightly"
       os: linux
       dist: xenial
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --no-default-features
-        - cargo test --no-default-features
-        - cargo build --release --no-default-features
-        - cargo test --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --release --no-default-features
         - sudo timeout --signal=INT --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "no-default: bionic / nightly"
       os: linux
       dist: bionic
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1
       script:
-        - cargo build --no-default-features
-        - cargo test --no-default-features
-        - cargo build --release --no-default-features
-        - cargo test --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} build --release --no-default-features
+        - cargo +${TRAVIS_RUST_VERSION} test --release --no-default-features
         - sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
     - name: "rustfmt"
       os: linux
@@ -221,17 +221,16 @@ matrix:
       rust: stable
       env: RUST_BACKTRACE=1
       script:
-        - rustup component add rustfmt --toolchain stable
-        - cargo +stable fmt -- --check
+        - rustup component add rustfmt --toolchain ${TRAVIS_RUST_VERSION}
+        - cargo +${TRAVIS_RUST_VERSION} fmt -- --check
     - name: "clippy"
       os: linux
       dist: bionic
-      rust: nightly
+      rust: nightly-2020-05-01
       env: RUST_BACKTRACE=1
       script:
-        - rustup toolchain install nightly-2020-02-01
-        - rustup component add clippy --toolchain nightly-2020-02-01
-        - cargo +nightly-2020-02-01 clippy --features bpf
+        - rustup component add clippy --toolchain ${TRAVIS_RUST_VERSION}
+        - cargo +${TRAVIS_RUST_VERSION} clippy --features bpf
     - name: "shellcheck"
       os: linux
       dist: bionic

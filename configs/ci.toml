@@ -15,6 +15,9 @@ enabled = true
 bpf = true
 enabled = true
 
+[samplers.interrupt]
+enabled = true
+
 [samplers.memory]
 enabled = true
 
