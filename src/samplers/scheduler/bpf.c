@@ -129,6 +129,14 @@ struct cfs_bandwidth {
     u64         throttled_time;
 };
 
+struct rcu_work {
+    struct work_struct work;
+    struct rcu_head rcu;
+
+    /* target workqueue ->rcu uses to queue ->work */
+    struct workqueue_struct *wq;
+};
+
 /*
  * Per-subsystem/per-cgroup state maintained by the system.  This is the
  * fundamental structural building block that controllers deal with.
