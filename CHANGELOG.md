@@ -3,7 +3,6 @@
 # [2.1.0] - 2020-05-22
 ## Added
 - Interrupt sampler to gather system-level telemetry about interrupts
-- BPF scheduler telemetry for CFS throttled time distribution
 
 ## Fixed
 - Improved error handling in samplers that read from multiple sources to prevent
