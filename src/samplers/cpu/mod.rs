@@ -127,10 +127,13 @@ impl Sampler for Cpu {
         debug!("sampling");
         self.register();
 
-        self.sample_cstates().await?;
-        self.sample_cpu_usage().await?;
+        self.map_result(self.sample_cstates().await)?;
+        self.map_result(self.sample_cpu_usage().await)?;
         #[cfg(feature = "perf")]
-        self.sample_perf_counters().await?;
+        {
+            let result = self.sample_perf_counters().await;
+            self.map_result(result)?;
+        }
 
         Ok(())
     }
@@ -154,18 +157,7 @@ impl Cpu {
         let mut result = HashMap::new();
 
         while let Some(line) = lines.next_line().await? {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts[0] == "cpu" && parts.len() == 11 {
-                result.insert(CpuStatistic::UsageUser, parts[1].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageNice, parts[2].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageSystem, parts[3].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageIdle, parts[4].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageIrq, parts[6].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageSoftirq, parts[7].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageSteal, parts[8].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageGuest, parts[9].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageGuestNice, parts[10].parse().unwrap_or(0));
-            }
+            result.extend(parse_proc_stat(&line));
         }
 
         let time = time::precise_time_ns();
@@ -281,5 +273,44 @@ impl Cpu {
         }
 
         Ok(())
+    }
+}
+
+fn parse_proc_stat(line: &str) -> HashMap<CpuStatistic, u64> {
+    let mut result = HashMap::new();
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    match parts.get(0) {
+        Some(&"cpu") => match parts.len() {
+            11 => {
+                result.insert(CpuStatistic::UsageUser, parts[1].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageNice, parts[2].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageSystem, parts[3].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageIdle, parts[4].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageIrq, parts[6].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageSoftirq, parts[7].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageSteal, parts[8].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageGuest, parts[9].parse().unwrap_or(0));
+                result.insert(CpuStatistic::UsageGuestNice, parts[10].parse().unwrap_or(0));
+            }
+            _ => {
+                debug!("parsed cpu line but got unexpected number of fields");
+            }
+        },
+        _ => {}
+    }
+    result
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_parse_proc_stat() {
+        let result = parse_proc_stat("cpu  131586 0 53564 8246483 35015 350665 4288 5632 0 0");
+        assert_eq!(result.len(), 9);
+        assert_eq!(result.get(&CpuStatistic::UsageUser), Some(&131586));
+        assert_eq!(result.get(&CpuStatistic::UsageNice), Some(&0));
+        assert_eq!(result.get(&CpuStatistic::UsageSystem), Some(&53564));
     }
 }

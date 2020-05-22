@@ -62,33 +62,8 @@ impl Sampler for Udp {
         debug!("sampling");
         self.register();
 
-        // sample /proc/net/snmp
-        if let Ok(snmp) = crate::common::nested_map_from_file("/proc/net/snmp").await {
-            let time = time::precise_time_ns();
-            for statistic in self.sampler_config().statistics() {
-                if let Some((pkey, lkey)) = statistic.keys() {
-                    if let Some(inner) = snmp.get(pkey) {
-                        if let Some(value) = inner.get(lkey) {
-                            self.metrics().record_counter(statistic, time, *value);
-                        }
-                    }
-                }
-            }
-        }
-
-        // sample /proc/net/netstat
-        if let Ok(snmp) = crate::common::nested_map_from_file("/proc/net/netstat").await {
-            let time = time::precise_time_ns();
-            for statistic in self.sampler_config().statistics() {
-                if let Some((pkey, lkey)) = statistic.keys() {
-                    if let Some(inner) = snmp.get(pkey) {
-                        if let Some(value) = inner.get(lkey) {
-                            self.metrics().record_counter(statistic, time, *value);
-                        }
-                    }
-                }
-            }
-        }
+        self.map_result(self.sample_snmp().await)?;
+        self.map_result(self.sample_netstat().await)?;
 
         Ok(())
     }
@@ -103,5 +78,37 @@ impl Sampler for Udp {
             3,
             Some(self.general_config().window()),
         ))
+    }
+}
+
+impl Udp {
+    async fn sample_snmp(&self) -> Result<(), std::io::Error> {
+        let snmp = crate::common::nested_map_from_file("/proc/net/snmp").await?;
+        let time = time::precise_time_ns();
+        for statistic in self.sampler_config().statistics() {
+            if let Some((pkey, lkey)) = statistic.keys() {
+                if let Some(inner) = snmp.get(pkey) {
+                    if let Some(value) = inner.get(lkey) {
+                        self.metrics().record_counter(statistic, time, *value);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    async fn sample_netstat(&self) -> Result<(), std::io::Error> {
+        let netstat = crate::common::nested_map_from_file("/proc/net/netstat").await?;
+        let time = time::precise_time_ns();
+        for statistic in self.sampler_config().statistics() {
+            if let Some((pkey, lkey)) = statistic.keys() {
+                if let Some(inner) = netstat.get(pkey) {
+                    if let Some(value) = inner.get(lkey) {
+                        self.metrics().record_counter(statistic, time, *value);
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 }

@@ -106,6 +106,23 @@ pub trait Sampler: Sized + Send {
     fn metrics(&self) -> &Metrics<AtomicU32> {
         self.common().metrics()
     }
+
+    /// Used to map errors according to fault tolerance
+    /// WouldBlock is returned as-is so that async/await behaves as expected
+    /// All other errors are handled per fault tolerance setting
+    fn map_result(&self, result: Result<(), std::io::Error>) -> Result<(), std::io::Error> {
+        if let Err(e) = result {
+            if e.kind() == std::io::ErrorKind::WouldBlock {
+                return Err(e);
+            }
+            if self.common().config().general().fault_tolerant() {
+                debug!("error: {}", e);
+            } else {
+                fatal!("error: {}", e);
+            }
+        }
+        Ok(())
+    }
 }
 
 pub struct Common {

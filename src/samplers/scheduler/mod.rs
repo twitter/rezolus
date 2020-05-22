@@ -134,11 +134,14 @@ impl Sampler for Scheduler {
         debug!("sampling");
         self.register();
 
-        self.sample_proc_stat().await?;
+        self.map_result(self.sample_proc_stat().await)?;
         #[cfg(feature = "bpf")]
-        self.sample_bpf().await?;
+        self.map_result(self.sample_bpf())?;
         #[cfg(feature = "perf")]
-        self.sample_perf_counters().await?;
+        {
+            let result = self.sample_perf_counters().await;
+            self.map_result(result)?;
+        }
 
         Ok(())
     }
@@ -210,7 +213,7 @@ impl Scheduler {
     }
 
     #[cfg(feature = "bpf")]
-    async fn sample_bpf(&mut self) -> Result<(), std::io::Error> {
+    fn sample_bpf(&self) -> Result<(), std::io::Error> {
         // sample bpf
         {
             if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
