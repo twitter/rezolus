@@ -29,8 +29,6 @@ use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 pub enum SchedulerStatistic {
     #[strum(serialize = "scheduler/cpu_migrations")]
     CpuMigrations,
-    #[strum(serialize = "scheduler/cfs/throttled")]
-    CfsThrottled,
     #[strum(serialize = "scheduler/runqueue/latency")]
     RunqueueLatency,
     #[strum(serialize = "scheduler/context_switches")]
@@ -47,7 +45,6 @@ impl SchedulerStatistic {
     #[allow(dead_code)]
     pub fn bpf_table(self) -> Option<&'static str> {
         match self {
-            Self::CfsThrottled => Some("cfs_throttled"),
             Self::RunqueueLatency => Some("runqueue_latency"),
             _ => None,
         }
@@ -71,7 +68,7 @@ impl Statistic for SchedulerStatistic {
 
     fn source(&self) -> Source {
         match *self {
-            Self::RunqueueLatency | Self::CfsThrottled => Source::Distribution,
+            Self::RunqueueLatency => Source::Distribution,
             Self::ProcessesRunning | Self::ProcessesBlocked => Source::Gauge,
             _ => Source::Counter,
         }

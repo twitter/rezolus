@@ -292,7 +292,6 @@ Provides telemetry about the Linux Scheduler
 
 ### eBPF
 
-* `scheduler/cfs/throttled` - the distribution of time cgroups spent throttled
 * `scheduler/runqueue/latency` - the distribution of time that runnable tasks
   were waiting on the runqueue
 
