@@ -1,5 +1,22 @@
 #!/bin/bash -ev
 
+set -e
+
+# try to install or use existing sccache
+if sccache --version > /dev/null 2>&1; then
+    echo "Using existing sccache"
+    export RUSTC_WRAPPER="sccache"
+    export CC="sccache gcc"
+    sccache --version
+elif cargo install sccache; then
+    echo "Installed sccache"
+    export RUSTC_WRAPPER="sccache"
+    export CC="sccache gcc"
+    sccache --version
+else
+    echo "Building without sccache"
+fi
+
 ## Add LLVM repo
 wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
 echo "deb http://apt.llvm.org/${TRAVIS_DIST}/ llvm-toolchain-${TRAVIS_DIST}-${LLVM_VERSION} main" | sudo tee -a /etc/apt/sources.list
@@ -52,21 +69,6 @@ if [ -n "${BCC_VERSION}" ]; then
     make
     sudo make install
     cd ../..
-fi
-
-# try to install or use existing sccache
-if sccache --version > /dev/null 2>&1; then
-    echo "Using existing sccache"
-    export RUSTC_WRAPPER="sccache"
-    export CC="sccache gcc"
-    sccache --version
-elif cargo install sccache; then
-    echo "Installed sccache"
-    export RUSTC_WRAPPER="sccache"
-    export CC="sccache gcc"
-    sccache --version
-else
-    echo "Building without sccache"
 fi
 
 ## Build and test
