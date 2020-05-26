@@ -1,5 +1,6 @@
 language: rust
 sudo: required
+cache: cargo
 matrix:
   fast_finish: true
   include:
