@@ -17,23 +17,25 @@ else
     echo "Building without sccache"
 fi
 
-## Add LLVM repo
-wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-echo "deb http://apt.llvm.org/${TRAVIS_DIST}/ llvm-toolchain-${TRAVIS_DIST}-${LLVM_VERSION} main" | sudo tee -a /etc/apt/sources.list
-sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+if [ -n "${LLVM_VERSION}" ]; then
+    ## Add LLVM repo
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+    echo "deb http://apt.llvm.org/${TRAVIS_DIST}/ llvm-toolchain-${TRAVIS_DIST}-${LLVM_VERSION} main" | sudo tee -a /etc/apt/sources.list
+    sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
 
-## Update apt
-sudo apt-get update
+    ## Update apt
+    sudo apt-get update
 
-## Install kernel headers for matching version
-sudo apt-get install linux-headers-"$(uname -r)"
+    ## Install kernel headers for matching version
+    sudo apt-get install linux-headers-"$(uname -r)"
 
-## Dist specific dependencies
-if [[ "${TRAVIS_DIST}" == "xenial" ]]; then
-    sudo apt-get --yes install bison build-essential cmake flex git libclang-common-"${LLVM_VERSION}"-dev libelf-dev libllvm"${LLVM_VERSION}" libz-dev lldb-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}"-dev llvm-"${LLVM_VERSION}"-runtime
-fi
-if [[ "${TRAVIS_DIST}" == "bionic" ]]; then
-    sudo apt-get --yes install bison build-essential cmake flex libfl-dev git libclang-common-"${LLVM_VERSION}"-dev libelf-dev libllvm"${LLVM_VERSION}" libz-dev lldb-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}"-dev llvm-"${LLVM_VERSION}"-runtime
+    ## Dist specific dependencies
+    if [[ "${TRAVIS_DIST}" == "xenial" ]]; then
+        sudo apt-get --yes install bison build-essential cmake flex git libclang-common-"${LLVM_VERSION}"-dev libelf-dev libllvm"${LLVM_VERSION}" libz-dev lldb-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}"-dev llvm-"${LLVM_VERSION}"-runtime
+    fi
+    if [[ "${TRAVIS_DIST}" == "bionic" ]]; then
+        sudo apt-get --yes install bison build-essential cmake flex libfl-dev git libclang-common-"${LLVM_VERSION}"-dev libelf-dev libllvm"${LLVM_VERSION}" libz-dev lldb-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}" llvm-"${LLVM_VERSION}"-dev llvm-"${LLVM_VERSION}"-runtime
+    fi
 fi
 
 ## Optionally build/install BCC
