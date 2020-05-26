@@ -1,6 +1,6 @@
 # [Unreleased]
 
-# [2.1.0] - 2020-05-22
+# [2.1.0] - 2020-05-26
 ## Added
 - Interrupt sampler to gather system-level telemetry about interrupts
 
