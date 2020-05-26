@@ -1,4 +1,14 @@
 # [Unreleased]
+
+# [2.1.0] - 2020-05-26
+## Added
+- Interrupt sampler to gather system-level telemetry about interrupts
+
+## Fixed
+- Improved error handling in samplers that read from multiple sources to prevent
+  errors reading from earlier sources from preventing the collection from
+  sources which are sampled afterwards
+
 # [2.0.0] - 2020-03-24
 ## Changed
 - Many metrics have been renamed to improve consistency
@@ -53,7 +63,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/twitter/rezolus/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/twitter/rezolus/compare/v1.3.0...v2.0.0
 [1.3.0]: https://github.com/twitter/rezolus/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/twitter/rezolus/compare/v1.1.0...v1.2.0
