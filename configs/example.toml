@@ -38,7 +38,7 @@ percentiles = [
 bpf = true
 enabled = true
 
-[samplers.interrupts]
+[samplers.interrupt]
 enabled = true
 
 [samplers.memory]
