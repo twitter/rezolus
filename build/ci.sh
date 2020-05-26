@@ -54,6 +54,21 @@ if [ -n "${BCC_VERSION}" ]; then
     cd ../..
 fi
 
+# try to install or use existing sccache
+if sccache --version > /dev/null 2>&1; then
+    echo "Using existing sccache"
+    export RUSTC_WRAPPER="sccache"
+    export CC="sccache gcc"
+    sccache --version
+elif cargo install sccache; then
+    echo "Installed sccache"
+    export RUSTC_WRAPPER="sccache"
+    export CC="sccache gcc"
+    sccache --version
+else
+    echo "Building without sccache"
+fi
+
 ## Build and test
 if [ -z "${FEATURES}" ]; then
     FEATURES="default"
@@ -63,10 +78,6 @@ if [ -z "${TRAVIS_RUST_VERSION}" ]; then
     TRAVIS_RUST_VERSION="stable"
 fi
 
-cargo +${TRAVIS_RUST_VERSION} build --features ${FEATURES}
-cargo +${TRAVIS_RUST_VERSION} test --features ${FEATURES}
-sudo timeout --signal 15 --preserve-status 5.0m target/debug/rezolus --config configs/example.toml
-sudo timeout --signal 15 --preserve-status 5.0m target/debug/rezolus --config configs/ci.toml
 cargo +${TRAVIS_RUST_VERSION} build --release --features ${FEATURES}
 cargo +${TRAVIS_RUST_VERSION} test --release --features ${FEATURES}
 sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
