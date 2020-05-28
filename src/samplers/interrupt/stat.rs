@@ -27,6 +27,8 @@ use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 )]
 #[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum InterruptStatistic {
+    #[strum(serialize = "interrupt/total")]
+    Total,
     #[strum(serialize = "interrupt/timer")]
     Timer,
     #[strum(serialize = "interrupt/nmi")]
@@ -55,6 +57,18 @@ pub enum InterruptStatistic {
     RealTimeClock,
     #[strum(serialize = "interrupt/serial")]
     Serial,
+    #[strum(serialize = "interrupt/node0/total")]
+    Node0Total,
+    #[strum(serialize = "interrupt/node1/total")]
+    Node1Total,
+    #[strum(serialize = "interrupt/node0/network")]
+    Node0Network,
+    #[strum(serialize = "interrupt/node1/network")]
+    Node1Network,
+    #[strum(serialize = "interrupt/node0/nvme")]
+    Node0Nvme,
+    #[strum(serialize = "interrupt/node1/nvme")]
+    Node1Nvme,
 }
 
 impl TryFrom<&str> for InterruptStatistic {
