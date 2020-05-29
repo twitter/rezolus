@@ -1,5 +1,10 @@
 # [Unreleased]
 
+# [2.2.0] - 2020-05-29
+## Added
+- Interrupt sampler can now export network, nvme, and total interrupts per NUMA
+  node
+
 # [2.1.0] - 2020-05-26
 ## Added
 - Interrupt sampler to gather system-level telemetry about interrupts
