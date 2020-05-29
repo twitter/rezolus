@@ -143,12 +143,16 @@ impl Interrupt {
                     }
                     Some(label) => {
                         if label.starts_with("mlx") || label.starts_with("eth") {
-                            if let Some(previous) = result.get_mut(&InterruptStatistic::Node0Network) {
+                            if let Some(previous) =
+                                result.get_mut(&InterruptStatistic::Node0Network)
+                            {
                                 *previous += node0;
                             } else {
                                 result.insert(InterruptStatistic::Node0Network, sum);
                             }
-                            if let Some(previous) = result.get_mut(&InterruptStatistic::Node1Network) {
+                            if let Some(previous) =
+                                result.get_mut(&InterruptStatistic::Node1Network)
+                            {
                                 *previous += node1;
                             } else {
                                 result.insert(InterruptStatistic::Node1Network, sum);
