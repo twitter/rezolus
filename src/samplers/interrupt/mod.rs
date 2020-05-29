@@ -102,8 +102,19 @@ impl Interrupt {
                 continue;
             }
             let mut sum = 0;
-            for i in 1..cores.unwrap() {
-                sum += parts.get(i).unwrap_or(&"0").parse().unwrap_or(0);
+            let mut node0 = 0;
+            let mut node1 = 0;
+            let cores = cores.unwrap();
+            for i in 0..cores {
+                let count = parts.get(i + 1).unwrap_or(&"0").parse().unwrap_or(0);
+                sum += count;
+                // Assumes the system is split into 2 NUMA nodes with
+                // hyperthreading enabled and that cores are arranged as follows
+                if i < (cores / 4) || (i >= (cores / 2) && i < (3 * cores / 4)) {
+                    node0 += count;
+                } else {
+                    node1 += count;
+                }
             }
             let stat = match parts.get(0) {
                 Some(&"NMI:") => InterruptStatistic::NonMaskable,
@@ -117,11 +128,47 @@ impl Interrupt {
                 _ => match parts.last() {
                     Some(&"timer") => InterruptStatistic::Timer,
                     Some(&"rtc0") => InterruptStatistic::RealTimeClock,
-                    Some(&"vmd") => InterruptStatistic::Nvme,
+                    Some(&"vmd") => {
+                        if let Some(previous) = result.get_mut(&InterruptStatistic::Node0Nvme) {
+                            *previous += node0;
+                        } else {
+                            result.insert(InterruptStatistic::Node0Nvme, sum);
+                        }
+                        if let Some(previous) = result.get_mut(&InterruptStatistic::Node1Nvme) {
+                            *previous += node1;
+                        } else {
+                            result.insert(InterruptStatistic::Node1Nvme, sum);
+                        }
+                        InterruptStatistic::Nvme
+                    }
                     Some(label) => {
                         if label.starts_with("mlx") || label.starts_with("eth") {
+                            if let Some(previous) =
+                                result.get_mut(&InterruptStatistic::Node0Network)
+                            {
+                                *previous += node0;
+                            } else {
+                                result.insert(InterruptStatistic::Node0Network, sum);
+                            }
+                            if let Some(previous) =
+                                result.get_mut(&InterruptStatistic::Node1Network)
+                            {
+                                *previous += node1;
+                            } else {
+                                result.insert(InterruptStatistic::Node1Network, sum);
+                            }
                             InterruptStatistic::Network
                         } else if label.starts_with("nvme") {
+                            if let Some(previous) = result.get_mut(&InterruptStatistic::Node0Nvme) {
+                                *previous += node0;
+                            } else {
+                                result.insert(InterruptStatistic::Node0Nvme, sum);
+                            }
+                            if let Some(previous) = result.get_mut(&InterruptStatistic::Node1Nvme) {
+                                *previous += node1;
+                            } else {
+                                result.insert(InterruptStatistic::Node1Nvme, sum);
+                            }
                             InterruptStatistic::Nvme
                         } else {
                             continue;
@@ -136,6 +183,21 @@ impl Interrupt {
                 *previous += sum;
             } else {
                 result.insert(stat, sum);
+            }
+            if let Some(previous) = result.get_mut(&InterruptStatistic::Total) {
+                *previous += sum;
+            } else {
+                result.insert(InterruptStatistic::Total, sum);
+            }
+            if let Some(previous) = result.get_mut(&InterruptStatistic::Node0Total) {
+                *previous += node0;
+            } else {
+                result.insert(InterruptStatistic::Node0Total, node0);
+            }
+            if let Some(previous) = result.get_mut(&InterruptStatistic::Node1Total) {
+                *previous += node1;
+            } else {
+                result.insert(InterruptStatistic::Node1Total, node1);
             }
         }
 

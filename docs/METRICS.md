@@ -118,6 +118,16 @@ Provides system-wide telemetry for IRQs
   exceptions
 * `interrupt/network` - interrupts for servicing network devices (NIC queues)
 * `interrupt/nmi` - Non-Maskable Interrupts
+* `interrupt/node0/network` - interrupts for servicing network devices which
+  were handled on NUMA node 0
+* `interrupt/node0/nvme` - interrupts for servicing NVMe devices which
+  were handled on NUMA node 0
+* `interrupt/node0/total` - total interrupts which were handled on NUMA node 0
+* `interrupt/node1/network` - interrupts for servicing network devices which
+  were handled on NUMA node 1
+* `interrupt/node1/nvme` - interrupts for servicing NVMe devices which
+  were handled on NUMA node 1
+* `interrupt/node1/total` - total interrupts which were handled on NUMA node 1
 * `interrupt/nvme` - interrupts for servicing NVMe queues
 * `interrupt/performance_monitoring` - interrupts generated when a performance
   counter overflows or PEBS interrupt threshold is reached
@@ -130,6 +140,7 @@ Provides system-wide telemetry for IRQs
   throttling
 * `interrupt/timer` - interrupts related to the system timer (PIT/HPET)
 * `interrupt/tlb_shootdowns` - interrupts caused to trigger TLB shootdowns
+* `interrupt/total` - total interrupts
 
 ## Memory
 
