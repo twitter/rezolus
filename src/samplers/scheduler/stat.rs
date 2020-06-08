@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use crate::common::SECOND;
 use core::convert::TryFrom;
 use core::str::FromStr;
 
@@ -57,6 +58,18 @@ impl SchedulerStatistic {
                 SoftwareEventType::CpuMigrations,
             )),
             _ => None,
+        }
+    }
+
+    pub fn max(&self) -> u64 {
+        if self.bpf_table().is_some() {
+            SECOND
+        } else {
+            if *self == SchedulerStatistic::ContextSwitches {
+                1_000_000_000
+            } else {
+                1_000_000
+            }
         }
     }
 }
