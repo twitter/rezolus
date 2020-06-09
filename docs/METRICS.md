@@ -323,7 +323,8 @@ Provides telemetry about the Linux Scheduler
 ## TCP
 
 ## Basic
-
+* `tcp/error/abort_on_memory` - indicates strong memory pressure or too many
+  orphaned sockets
 * `tcp/receive/checksum_error` - segments received with invalid checksum
 * `tcp/receive/collapsed` - segments collapsed in the receive queue
 * `tcp/receive/error` - total number of errors on receive

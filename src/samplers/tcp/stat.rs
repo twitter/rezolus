@@ -59,6 +59,8 @@ pub enum TcpStatistic {
     ReceiveListenOverflows,
     #[strum(serialize = "tcp/receive/listen_drops")]
     ReceiveListenDrops,
+    #[strum(serialize = "tcp/error/abort_on_memory")]
+    AbortOnMemory,
 }
 
 impl TcpStatistic {
@@ -68,6 +70,7 @@ impl TcpStatistic {
             Self::TransmitSegments => Some(("Tcp:", "OutSegs")),
             Self::ReceivePruneCalled => Some(("TcpExt:", "PruneCalled")),
             Self::ReceiveCollapsed => Some(("TcpExt:", "TCPRcvCollapsed")),
+            Self::AbortOnMemory => Some(("TcpExt:", "TCPAbortOnMemory")),
             Self::Retransmits => Some(("Tcp:", "RetransSegs")),
             Self::ReceiveChecksumErrors => Some(("Tcp:", "InCsumErrors")),
             Self::TransmitResets => Some(("Tcp:", "OutRsts")),
@@ -122,6 +125,7 @@ impl Statistic for TcpStatistic {
                 "number of times the listen queue of a socket overflowed"
             }
             Self::ReceiveListenDrops => "number of SYNs to LISTEN sockets dropped",
+            Self::AbortOnMemory => "too many orphaned sockets or strong memory pressure",
         })
     }
 
