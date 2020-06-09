@@ -153,14 +153,8 @@ impl Sampler for Scheduler {
             3
         };
 
-        let max = if statistic.bpf_table().is_some() {
-            SECOND
-        } else {
-            1_000_000
-        };
-
         Some(Summary::histogram(
-            max,
+            statistic.max(),
             precision,
             Some(self.general_config().window()),
         ))
