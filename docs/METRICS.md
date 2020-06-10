@@ -324,6 +324,14 @@ Provides telemetry about the Linux Scheduler
 
 ## Basic
 
+* `tcp/abort/failed` - failed to send RST on abort due to memory pressure
+* `tcp/abort/on_close` - connections reset due to early user close
+* `tcp/abort/on_data` - connections reset due to unexpected data
+* `tcp/abort/on_linger` - connections reset after user close while in linger
+  timeout
+* `tcp/abort/on_memory` - connections reset due to memory pressure or too many
+  orphaned sockets
+* `tcp/abort/on_timeout` - connections reset due to timeout
 * `tcp/receive/checksum_error` - segments received with invalid checksum
 * `tcp/receive/collapsed` - segments collapsed in the receive queue
 * `tcp/receive/error` - total number of errors on receive

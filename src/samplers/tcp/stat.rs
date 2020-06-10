@@ -59,11 +59,29 @@ pub enum TcpStatistic {
     ReceiveListenOverflows,
     #[strum(serialize = "tcp/receive/listen_drops")]
     ReceiveListenDrops,
+    #[strum(serialize = "tcp/abort/failed")]
+    AbortFailed,
+    #[strum(serialize = "tcp/abort/on_close")]
+    AbortOnClose,
+    #[strum(serialize = "tcp/abort/on_data")]
+    AbortOnData,
+    #[strum(serialize = "tcp/abort/on_linger")]
+    AbortOnLinger,
+    #[strum(serialize = "tcp/abort/on_memory")]
+    AbortOnMemory,
+    #[strum(serialize = "tcp/abort/on_timeout")]
+    AbortOnTimeout,
 }
 
 impl TcpStatistic {
     pub fn keys(self) -> Option<(&'static str, &'static str)> {
         match self {
+            Self::AbortFailed => Some(("TcpExt:", "TCPAbortFailed")),
+            Self::AbortOnClose => Some(("TcpExt:", "TCPAbortOnClose")),
+            Self::AbortOnData => Some(("TcpExt:", "TCPAbortOnData")),
+            Self::AbortOnLinger => Some(("TcpExt:", "TCPAbortOnLinger")),
+            Self::AbortOnMemory => Some(("TcpExt:", "TCPAbortOnMemory")),
+            Self::AbortOnTimeout => Some(("TcpExt:", "TCPAbortOnTimeout")),
             Self::ReceiveSegments => Some(("Tcp:", "InSegs")),
             Self::TransmitSegments => Some(("Tcp:", "OutSegs")),
             Self::ReceivePruneCalled => Some(("TcpExt:", "PruneCalled")),
@@ -122,6 +140,12 @@ impl Statistic for TcpStatistic {
                 "number of times the listen queue of a socket overflowed"
             }
             Self::ReceiveListenDrops => "number of SYNs to LISTEN sockets dropped",
+            Self::AbortFailed => "failed to send RST on abort due to memory pressure",
+            Self::AbortOnClose => "connections reset due to early user close",
+            Self::AbortOnData => "connections reset due to unexpected data",
+            Self::AbortOnLinger => "connections reset after user close while in linger timeout",
+            Self::AbortOnMemory => "too many orphaned sockets or strong memory pressure",
+            Self::AbortOnTimeout => "connections reset due to timeout",
         })
     }
 
