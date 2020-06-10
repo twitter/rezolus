@@ -110,10 +110,6 @@ The rest of the guide assumes you've chosen to install the toolchain via rustup.
 
 **NOTE:** Rezolus is intended to be built and deployed on Linux systems.
 
-#### Install the nightly toolchain
-```bash
-rustup toolchain install nightly
-```
 #### Clone and build Rezolus from source
 ```bash
 git clone https://github.com/twitter/rezolus
