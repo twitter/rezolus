@@ -279,8 +279,8 @@ impl Cpu {
 fn parse_proc_stat(line: &str) -> HashMap<CpuStatistic, u64> {
     let mut result = HashMap::new();
     let parts: Vec<&str> = line.split_whitespace().collect();
-    match parts.get(0) {
-        Some(&"cpu") => match parts.len() {
+    if let Some(&"cpu") = parts.get(0) {
+        match parts.len() {
             11 => {
                 result.insert(CpuStatistic::UsageUser, parts[1].parse().unwrap_or(0));
                 result.insert(CpuStatistic::UsageNice, parts[2].parse().unwrap_or(0));
@@ -295,8 +295,7 @@ fn parse_proc_stat(line: &str) -> HashMap<CpuStatistic, u64> {
             _ => {
                 debug!("parsed cpu line but got unexpected number of fields");
             }
-        },
-        _ => {}
+        }
     }
     result
 }

@@ -6,8 +6,6 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use async_trait::async_trait;
-#[cfg(feature = "bpf")]
-use bcc;
 use metrics::*;
 
 use crate::common::bpf::*;

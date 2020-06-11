@@ -64,12 +64,10 @@ impl SchedulerStatistic {
     pub fn max(&self) -> u64 {
         if self.bpf_table().is_some() {
             SECOND
+        } else if *self == SchedulerStatistic::ContextSwitches {
+            1_000_000_000
         } else {
-            if *self == SchedulerStatistic::ContextSwitches {
-                1_000_000_000
-            } else {
-                1_000_000
-            }
+            1_000_000
         }
     }
 }

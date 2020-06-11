@@ -6,8 +6,6 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use async_trait::async_trait;
-#[cfg(feature = "bpf")]
-use bcc;
 use chashmap::CHashMap;
 use metrics::*;
 #[cfg(feature = "perf")]
@@ -16,7 +14,6 @@ use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
 use crate::common::bpf::*;
-use crate::common::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
@@ -208,6 +205,8 @@ impl Scheduler {
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
+        use crate::common::MICROSECOND;
+
         // sample bpf
         {
             if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {

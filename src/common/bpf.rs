@@ -3,15 +3,6 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 #[cfg(feature = "bpf")]
-use std::fs::File;
-#[cfg(feature = "bpf")]
-use std::io::prelude::*;
-#[cfg(feature = "bpf")]
-use std::io::BufReader;
-
-#[cfg(feature = "bpf")]
-use bcc;
-#[cfg(feature = "bpf")]
 pub struct BPF {
     pub inner: bcc::core::BPF,
 }
@@ -40,6 +31,10 @@ pub fn key_to_value(index: u64) -> Option<u64> {
 // TODO: a result is probably more appropriate
 #[cfg(feature = "bpf")]
 pub fn symbol_lookup(name: &str) -> Option<String> {
+    use std::fs::File;
+    use std::io::prelude::*;
+    use std::io::BufReader;
+
     let symbols = File::open("/proc/kallsyms");
     if symbols.is_err() {
         return None;
@@ -60,7 +55,9 @@ pub fn symbol_lookup(name: &str) -> Option<String> {
 
 #[cfg(feature = "bpf")]
 pub fn map_from_table(table: &mut bcc::table::Table) -> std::collections::HashMap<u64, u32> {
-    let mut current = std::collections::HashMap::new();
+    use std::collections::HashMap;
+
+    let mut current = HashMap::new();
 
     trace!("transferring data to userspace");
     for (id, mut entry) in table.iter().enumerate() {
