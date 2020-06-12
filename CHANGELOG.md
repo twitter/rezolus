@@ -1,5 +1,13 @@
 # [Unreleased]
 
+# [2.3.0] - 2020-06-15
+## Added
+- TCP abort metrics added to `tcp` sampler
+- Increased max for context switch histogram to prevent clipping
+
+## Fixed
+- Fixed bug where percentiles could get stuck at the max value if they hit it
+
 # [2.2.0] - 2020-05-29
 ## Added
 - Interrupt sampler can now export network, nvme, and total interrupts per NUMA
@@ -68,7 +76,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/twitter/rezolus/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/twitter/rezolus/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/twitter/rezolus/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/twitter/rezolus/compare/v1.3.0...v2.0.0
