@@ -39,7 +39,7 @@ dependencies = [
 [[package]]
 name = "atomics"
 version = "0.3.0"
-source = "git+https://github.com/twitter/rpc-perf#eb7efe7d4677d46fe572f26755ee383edf0072d4"
+source = "git+https://github.com/twitter/rpc-perf#cad086dbec2f016bd0664a464b08c0c00003bb54"
 dependencies = [
  "serde 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -241,7 +241,7 @@ dependencies = [
 [[package]]
 name = "datastructures"
 version = "0.4.0"
-source = "git+https://github.com/twitter/rpc-perf#eb7efe7d4677d46fe572f26755ee383edf0072d4"
+source = "git+https://github.com/twitter/rpc-perf#cad086dbec2f016bd0664a464b08c0c00003bb54"
 dependencies = [
  "atomics 0.3.0 (git+https://github.com/twitter/rpc-perf)",
  "logger 0.1.0 (git+https://github.com/twitter/rpc-perf)",
@@ -474,7 +474,7 @@ dependencies = [
 [[package]]
 name = "logger"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rpc-perf#eb7efe7d4677d46fe572f26755ee383edf0072d4"
+source = "git+https://github.com/twitter/rpc-perf#cad086dbec2f016bd0664a464b08c0c00003bb54"
 dependencies = [
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -501,7 +501,7 @@ dependencies = [
 [[package]]
 name = "metrics"
 version = "0.5.0"
-source = "git+https://github.com/twitter/rpc-perf#eb7efe7d4677d46fe572f26755ee383edf0072d4"
+source = "git+https://github.com/twitter/rpc-perf#cad086dbec2f016bd0664a464b08c0c00003bb54"
 dependencies = [
  "chashmap 2.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "datastructures 0.4.0 (git+https://github.com/twitter/rpc-perf)",
