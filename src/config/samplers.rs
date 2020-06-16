@@ -7,6 +7,7 @@ use crate::config::*;
 use samplers::cpu::CpuConfig;
 use samplers::disk::DiskConfig;
 use samplers::ext4::Ext4Config;
+use samplers::http::HttpConfig;
 use samplers::interrupt::InterruptConfig;
 use samplers::memcache::MemcacheConfig;
 use samplers::memory::MemoryConfig;
@@ -27,6 +28,8 @@ pub struct Samplers {
     disk: DiskConfig,
     #[serde(default)]
     ext4: Ext4Config,
+    #[serde(default)]
+    http: HttpConfig,
     #[serde(default)]
     interrupt: InterruptConfig,
     #[serde(default)]
@@ -60,6 +63,10 @@ impl Samplers {
 
     pub fn ext4(&self) -> &Ext4Config {
         &self.ext4
+    }
+
+    pub fn http(&self) -> &HttpConfig {
+        &self.http
     }
 
     pub fn interrupt(&self) -> &InterruptConfig {

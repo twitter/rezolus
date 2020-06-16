@@ -1,5 +1,7 @@
 [general]
 listen = "0.0.0.0:4242"
+# the default interval between samples, in milliseconds
+interval = 1000
 # set number of worker threads for running samplers
 threads = 1
 
