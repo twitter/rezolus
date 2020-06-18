@@ -85,10 +85,16 @@ impl Sampler for Http {
                 if let Ok(json) = json::parse(&body) {
                     let mut statistics = std::collections::HashMap::new();
                     for counter in self.common.config().samplers().http().counters() {
-                        statistics.insert(counter.to_string(), HttpStatistic::new(counter.to_string(), stat::Source::Counter));
+                        statistics.insert(
+                            counter.to_string(),
+                            HttpStatistic::new(counter.to_string(), stat::Source::Counter),
+                        );
                     }
                     for gauge in self.common.config().samplers().http().gauges() {
-                        statistics.insert(gauge.to_string(), HttpStatistic::new(gauge.to_string(), stat::Source::Counter));
+                        statistics.insert(
+                            gauge.to_string(),
+                            HttpStatistic::new(gauge.to_string(), stat::Source::Counter),
+                        );
                     }
                     for (key, value) in json.entries() {
                         if let Some(value) = value.as_u64() {
@@ -126,11 +132,9 @@ impl Sampler for Http {
                                     _ => unimplemented!(),
                                 }
                             } else if self.passthrough {
-                                let statistic = HttpStatistic::new(key.to_string(), stat::Source::Gauge);
-                                self.common().metrics().register(
-                                    &statistic,
-                                    None
-                                );
+                                let statistic =
+                                    HttpStatistic::new(key.to_string(), stat::Source::Gauge);
+                                self.common().metrics().register(&statistic, None);
                                 self.common()
                                     .metrics()
                                     .register_output(&statistic, Output::Reading);
@@ -142,12 +146,17 @@ impl Sampler for Http {
                     }
                     Ok(())
                 } else {
-                    Err(Error::new(ErrorKind::Other, "failed to parse response as json!"))
+                    Err(Error::new(
+                        ErrorKind::Other,
+                        "failed to parse response as json!",
+                    ))
                 }
             } else {
-                Err(Error::new(ErrorKind::Other, "failed to read response body!"))
+                Err(Error::new(
+                    ErrorKind::Other,
+                    "failed to read response body!",
+                ))
             }
-            
         } else {
             Err(Error::new(ErrorKind::Other, "http request failed!"))
         }
