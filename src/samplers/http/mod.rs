@@ -21,7 +21,7 @@ pub struct Http {
     client: reqwest::blocking::Client,
     common: Common,
     passthrough: bool,
-    url: String,
+    url: Option<String>,
 }
 
 #[async_trait]
@@ -31,7 +31,7 @@ impl Sampler for Http {
     fn new(common: Common) -> Result<Self, failure::Error> {
         let url = common.config.samplers().http().url();
         let passthrough = common.config.samplers().http().passthrough();
-        if url.is_none() {
+        if url.is_none() && common.config.samplers().http().enabled() {
             return Err(format_err!("no http url configured"));
         }
         let client = reqwest::blocking::Client::new();
@@ -39,7 +39,7 @@ impl Sampler for Http {
             client,
             common,
             passthrough,
-            url: url.unwrap(),
+            url,
         };
         Ok(ret)
     }
@@ -79,8 +79,15 @@ impl Sampler for Http {
             return Ok(());
         }
 
+        if self.url.is_none() {
+            return Err(Error::new(
+                ErrorKind::Other,
+                "no url configured for http sampler",
+            ));
+        }
+
         let time = time::precise_time_ns();
-        if let Ok(response) = self.client.get(&self.url).send() {
+        if let Ok(response) = self.client.get(self.url.as_ref().unwrap()).send() {
             if let Ok(body) = response.text() {
                 if let Ok(json) = json::parse(&body) {
                     let mut statistics = std::collections::HashMap::new();
