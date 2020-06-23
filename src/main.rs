@@ -100,7 +100,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut http = exposition::Http::new(
         config.listen().expect("no listen address"),
         metrics,
-        config.general().count_suffix(),
+        config.general().reading_suffix(),
     );
 
     while runnable.load(Ordering::Relaxed) {
