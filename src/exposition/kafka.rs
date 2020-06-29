@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use kafka::producer::{Producer, Record};
-use metrics::*;
+use rustcommon_metrics::*;
 
 use crate::config::Config;
 use crate::exposition::MetricsSnapshot;

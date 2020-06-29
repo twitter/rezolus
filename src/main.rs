@@ -3,15 +3,15 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 #[macro_use]
-extern crate logger;
+extern crate rustcommon_logger;
 
 #[macro_use]
 extern crate failure;
 
 use std::sync::Arc;
 
-use logger::Logger;
-use metrics::*;
+use rustcommon_logger::Logger;
+use rustcommon_metrics::*;
 use tokio::runtime::Builder;
 
 mod common;

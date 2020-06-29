@@ -6,7 +6,7 @@ use crate::common::SECOND;
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-use metrics::{Source, Statistic};
+use rustcommon_metrics::{Source, Statistic};
 #[cfg(feature = "perf")]
 pub use perfcnt::linux::*;
 use serde_derive::{Deserialize, Serialize};

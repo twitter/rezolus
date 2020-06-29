@@ -8,7 +8,7 @@ use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::sync::Arc;
 
-use metrics::*;
+use rustcommon_metrics::*;
 
 mod http;
 #[cfg(feature = "push_kafka")]

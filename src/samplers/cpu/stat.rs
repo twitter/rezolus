@@ -5,7 +5,7 @@
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-use metrics::Statistic;
+use rustcommon_metrics::{Source, Statistic};
 #[cfg(feature = "perf")]
 pub use perfcnt::linux::*;
 use serde_derive::{Deserialize, Serialize};
@@ -102,8 +102,8 @@ impl Statistic for CpuStatistic {
         (*self).into()
     }
 
-    fn source(&self) -> metrics::Source {
-        metrics::Source::Counter
+    fn source(&self) -> Source {
+        Source::Counter
     }
 }
 

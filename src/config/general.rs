@@ -4,7 +4,7 @@
 
 use std::time::Duration;
 
-use atomics::*;
+use rustcommon_atomics::*;
 
 use crate::config::*;
 

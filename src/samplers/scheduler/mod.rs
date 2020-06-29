@@ -7,7 +7,7 @@ use std::time::Instant;
 
 use async_trait::async_trait;
 use chashmap::CHashMap;
-use metrics::*;
+use rustcommon_metrics::*;
 #[cfg(feature = "perf")]
 use perfcnt::*;
 use tokio::fs::File;

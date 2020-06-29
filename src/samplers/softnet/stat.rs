@@ -5,7 +5,7 @@
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-use metrics::Statistic;
+use rustcommon_metrics::{Source, Statistic};
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -55,8 +55,8 @@ impl Statistic for SoftnetStatistic {
         })
     }
 
-    fn source(&self) -> metrics::Source {
-        metrics::Source::Counter
+    fn source(&self) -> Source {
+        Source::Counter
     }
 }
 

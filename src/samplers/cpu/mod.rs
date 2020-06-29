@@ -6,10 +6,10 @@ use std::collections::HashMap;
 
 use async_trait::async_trait;
 use chashmap::CHashMap;
-use metrics::*;
 #[cfg(feature = "perf")]
 use perfcnt::*;
 use regex::Regex;
+use rustcommon_metrics::*;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::prelude::*;
