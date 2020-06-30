@@ -72,6 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Cpu::spawn(common.clone());
     Disk::spawn(common.clone());
     Ext4::spawn(common.clone());
+    Http::spawn(common.clone());
     Interrupt::spawn(common.clone());
     Memory::spawn(common.clone());
     Network::spawn(common.clone());
@@ -99,7 +100,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut http = exposition::Http::new(
         config.listen().expect("no listen address"),
         metrics,
-        config.general().count_suffix(),
+        config.general().reading_suffix(),
     );
 
     while runnable.load(Ordering::Relaxed) {
