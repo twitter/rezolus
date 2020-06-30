@@ -23,6 +23,8 @@ pub struct General {
     window: AtomicUsize,
     #[serde(default = "default_fault_tolerant")]
     fault_tolerant: AtomicBool,
+    #[serde(default = "default_reading_suffix")]
+    reading_suffix: String,
 }
 
 impl General {
@@ -56,8 +58,12 @@ impl General {
         self.fault_tolerant.load(Ordering::Relaxed)
     }
 
-    pub fn count_suffix(&self) -> Option<&str> {
-        Some("count")
+    pub fn reading_suffix(&self) -> Option<&str> {
+        if self.reading_suffix.len() == 0 {
+            None
+        } else {
+            Some(&self.reading_suffix)
+        }
     }
 }
 
@@ -70,6 +76,7 @@ impl Default for General {
             threads: default_threads(),
             window: default_window(),
             fault_tolerant: default_fault_tolerant(),
+            reading_suffix: default_reading_suffix(),
         }
     }
 }
@@ -88,6 +95,10 @@ fn default_window() -> AtomicUsize {
 
 fn default_fault_tolerant() -> AtomicBool {
     AtomicBool::new(true)
+}
+
+fn default_reading_suffix() -> String {
+    "count".to_string()
 }
 
 #[derive(Clone, Deserialize, Debug)]
