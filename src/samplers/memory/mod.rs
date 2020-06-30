@@ -5,8 +5,8 @@
 use std::collections::HashMap;
 
 use async_trait::async_trait;
-use rustcommon_metrics::*;
 use regex::Regex;
+use rustcommon_metrics::*;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 

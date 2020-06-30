@@ -5,9 +5,9 @@
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-use rustcommon_metrics::{Source, Statistic};
 #[cfg(feature = "perf")]
 pub use perfcnt::linux::*;
+use rustcommon_metrics::{Source, Statistic};
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};

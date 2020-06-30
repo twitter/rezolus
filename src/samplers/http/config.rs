@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use core::sync::atomic::AtomicBool;
 use super::stat::*;
 use crate::config::SamplerConfig;
+use core::sync::atomic::AtomicBool;
 use rustcommon_metrics::Percentile;
 
 use rustcommon_atomics::*;

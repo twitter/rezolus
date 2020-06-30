@@ -120,10 +120,9 @@ impl Sampler for Http {
                                         .add_output(statistic, Output::Reading);
                                 }
                                 for percentile in self.sampler_config().percentiles() {
-                                    self.common().metrics().add_output(
-                                        statistic,
-                                        Output::Percentile(*percentile),
-                                    );
+                                    self.common()
+                                        .metrics()
+                                        .add_output(statistic, Output::Percentile(*percentile));
                                 }
                                 match statistic.source() {
                                     rustcommon_metrics::Source::Counter => {
