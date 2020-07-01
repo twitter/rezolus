@@ -40,10 +40,10 @@ jobs:
           ~/.cargo/git
           target
         key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+    - name: install rustfmt
+      run: rustup component add rustfmt
     - name: rustfmt
-      run:
-        - rustup component add rustfmt
-        - cargo fmt -- --check
+      run: cargo fmt -- --check
   clippy:
     runs-on: ubuntu-latest
     steps:
@@ -57,7 +57,7 @@ jobs:
           ~/.cargo/git
           target
         key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+    - name: install clippy
+      run: rustup component add clippy
     - name: clippy
-      run:
-        - rustup component add clippy
-        - cargo clippy
+      run: cargo clippy
