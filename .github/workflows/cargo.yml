@@ -53,7 +53,7 @@ jobs:
     - name: build
       run: cargo build --release --features bpf_v0_10_0
     - name: run
-      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
   rustfmt:
     runs-on: ubuntu-latest
     steps:
