@@ -41,7 +41,7 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
     - name: rustfmt
-      run: cargo fmt -- --check
+      run: cargo +stable fmt -- --check
   clippy:
     runs-on: ubuntu-latest
     steps:
