@@ -27,6 +27,8 @@ jobs:
       run: cargo build --release
     - name: test
       run: cargo test --release
+    - name: run
+      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
   rustfmt:
     runs-on: ubuntu-latest
     steps:
