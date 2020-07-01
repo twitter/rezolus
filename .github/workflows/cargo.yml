@@ -60,4 +60,4 @@ jobs:
     - name: install clippy
       run: rustup component add clippy
     - name: clippy
-      run: cargo clippy
+      run: cargo clippy || cargo clippy
