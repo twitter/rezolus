@@ -9,12 +9,13 @@ env:
 
 jobs:
   linux:
+    name: bionic / nightly
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
     - uses: actions/cache@v2
       env:
-        cache-name: linux
+        cache-name: bionic_nightly
       with:
         path: |
           ~/.cargo/registry
@@ -27,6 +28,30 @@ jobs:
       run: cargo build --release
     - name: test
       run: cargo test --release
+    - name: run
+      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+  linux:
+    name: bionic / nightly / bcc 0.10.0
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      env:
+        cache-name: bionic_nightly_bcc-0.10.0
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+    - name: add repo
+      run: echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic main" | sudo tee /etc/apt/sources.list.d/iovisor.list
+    - name: apt update
+      run: sudo apt-get update
+    - name: install bcc
+      run: sudo apt-get install bcc-tools libbcc
+    - name: build
+      run: cargo build --release --features bpf_v0_10_0
     - name: run
       run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
   rustfmt:
