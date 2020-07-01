@@ -27,10 +27,10 @@ impl Statistic for HttpStatistic {
         &self.name
     }
 
-    fn source(&self) -> metrics::Source {
+    fn source(&self) -> rustcommon_metrics::Source {
         match self.source {
-            Source::Counter => metrics::Source::Counter,
-            Source::Gauge => metrics::Source::Gauge,
+            Source::Counter => rustcommon_metrics::Source::Counter,
+            Source::Gauge => rustcommon_metrics::Source::Gauge,
         }
     }
 }

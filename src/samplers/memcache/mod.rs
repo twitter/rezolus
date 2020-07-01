@@ -5,7 +5,7 @@
 use std::net::{SocketAddr, ToSocketAddrs};
 
 use async_trait::async_trait;
-use metrics::*;
+use rustcommon_metrics::*;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 
@@ -149,7 +149,7 @@ impl Sampler for Memcache {
                                             .record_counter(&statistic, time, value);
                                         if self.summary(&statistic).is_some() {
                                             for percentile in self.sampler_config().percentiles() {
-                                                self.common().metrics().register_output(
+                                                self.common().metrics().add_output(
                                                     &statistic,
                                                     Output::Percentile(*percentile),
                                                 );

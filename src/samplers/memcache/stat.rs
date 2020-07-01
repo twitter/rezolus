@@ -4,6 +4,8 @@
 
 use crate::Statistic;
 
+use rustcommon_metrics::Source;
+
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct MemcacheStatistic {
     inner: String,
@@ -20,13 +22,13 @@ impl Statistic for MemcacheStatistic {
         &self.inner
     }
 
-    fn source(&self) -> metrics::Source {
+    fn source(&self) -> Source {
         match self.inner.as_ref() {
             "data_read" | "data_written" | "cmd_total" | "conn_total" | "conn_yield" => {
-                metrics::Source::Counter
+                Source::Counter
             }
-            "hotkey_bw" | "hotkey_qps" => metrics::Source::Gauge,
-            _ => metrics::Source::Gauge,
+            "hotkey_bw" | "hotkey_qps" => Source::Gauge,
+            _ => Source::Gauge,
         }
     }
 }

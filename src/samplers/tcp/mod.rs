@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use async_trait::async_trait;
-use metrics::*;
+use rustcommon_metrics::*;
 
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;

@@ -4,9 +4,10 @@
 
 use super::stat::*;
 use crate::config::SamplerConfig;
-use metrics::Percentile;
+use core::sync::atomic::AtomicBool;
+use rustcommon_metrics::Percentile;
 
-use atomics::*;
+use rustcommon_atomics::*;
 use serde_derive::*;
 
 #[derive(Debug, Deserialize)]

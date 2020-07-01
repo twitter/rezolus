@@ -3,7 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use async_trait::async_trait;
-use metrics::*;
+use rustcommon_metrics::*;
 
 use crate::config::SamplerConfig;
 use crate::samplers::Common;

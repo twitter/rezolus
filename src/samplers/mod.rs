@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use metrics::*;
+use rustcommon_metrics::*;
 use tokio::runtime::Handle;
 use tokio::time::{interval, Interval};
 
@@ -92,11 +92,11 @@ pub trait Sampler: Sized + Send {
                 .register(statistic, self.summary(statistic));
             self.common()
                 .metrics()
-                .register_output(statistic, Output::Reading);
+                .delete_output(statistic, Output::Reading);
             for percentile in self.sampler_config().percentiles() {
                 self.common()
                     .metrics()
-                    .register_output(statistic, Output::Percentile(*percentile));
+                    .delete_output(statistic, Output::Percentile(*percentile));
             }
         }
     }

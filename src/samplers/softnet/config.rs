@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use metrics::*;
+use rustcommon_metrics::*;
 use serde_derive::Deserialize;
 use strum::IntoEnumIterator;
 

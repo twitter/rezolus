@@ -10,8 +10,8 @@ use std::io::Read;
 use std::net::{SocketAddr, ToSocketAddrs};
 
 use clap::{App, Arg};
-use logger::Level;
-use metrics::Percentile;
+use rustcommon_logger::Level;
+use rustcommon_metrics::Percentile;
 use serde_derive::*;
 
 use crate::*;

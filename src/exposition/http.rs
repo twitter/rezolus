@@ -6,8 +6,8 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use logger::*;
-use metrics::*;
+use rustcommon_logger::*;
+use rustcommon_metrics::*;
 use tiny_http::{Method, Response, Server};
 
 use super::MetricsSnapshot;

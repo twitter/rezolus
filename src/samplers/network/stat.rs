@@ -5,7 +5,7 @@
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-use metrics::Statistic;
+use rustcommon_metrics::{Source, Statistic};
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -100,11 +100,11 @@ impl Statistic for NetworkStatistic {
         (*self).into()
     }
 
-    fn source(&self) -> metrics::Source {
+    fn source(&self) -> Source {
         if self.bpf_table().is_some() {
-            metrics::Source::Distribution
+            Source::Distribution
         } else {
-            metrics::Source::Counter
+            Source::Counter
         }
     }
 }

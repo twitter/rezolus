@@ -7,9 +7,9 @@ use std::time::Instant;
 
 use async_trait::async_trait;
 use chashmap::CHashMap;
-use metrics::*;
 #[cfg(feature = "perf")]
 use perfcnt::*;
+use rustcommon_metrics::*;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 

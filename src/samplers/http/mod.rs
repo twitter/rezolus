@@ -5,7 +5,7 @@
 use std::io::{Error, ErrorKind};
 
 use async_trait::async_trait;
-use metrics::*;
+use rustcommon_metrics::*;
 
 use crate::config::*;
 use crate::samplers::Common;
@@ -117,21 +117,20 @@ impl Sampler for Http {
                                 if self.passthrough {
                                     self.common()
                                         .metrics()
-                                        .register_output(statistic, Output::Reading);
+                                        .add_output(statistic, Output::Reading);
                                 }
                                 for percentile in self.sampler_config().percentiles() {
-                                    self.common().metrics().register_output(
-                                        statistic,
-                                        Output::Percentile(*percentile),
-                                    );
+                                    self.common()
+                                        .metrics()
+                                        .add_output(statistic, Output::Percentile(*percentile));
                                 }
                                 match statistic.source() {
-                                    metrics::Source::Counter => {
+                                    rustcommon_metrics::Source::Counter => {
                                         self.common()
                                             .metrics()
                                             .record_counter(statistic, time, value);
                                     }
-                                    metrics::Source::Gauge => {
+                                    rustcommon_metrics::Source::Gauge => {
                                         self.common()
                                             .metrics()
                                             .record_gauge(statistic, time, value);
@@ -144,7 +143,7 @@ impl Sampler for Http {
                                 self.common().metrics().register(&statistic, None);
                                 self.common()
                                     .metrics()
-                                    .register_output(&statistic, Output::Reading);
+                                    .add_output(&statistic, Output::Reading);
                                 self.common()
                                     .metrics()
                                     .record_gauge(&statistic, time, value);
