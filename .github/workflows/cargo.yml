@@ -30,7 +30,7 @@ jobs:
       run: cargo test --release
     - name: run
       run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-  bionic_bcc-0.13.0:
+  bionic-bcc_v0_13_0:
     name: bionic / nightly / bcc 0.10.0
     runs-on: ubuntu-18.04
     steps:
