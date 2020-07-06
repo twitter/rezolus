@@ -25,7 +25,7 @@ jobs:
     - name: check
       run: cargo check
     - name: build
-      run: cargo build --release
+      run: cargo build --release || cargo build --release
     - name: test
       run: cargo test --release
     - name: run
