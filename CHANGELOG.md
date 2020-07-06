@@ -1,5 +1,10 @@
 # [Unreleased]
 
+# [2.4.0] - 2020-07-06
+## Added
+- HTTP sampler to poll JSON endpoint and provide summary metrics
+- Added support for bcc 0.15.0, making it the new default version
+
 # [2.3.0] - 2020-06-15
 ## Added
 - TCP abort metrics added to `tcp` sampler
@@ -76,7 +81,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/twitter/rezolus/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/twitter/rezolus/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/twitter/rezolus/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/twitter/rezolus/compare/v2.0.0...v2.1.0
