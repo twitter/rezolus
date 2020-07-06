@@ -130,6 +130,58 @@ jobs:
       run: cargo build --release --no-default-features --features bpf_v0_13_0
     - name: run
       run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+  focal-bcc_v0_14_0:
+    name: focal / llvm 9 / bcc 0.14.0
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      env:
+        cache-name: focal_nightly_bcc-0.14.0
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+    - name: install build deps
+      run: sudo apt-get install libelf-dev libclang-9-dev libfl-dev
+    - name: clone bcc
+      run: git clone https://github.com/iovisor/bcc
+    - name: checkout version
+      run: cd bcc && git checkout ceb458d6a07a42d8d6d3c16a3b8e387b5131d610
+    - name: build and install bcc
+      run: mkdir bcc/_build && cd bcc/_build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j2 && sudo make install
+    - name: build
+      run: cargo build --release --no-default-features --features bpf_v0_14_0
+    - name: run
+      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+  focal-bcc_v0_15_0:
+    name: focal / llvm 9 / bcc 0.15.0
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      env:
+        cache-name: focal_nightly_bcc-0.15.0
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+    - name: install build deps
+      run: sudo apt-get install libelf-dev libclang-9-dev libfl-dev
+    - name: clone bcc
+      run: git clone https://github.com/iovisor/bcc
+    - name: checkout version
+      run: cd bcc && git checkout e41f7a3be5c8114ef6a0990e50c2fbabea0e928e
+    - name: build and install bcc
+      run: mkdir bcc/_build && cd bcc/_build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j2 && sudo make install
+    - name: build
+      run: cargo build --release --no-default-features --features bpf_v0_15_0
+    - name: run
+      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
   rustfmt:
     runs-on: ubuntu-latest
     steps:

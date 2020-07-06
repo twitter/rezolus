@@ -50,6 +50,8 @@ bpf_v0_10_0 = ["bpf", "bcc/v0_10_0"]
 bpf_v0_11_0 = ["bpf", "bcc/v0_11_0"]
 bpf_v0_12_0 = ["bpf", "bcc/v0_12_0"]
 bpf_v0_13_0 = ["bpf", "bcc/v0_13_0"]
+bpf_v0_14_0 = ["bpf", "bcc/v0_14_0"]
+bpf_v0_15_0 = ["bpf", "bcc/v0_15_0"]
 perf = ["perfcnt"]
 push_kafka = ["kafka"]
 
