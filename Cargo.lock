@@ -110,8 +110,9 @@ checksum = "3441f0f7b02788e948e47f457ca01f1d7e6d92c693bc132c22b087d3141c03ff"
 
 [[package]]
 name = "bcc"
-version = "0.0.20-alpha.0"
-source = "git+https://github.com/rust-bpf/rust-bcc#38d57c1e3acdbc53c6359989dc9c7629041ad11c"
+version = "0.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "928fb8e399fe5a74ad491ac256c2ecd6e0043637a996d8376dcb7b249b61cfdc"
 dependencies = [
  "bcc-sys",
  "byteorder 1.3.4",
@@ -1525,7 +1526,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-atomics"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#4c526394c7810795e12696708c36145b7c17daf3"
+source = "git+https://github.com/twitter/rustcommon#c0e7956edd72d42920574bc307e9daff38d182f7"
 dependencies = [
  "serde",
 ]
@@ -1533,7 +1534,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-datastructures"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#4c526394c7810795e12696708c36145b7c17daf3"
+source = "git+https://github.com/twitter/rustcommon#c0e7956edd72d42920574bc307e9daff38d182f7"
 dependencies = [
  "log 0.4.8",
  "rustcommon-atomics",
@@ -1543,7 +1544,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-logger"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#4c526394c7810795e12696708c36145b7c17daf3"
+source = "git+https://github.com/twitter/rustcommon#c0e7956edd72d42920574bc307e9daff38d182f7"
 dependencies = [
  "log 0.4.8",
  "time",
@@ -1552,7 +1553,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#4c526394c7810795e12696708c36145b7c17daf3"
+source = "git+https://github.com/twitter/rustcommon#c0e7956edd72d42920574bc307e9daff38d182f7"
 dependencies = [
  "dashmap",
  "rustcommon-datastructures",

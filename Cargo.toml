@@ -10,8 +10,7 @@ description = "High resolution systems performance telemetry agent"
 
 [dependencies]
 async-trait = "0.1.23"
-# bcc = { version = "0.0.17", optional = true }
-bcc = { git = "https://github.com/rust-bpf/rust-bcc", branch = "master", optional = true }
+bcc = { version = "0.0.20", optional = true }
 chashmap = "2.2.2"
 clap = "2.33.0"
 ctrlc = { version = "3.1.3", features = ["termination"] }
