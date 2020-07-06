@@ -110,22 +110,22 @@ checksum = "3441f0f7b02788e948e47f457ca01f1d7e6d92c693bc132c22b087d3141c03ff"
 
 [[package]]
 name = "bcc"
-version = "0.0.17"
+version = "0.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a46771a06789df49503408dd6dffde9c6ff559f04c5f1a0cbcc84131ac45bf8d"
+checksum = "928fb8e399fe5a74ad491ac256c2ecd6e0043637a996d8376dcb7b249b61cfdc"
 dependencies = [
  "bcc-sys",
  "byteorder 1.3.4",
- "failure",
  "libc 0.2.71",
  "regex",
+ "thiserror",
 ]
 
 [[package]]
 name = "bcc-sys"
-version = "0.13.0"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6f9716eb2bfb8c83f59171b49d162364ba553877513b2889ffaecc30b42a1c1"
+checksum = "83a77b9d61ef37f0ed70bdb28e2ab53ab7dc2b60ebda26a6bd2c887ac2cdf9ed"
 
 [[package]]
 name = "bit_field"
@@ -186,9 +186,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.56"
+version = "1.0.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77c1f1d60091c1b73e2b1f4560ab419204b178e625fa945ded7b660becd2bd46"
+checksum = "0fde55d2a2bfaa4c9668bbc63f531fbdeee3ffe188f4662511ce2c22b3eedebe"
 
 [[package]]
 name = "cfg-if"
@@ -208,9 +208,9 @@ dependencies = [
 
 [[package]]
 name = "chrono"
-version = "0.4.11"
+version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80094f509cf8b5ae86a4966a39b3ff66cd7e2a3e594accec3743ff3fabeab5b2"
+checksum = "c74d84029116787153e02106bf53e66828452a4b325cc8652b788b5967c0a0b6"
 dependencies = [
  "num-integer",
  "num-traits",
@@ -326,9 +326,9 @@ dependencies = [
 
 [[package]]
 name = "dashmap"
-version = "3.11.4"
+version = "3.11.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cfcd41ae02d60edded204341d2798ba519c336c51a37330aa4b98a1128def32"
+checksum = "e2f7a3766904c6f4734f2bbf8a037b6f84753d19fe65f54b0f4d97d8f62187bb"
 dependencies = [
  "ahash",
  "cfg-if",
@@ -572,9 +572,9 @@ dependencies = [
 
 [[package]]
 name = "hermit-abi"
-version = "0.1.14"
+version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9586eedd4ce6b3c498bc3b4dd92fc9f11166aa908a914071953768066c67909"
+checksum = "3deed196b6e7f9e44a2ae8d94225d80302d81208b1bb673fd21fe634645c85a9"
 dependencies = [
  "libc 0.2.71",
 ]
@@ -1526,7 +1526,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-atomics"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#4c526394c7810795e12696708c36145b7c17daf3"
+source = "git+https://github.com/twitter/rustcommon#c0e7956edd72d42920574bc307e9daff38d182f7"
 dependencies = [
  "serde",
 ]
@@ -1534,7 +1534,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-datastructures"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#4c526394c7810795e12696708c36145b7c17daf3"
+source = "git+https://github.com/twitter/rustcommon#c0e7956edd72d42920574bc307e9daff38d182f7"
 dependencies = [
  "log 0.4.8",
  "rustcommon-atomics",
@@ -1544,7 +1544,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-logger"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#4c526394c7810795e12696708c36145b7c17daf3"
+source = "git+https://github.com/twitter/rustcommon#c0e7956edd72d42920574bc307e9daff38d182f7"
 dependencies = [
  "log 0.4.8",
  "time",
@@ -1553,7 +1553,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#4c526394c7810795e12696708c36145b7c17daf3"
+source = "git+https://github.com/twitter/rustcommon#c0e7956edd72d42920574bc307e9daff38d182f7"
 dependencies = [
  "dashmap",
  "rustcommon-datastructures",
@@ -1826,6 +1826,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d326610f408c7a4eb6f51c37c330e496b08506c9457c9d34287ecc38809fb060"
 dependencies = [
  "unicode-width",
+]
+
+[[package]]
+name = "thiserror"
+version = "1.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7dfdd070ccd8ccb78f4ad66bf1982dc37f620ef696c6b5028fe2ed83dd3d0d08"
+dependencies = [
+ "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "1.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd80fc12f73063ac132ac92aceea36734f04a1d93c1240c6944e23a3b8841793"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
