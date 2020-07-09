@@ -223,9 +223,9 @@ jobs:
     - name: checkout version
       run: cd bcc && git checkout e41f7a3be5c8114ef6a0990e50c2fbabea0e928e
     - name: build and install bcc
-      run: mkdir bcc/_build && cd bcc/_build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j2 && sudo make install && find . -name "*.a" -exec sudo cp {} /usr/lib/ \;
+      run: mkdir bcc/_build && cd bcc/_build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j2 && sudo make install && find . -name "*.a" -exec sudo cp -v {} /usr/lib/ \;
     - name: build
-      run: cargo build --release --no-default-features --features bpf_v0_15_0 bpf_static
+      run: cargo build --release --no-default-features --features "bpf_v0_15_0 bpf_static"
     - name: run
       run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
   rustfmt:
