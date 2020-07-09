@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 
 use async_trait::async_trait;
-use chashmap::CHashMap;
+use dashmap::DashMap;
 #[cfg(feature = "perf")]
 use perfcnt::*;
 use regex::Regex;
@@ -31,7 +31,7 @@ struct PerfCounter {}
 #[allow(dead_code)]
 pub struct Cpu {
     common: Common,
-    perf_counters: CHashMap<CpuStatistic, Vec<PerfCounter>>,
+    perf_counters: DashMap<CpuStatistic, Vec<PerfCounter>>,
     tick_duration: u64,
 }
 
@@ -47,7 +47,7 @@ impl Sampler for Cpu {
 
     fn new(common: Common) -> Result<Self, failure::Error> {
         let fault_tolerant = common.config.general().fault_tolerant();
-        let perf_counters = CHashMap::new();
+        let perf_counters = DashMap::new();
         if common.config.samplers().cpu().enabled() && common.config.samplers().cpu().perf_events()
         {
             #[cfg(feature = "perf")]

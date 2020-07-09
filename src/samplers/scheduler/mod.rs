@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use async_trait::async_trait;
-use chashmap::CHashMap;
+use dashmap::DashMap;
 #[cfg(feature = "perf")]
 use perfcnt::*;
 use rustcommon_metrics::*;
@@ -32,7 +32,7 @@ pub struct Scheduler {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
-    perf_counters: CHashMap<SchedulerStatistic, Vec<PerfCounter>>,
+    perf_counters: DashMap<SchedulerStatistic, Vec<PerfCounter>>,
 }
 
 #[async_trait]
@@ -41,7 +41,7 @@ impl Sampler for Scheduler {
     fn new(common: Common) -> Result<Self, failure::Error> {
         let fault_tolerant = common.config.general().fault_tolerant();
 
-        let perf_counters = CHashMap::new();
+        let perf_counters = DashMap::new();
         if common.config.samplers().scheduler().enabled()
             && common.config.samplers().scheduler().perf_events()
         {
