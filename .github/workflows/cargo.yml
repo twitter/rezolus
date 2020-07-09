@@ -213,7 +213,7 @@ jobs:
     - name: fetch zlib
       run: curl -L -O https://zlib.net/zlib-1.2.11.tar.gz
     - name: build zlib
-      run: tar xzf zlib-1.2.11.tar.gz && cd zlib-1.2.11 && ./configure && make -j2 && sudo make install
+      run: tar xzf zlib-1.2.11.tar.gz && cd zlib-1.2.11 && ./configure --prefix=/usr && make -j2 && sudo make install
     - name: fetch xz
       run: curl -L -O https://tukaani.org/xz/xz-5.2.5.tar.gz
     - name: build xz
