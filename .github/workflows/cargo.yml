@@ -210,6 +210,10 @@ jobs:
       run: sudo apt-get remove *llvm-6.0* *clang-6.0*
     - name: install build deps
       run: sudo apt-get install libelf-dev libclang-9-dev libfl-dev libxml2-dev llvm-dev
+    - name: fetch zlib
+      run: curl -L -O https://zlib.net/zlib-1.2.11.tar.gz
+    - name: build zlib
+      run: tar xzf zlib-1.2.11.tar.gz && cd zlib-1.2.11 && ./configure && make -j2 && sudo make install
     - name: fetch xz
       run: curl -L -O https://tukaani.org/xz/xz-5.2.5.tar.gz
     - name: build xz
