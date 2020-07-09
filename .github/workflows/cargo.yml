@@ -190,6 +190,44 @@ jobs:
       run: cargo build --release --no-default-features --features bpf_v0_15_0
     - name: run
       run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+  focal-bcc_v0_15_0-static:
+    name: focal / llvm 9 / bcc 0.15.0 / static
+    runs-on: ubuntu-20.04
+    env:
+      CFLAGS: -fPIC
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      env:
+        cache-name: focal_nightly_bcc-0.15.0
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+    - name: remove unused packages
+      run: sudo apt-get remove *llvm-6.0* *clang-6.0*
+    - name: install build deps
+      run: sudo apt-get install libelf-dev libclang-9-dev libfl-dev libxml2-dev llvm-dev
+    - name: fetch xz
+      run: curl -L -O https://tukaani.org/xz/xz-5.2.5.tar.gz
+    - name: build xz
+      run: tar xzf xz-5.2.5.tar.gz && cd xz-5.2.5 && ./configure && make -j2 && sudo make install
+    - name: fetch ncurses
+      run: curl -L -O ftp://ftp.invisible-island.net/ncurses/ncurses-6.2.tar.gz
+    - name: build ncurses
+      run: tar xzf ncurses-6.2.tar.gz && cd ncurses-6.2 && ./configure --with-termlib && make -j2 && sudo make install
+    - name: clone bcc
+      run: git clone https://github.com/iovisor/bcc
+    - name: checkout version
+      run: cd bcc && git checkout e41f7a3be5c8114ef6a0990e50c2fbabea0e928e
+    - name: build and install bcc
+      run: mkdir bcc/_build && cd bcc/_build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j2 && sudo make install && find . -name "*.a" -exec sudo cp {} /usr/lib/ \;
+    - name: build
+      run: cargo build --release --no-default-features --features bpf_v0_15_0 bpf_static
+    - name: run
+      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
   rustfmt:
     runs-on: ubuntu-latest
     steps:
