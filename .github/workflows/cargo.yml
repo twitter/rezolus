@@ -195,6 +195,7 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       CFLAGS: -fPIC
+      RUSTFLAGS: -L /usr/lib -L /usr/lib64
     steps:
     - uses: actions/checkout@v2
     - uses: actions/cache@v2
@@ -217,11 +218,11 @@ jobs:
     - name: fetch xz
       run: curl -L -O https://tukaani.org/xz/xz-5.2.5.tar.gz
     - name: build xz
-      run: tar xzf xz-5.2.5.tar.gz && cd xz-5.2.5 && ./configure && make -j2 && sudo make install
+      run: tar xzf xz-5.2.5.tar.gz && cd xz-5.2.5 && ./configure --prefix=/usr && make -j2 && sudo make install
     - name: fetch ncurses
       run: curl -L -O ftp://ftp.invisible-island.net/ncurses/ncurses-6.2.tar.gz
     - name: build ncurses
-      run: tar xzf ncurses-6.2.tar.gz && cd ncurses-6.2 && ./configure --with-termlib && make -j2 && sudo make install
+      run: tar xzf ncurses-6.2.tar.gz && cd ncurses-6.2 && ./configure --prefix=/usr --with-termlib && make -j2 && sudo make install
     - name: clone bcc
       run: git clone https://github.com/iovisor/bcc
     - name: checkout version
