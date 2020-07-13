@@ -238,7 +238,7 @@ jobs:
     - name: build and install bcc
       run: mkdir bcc/_build && cd bcc/_build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j2 && sudo make install && find . -name "*.a" -exec sudo cp -v {} /usr/lib/ \;
     - name: build
-      run: cargo build --release --no-default-features --features "bpf_v0_15_0 bpf_static"
+      run: cargo build --verbose --release --no-default-features --features "bpf_v0_15_0 bpf_static"
     - name: run
       run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
   rustfmt:
