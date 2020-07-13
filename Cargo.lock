@@ -123,7 +123,7 @@ dependencies = [
 [[package]]
 name = "bcc-sys"
 version = "0.15.1-alpha.0"
-source = "git+https://github.com/brayniac/bcc-sys?branch=static#e80610a28fca9dec54ae8e06d1115d1b25cfdd9a"
+source = "git+https://github.com/brayniac/bcc-sys?branch=static#d333ea2981e2cf524fe0da8c2ffd6381ad570d49"
 
 [[package]]
 name = "bit_field"
