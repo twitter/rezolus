@@ -208,7 +208,7 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
     - name: remove unused packages
-      run: sudo apt-get remove *llvm-6.0* *clang-6.0*
+      run: sudo apt-get remove *llvm-6.0* *clang-6.0* *llvm-10* *clang-10*
     - name: install build deps
       run: sudo apt-get install libelf-dev libclang-9-dev libfl-dev libxml2-dev llvm-dev
     - name: fetch zlib
