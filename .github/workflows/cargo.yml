@@ -79,7 +79,7 @@ jobs:
     - name: run
       run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
   xenial-bcc_v0_15_0-static:
-    name: focal / llvm 8 / bcc 0.15.0 / static
+    name: xenial / llvm 8 / bcc 0.15.0 / static
     runs-on: ubuntu-16.04
     env:
       CFLAGS: -fPIC
