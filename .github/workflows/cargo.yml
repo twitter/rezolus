@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-16.04
     env:
       CFLAGS: -fPIC
-      RUSTFLAGS: -L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-9/lib
+      RUSTFLAGS: -L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-8/lib
     steps:
     - uses: actions/checkout@v2
     - uses: actions/cache@v2
