@@ -41,7 +41,7 @@ impl Sampler for Interrupt {
         let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
-            common
+            common,
         };
 
         if let Err(e) = sampler.initialize_bpf() {
@@ -49,7 +49,7 @@ impl Sampler for Interrupt {
                 return Err(e);
             }
         }
-        
+
         Ok(sampler)
     }
 
@@ -115,7 +115,7 @@ impl Interrupt {
         if self.sampler_config().bpf() {
             for statistic in self.sampler_config().statistics() {
                 if statistic.bpf_table().is_some() {
-                    return true
+                    return true;
                 }
             }
         }
@@ -128,7 +128,7 @@ impl Interrupt {
             if self.enabled() && self.bpf_enabled() {
                 debug!("initializing bpf");
 
-                let code  = include_str!("bpf.c");
+                let code = include_str!("bpf.c");
                 let mut bpf = bcc::core::BPF::new(code)?;
 
                 let hardirq_enter = bpf.load_kprobe("hardirq_entry")?;
@@ -140,7 +140,7 @@ impl Interrupt {
                 bpf.attach_tracepoint("irq", "softirq_entry", softirq_entry)?;
                 bpf.attach_tracepoint("irq", "softirq_exit", softirq_exit)?;
 
-                self.bpf = Some(Arc::new(Mutex::new(BPF {inner: bpf })))
+                self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
             }
         }
 
