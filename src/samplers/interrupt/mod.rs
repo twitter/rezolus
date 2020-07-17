@@ -125,7 +125,6 @@ impl Interrupt {
     fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
         #[cfg(feature = "bpf")]
         {
-            debug!("Test@@@@@@@ bpf");
             if self.enabled() && self.bpf_enabled() {
                 debug!("initializing bpf");
 

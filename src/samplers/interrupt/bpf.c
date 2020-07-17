@@ -65,7 +65,6 @@ static unsigned int value_to_index2(unsigned int value) {
     return index;
 }
 
-
 // Software IRQ
 int softirq_entry(struct tracepoint__irq__softirq_entry *args)
 {
