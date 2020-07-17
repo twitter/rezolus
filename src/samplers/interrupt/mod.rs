@@ -274,32 +274,29 @@ impl Interrupt {
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
         use crate::common::MICROSECOND;
+        
+        if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+            if let Some(ref bpf) = self.bpf {
+                let bpf = bpf.lock().unwrap();
+                let time = time::precise_time_ns();
+                for statistic in self.sampler_config().statistics() {
+                    if let Some(table) = statistic.bpf_table() {
+                        let mut table = (*bpf).inner.table(table);
 
-        // Sample bpf
-        {
-            if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
-                if let Some(ref bpf) = self.bpf {
-                    let bpf = bpf.lock().unwrap();
-                    let time = time::precise_time_ns();
-                    for statistic in self.sampler_config().statistics() {
-                        if let Some(table) = statistic.bpf_table() {
-                            let mut table = (*bpf).inner.table(table);
-
-                            for (&value, &count) in &map_from_table(&mut table) {
-                                if count > 0 {
-                                    self.metrics().record_distribution(
-                                        statistic,
-                                        time,
-                                        value * MICROSECOND,
-                                        count,
-                                    );
-                                }
+                        for (&value, &count) in &map_from_table(&mut table) {
+                            if count > 0 {
+                                self.metrics().record_distribution(
+                                    statistic,
+                                    time,
+                                    value * MICROSECOND,
+                                    count,
+                                );
                             }
                         }
                     }
                 }
-                *self.bpf_last.lock().unwrap() = Instant::now();
             }
+            *self.bpf_last.lock().unwrap() = Instant::now();
         }
         Ok(())
     }
