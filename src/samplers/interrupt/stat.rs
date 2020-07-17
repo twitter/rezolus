@@ -69,6 +69,50 @@ pub enum InterruptStatistic {
     Node0Nvme,
     #[strum(serialize = "interrupt/node1/nvme")]
     Node1Nvme,
+    #[strum(serialize = "interrupt/softirq/hi")]
+    SoftIrqHI,
+    #[strum(serialize = "interrupt/softirq/timer")]
+    SoftIrqTimer,
+    #[strum(serialize = "interrupt/softirq/net_rx")]
+    SoftIrqNetRx,
+    #[strum(serialize = "interrupt/softirq/net_tx")]
+    SoftIrqNetTx,
+    #[strum(serialize = "interrupt/softirq/block")]
+    SoftIrqBlock,
+    #[strum(serialize = "interrupt/softirq/irq_poll")]
+    SoftIrqPoll,
+    #[strum(serialize = "interrupt/softirq/tasklet")]
+    SoftIrqTasklet,
+    #[strum(serialize = "interrupt/softirq/sched")]
+    SoftIrqSched,
+    #[strum(serialize = "interrupt/softirq/hr_timer")]
+    SoftIrqHRTimer,
+    #[strum(serialize = "interrupt/softirq/rcu")]
+    SoftIrqRCU,
+    #[strum(serialize = "interrupt/softirq/unknown")]
+    SoftIrqUnknown,
+    #[strum(serialize = "interrupt/hardirq")]
+    HardIrq,
+}
+
+impl InterruptStatistic {
+    pub fn bpf_table(self) -> Option<&'static str> {
+        match self {
+            Self::SoftIrqHI => Some("hi"),
+            Self::SoftIrqTimer => Some("timer"),
+            Self::SoftIrqNetRx => Some("net_rx"),
+            Self::SoftIrqNetTx => Some("net_tx"),
+            Self::SoftIrqBlock => Some("block"),
+            Self::SoftIrqPoll => Some("irq_poll"),
+            Self::SoftIrqTasklet => Some("tasklet"),
+            Self::SoftIrqSched => Some("sched"),
+            Self::SoftIrqHRTimer => Some("hr_timer"),
+            Self::SoftIrqRCU => Some("rcu"),
+            Self::SoftIrqUnknown => Some("unknown"),
+            Self::HardIrq => Some("hardirq_total"),
+            _ => None,
+        }
+    }
 }
 
 impl TryFrom<&str> for InterruptStatistic {
@@ -85,6 +129,10 @@ impl Statistic for InterruptStatistic {
     }
 
     fn source(&self) -> Source {
-        Source::Counter
+        if self.bpf_table().is_some() {
+            Source::Distribution
+        } else {
+            Source::Counter
+        }
     }
 }

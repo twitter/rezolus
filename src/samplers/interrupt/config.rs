@@ -14,6 +14,8 @@ use super::stat::*;
 #[serde(deny_unknown_fields)]
 pub struct InterruptConfig {
     #[serde(default)]
+    bpf: AtomicBool,
+    #[serde(default)]
     enabled: AtomicBool,
     #[serde(default)]
     interval: Option<AtomicUsize>,
@@ -26,6 +28,7 @@ pub struct InterruptConfig {
 impl Default for InterruptConfig {
     fn default() -> Self {
         Self {
+            bpf: Default::default(),
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: default_percentiles(),
@@ -50,6 +53,11 @@ fn default_statistics() -> Vec<InterruptStatistic> {
 
 impl SamplerConfig for InterruptConfig {
     type Statistic = InterruptStatistic;
+
+    fn bpf(&self) -> bool {
+        self.bpf.load(Ordering::Relaxed)
+    }
+
     fn enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
     }
