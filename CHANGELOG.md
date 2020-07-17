@@ -1,5 +1,14 @@
 # [Unreleased]
 
+# [2.5.0] - 2020-07-17
+## Added
+- Interrupt sampler now has BPF sampling of time distribution of hardirq/softirq
+handlers.
+
+## Fixed
+- Replaced remaining uses of chashmap with dashmap which has better performance
+characteristics.
+
 # [2.4.0] - 2020-07-06
 ## Added
 - HTTP sampler to poll JSON endpoint and provide summary metrics
@@ -81,7 +90,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.4.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.5.0...HEAD
+[2.5.0]: https://github.com/twitter/rezolus/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/twitter/rezolus/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/twitter/rezolus/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/twitter/rezolus/compare/v2.1.0...v2.2.0
