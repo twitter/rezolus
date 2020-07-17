@@ -3,7 +3,9 @@
 #include <linux/irqdesc.h>
 #include <linux/interrupt.h>
 
-// This code is taken from: https://github.com/iovisor/bcc/blob/master/tools/hardirqs.py
+// This code is taken from: 
+//      https://github.com/iovisor/bcc/blob/master/tools/hardirqs.py
+//      https://github.com/iovisor/bcc/blob/master/tools/softirqs.py
 //
 // Copyright (c) 2015 Brendan Gregg.
 // Licensed under the Apache License, Version 2.0 (the "License")
