@@ -1,6 +1,6 @@
 # [Unreleased]
 
-# [2.5.0] - 2020-07-17
+# [2.5.0] - 2020-07-21
 ## Added
 - Interrupt sampler now has BPF sampling of time distribution of hardirq/softirq
 handlers.
