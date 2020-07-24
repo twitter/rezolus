@@ -1,6 +1,6 @@
 # [Unreleased]
 
-# [2.5.0] - 2020-07-21
+# [2.5.0] - 2020-07-24
 ## Added
 - Interrupt sampler now has BPF sampling of time distribution of hardirq/softirq
 handlers.
@@ -8,6 +8,7 @@ handlers.
 ## Fixed
 - Replaced remaining uses of chashmap with dashmap which has better performance
 characteristics.
+- Statically linking bcc/bpf has fixes in upstream crates.
 
 # [2.4.0] - 2020-07-06
 ## Added
