@@ -6,203 +6,159 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  cache: 0
 
 jobs:
-  bionic:
-    name: bionic
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: bionic_nightly
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
-    - name: check
-      run: cargo check
-    - name: build
-      run: cargo build --release || cargo build --release
-    - name: test
-      run: cargo test --release
-    - name: run
-      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
-  bionic-bcc_v0_10_0:
-    name: bionic / bcc 0.10.0
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: bionic_nightly_bcc-0.10.0
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
-    - name: add repo
-      run: echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic main" | sudo tee /etc/apt/sources.list.d/iovisor.list
-    - name: apt update
-      run: sudo apt-get update
-    - name: install bcc
-      run: sudo apt-get install bcc-tools libbcc
-    - name: build
-      run: cargo build --release --no-default-features --features bpf_v0_10_0
-    - name: run
-      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-  xenial-bcc_v0_10_0:
-    name: xenial / bcc 0.10.0
+  xenial-llvm_8-bcc_v0_10_0:
+    name: xenial / llvm 8 / bcc 0.10.0
     runs-on: ubuntu-16.04
+    env:
+      BCC: "0.10.0"
+      DIST: xenial
+      FEATURES: bpf_v0_10_0
+      LLVM: 8
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: xenial_nightly_bcc-0.10.0
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
-    - name: add repo
-      run: echo "deb [trusted=yes] https://repo.iovisor.org/apt/xenial xenial main" | sudo tee /etc/apt/sources.list.d/iovisor.list
-    - name: apt update
-      run: sudo apt-get update
-    - name: install bcc
-      run: sudo apt-get install bcc-tools libbcc
-    - name: build
-      run: cargo build --release --no-default-features --features bpf_v0_10_0
-    - name: run
-      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-  focal-bcc_v0_12_0:
+    - name: Run CI
+      run: bash -e build/ci.sh
+  xenial-llvm_8-bcc_v0_11_0:
+    name: xenial / llvm 8 / bcc 0.11.0
+    runs-on: ubuntu-16.04
+    env:
+      BCC: "0.11.0"
+      DIST: xenial
+      FEATURES: bpf_v0_11_0
+      LLVM: 8
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run CI
+      run: bash -e build/ci.sh
+  xenial-llvm_8-bcc_v0_12_0:
+    name: xenial / llvm 8 / bcc 0.12.0
+    runs-on: ubuntu-16.04
+    env:
+      BCC: "0.12.0"
+      DIST: xenial
+      FEATURES: bpf_v0_12_0
+      LLVM: 8
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run CI
+      run: bash -e build/ci.sh
+  xenial-llvm_8-bcc_v0_13_0:
+    name: xenial / llvm 8 / bcc 0.13.0
+    runs-on: ubuntu-16.04
+    env:
+      BCC: "0.13.0"
+      DIST: xenial
+      FEATURES: bpf_v0_13_0
+      LLVM: 8
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run CI
+      run: bash -e build/ci.sh
+  xenial-llvm_8-bcc_v0_14_0:
+    name: xenial / llvm 8 / bcc 0.14.0
+    runs-on: ubuntu-16.04
+    env:
+      BCC: "0.14.0"
+      DIST: xenial
+      FEATURES: bpf_v0_14_0
+      LLVM: 8
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run CI
+      run: bash -e build/ci.sh
+  xenial-llvm_8-bcc_v0_15_0:
+    name: xenial / llvm 8 / bcc 0.15.0
+    runs-on: ubuntu-16.04
+    env:
+      BCC: "0.15.0"
+      DIST: xenial
+      FEATURES: bpf_v0_15_0
+      LLVM: 8
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run CI
+      run: bash -e build/ci.sh
+  xenial-llvm_8-bcc_v0_15_0-static:
+    name: xenial / llvm 8 / bcc 0.15.0 / static
+    runs-on: ubuntu-16.04
+    env:
+      BCC: "0.15.0"
+      DIST: xenial
+      FEATURES: bpf_v0_15_0 bpf_static_llvm_8
+      LLVM: 8
+      STATIC: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_12_0:
     name: focal / llvm 9 / bcc 0.12.0
     runs-on: ubuntu-20.04
+    env:
+      BCC: "0.12.0"
+      DIST: focal
+      FEATURES: bpf_v0_12_0
+      LLVM: 9
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: focal_nightly_bcc-0.12.0
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
-    - name: remove unused packages
-      run: sudo apt-get remove *llvm-6.0* *clang-6.0*
-    - name: install build deps
-      run: sudo apt-get install libelf-dev libclang-9-dev libfl-dev
-    - name: clone bcc
-      run: git clone https://github.com/iovisor/bcc
-    - name: checkout version
-      run: cd bcc && git checkout 368a5b0714961953f3e3f61607fa16cb71449c1b
-    - name: build and install bcc
-      run: mkdir bcc/_build && cd bcc/_build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j2 && sudo make install
-    - name: build
-      run: cargo build --release --no-default-features --features bpf_v0_12_0
-    - name: run
-      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-  focal-bcc_v0_13_0:
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_13_0:
     name: focal / llvm 9 / bcc 0.13.0
     runs-on: ubuntu-20.04
+    env:
+      BCC: "0.13.0"
+      DIST: focal
+      FEATURES: bpf_v0_13_0
+      LLVM: 9
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: focal_nightly_bcc-0.13.0
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
-    - name: remove unused packages
-      run: sudo apt-get remove *llvm-6.0* *clang-6.0*
-    - name: install build deps
-      run: sudo apt-get install libelf-dev libclang-9-dev libfl-dev
-    - name: clone bcc
-      run: git clone https://github.com/iovisor/bcc
-    - name: checkout version
-      run: cd bcc && git checkout 942227484d3207f6a42103674001ef01fb5335a0
-    - name: build and install bcc
-      run: mkdir bcc/_build && cd bcc/_build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j2 && sudo make install
-    - name: build
-      run: cargo build --release --no-default-features --features bpf_v0_13_0
-    - name: run
-      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-  focal-bcc_v0_14_0:
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_14_0:
     name: focal / llvm 9 / bcc 0.14.0
     runs-on: ubuntu-20.04
+    env:
+      BCC: "0.14.0"
+      DIST: focal
+      FEATURES: bpf_v0_14_0
+      LLVM: 9
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: focal_nightly_bcc-0.14.0
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
-    - name: remove unused packages
-      run: sudo apt-get remove *llvm-6.0* *clang-6.0*
-    - name: install build deps
-      run: sudo apt-get install libelf-dev libclang-9-dev libfl-dev
-    - name: clone bcc
-      run: git clone https://github.com/iovisor/bcc
-    - name: checkout version
-      run: cd bcc && git checkout ceb458d6a07a42d8d6d3c16a3b8e387b5131d610
-    - name: build and install bcc
-      run: mkdir bcc/_build && cd bcc/_build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j2 && sudo make install
-    - name: build
-      run: cargo build --release --no-default-features --features bpf_v0_14_0
-    - name: run
-      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-  focal-bcc_v0_15_0:
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_15_0:
     name: focal / llvm 9 / bcc 0.15.0
     runs-on: ubuntu-20.04
+    env:
+      BCC: "0.15.0"
+      DIST: focal
+      FEATURES: v0_15_0
+      LLVM: 9
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: focal_nightly_bcc-0.15.0
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
-    - name: remove unused packages
-      run: sudo apt-get remove *llvm-6.0* *clang-6.0*
-    - name: install build deps
-      run: sudo apt-get install libelf-dev libclang-9-dev libfl-dev
-    - name: clone bcc
-      run: git clone https://github.com/iovisor/bcc
-    - name: checkout version
-      run: cd bcc && git checkout e41f7a3be5c8114ef6a0990e50c2fbabea0e928e
-    - name: build and install bcc
-      run: mkdir bcc/_build && cd bcc/_build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j2 && sudo make install
-    - name: build
-      run: cargo build --release --no-default-features --features bpf_v0_15_0
-    - name: run
-      run: sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_15_0-static:
+    name: focal / llvm 9 / bcc 0.15.0 / static
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.15.0"
+      DIST: focal
+      FEATURES: bpf_v0_15_0 bpf_static
+      LLVM: 9
+      STATIC: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run CI
+      run: bash -e build/ci.sh
   rustfmt:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: rustfmt
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
     - name: install rustfmt
       run: rustup component add rustfmt
     - name: rustfmt
@@ -211,15 +167,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: clippy
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
     - name: install clippy
       run: rustup component add clippy
     - name: clippy
