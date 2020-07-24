@@ -1,3 +1,10 @@
+# This configuration is intended for use on CI environments where we want any
+# errors to be critical and cause the run to fail. As such, it is not suitable
+# for real usage.
+
+# Samplers which don't properly function due to limitations of the CI
+# environment should be disabled or limited portions which are expected to work.
+
 [general]
 fault_tolerant = false
 listen = "0.0.0.0:4242"
@@ -8,7 +15,7 @@ enabled = false
 perf_events = false
 
 [samplers.disk]
-bpf = true
+bpf = false
 enabled = true
 
 [samplers.ext4]
@@ -45,5 +52,5 @@ enabled = true
 enabled = true
 
 [samplers.xfs]
-bpf = false # no xfs present on ci, keep BPF disabled
+bpf = false
 enabled = true
