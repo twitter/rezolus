@@ -170,6 +170,21 @@ Provides system-wide telemetry for IRQs
   and also includes swap memory.
 * `memory/commit/limit` - total amount of memory, inb bytes, currently available
   to be allocated on the system based on the overcommit ratio
+* `memory/compact/daemon/free_scanned` - the number of pages kcompactd has
+  scanned to potentially free
+* `memory/compact/daemon/migrate_scanned` - the number of pages kcompactd has
+  scanned to potentially migrate
+* `memory/compact/daemon/wake` - the number of times kcompactd has woken
+* `memory/compact/fail` - the number of compactions which fail to free a
+  hugepage
+* `memory/compact/free_scanned` - the number of pages scanned to potentially
+  free
+* `memory/compact/isolated` - the number of pages isolated by compaction
+* `memory/compact/migrate_scanned` - the number of pages scanned to potentially
+  migrate
+* `memory/compact/stall` - the number of times processes stall to run compaction
+* `memory/compact/success` - the number of compactions resulting in successfully
+  freeing a hugepage
 * `memory/directmap/1G` - the amount of memory, in bytes, mapped into kernel
   address space with 1 GB page mappings.
 * `memory/directmap/2M` - the amount of memory, in bytes, mapped into kernel
@@ -205,6 +220,18 @@ Provides system-wide telemetry for IRQs
   because it is locked into memory by user programs.
 * `memory/nfs_unstable` - the amount, in bytes, of NFS pages sent to the server
   but not yet committed to the stable storage.
+* `memory/numa/foreign` - the number of bytes which had to be allocated on a
+  remote node even though the allocation should have been local
+* `memory/numa/hit` - the number of bytes successfully allocated on the intended
+  node
+* `memory/numa/interleave` - the number of bytes allocated on the remote node as
+  intended by interleave policy
+* `memory/numa/local` - the number of bytes allocated on the node where the
+  process was running at time of allocation
+* `memory/numa/miss` - the number of bytes which could not be allocated on the
+  intended node
+* `memory/numa/other` - the number of bytes allocated on a node where the
+  process was not running at time of allocation
 * `memory/page_tables` - the total amount of memory, in bytes, dedicated to the
   lowest page table level.
 * `memory/shmem_hugepages` - the number of hugepages which are used for shared
@@ -225,6 +252,20 @@ Provides system-wide telemetry for IRQs
   swap again.
 * `memory/swap/free` - the total amount of swap free, in bytes.
 * `memory/swap/total` - the total amount of swap available, in bytes.
+* `memory/thp/collapse_alloc` - number of times a hugepage was successfully
+  allocated to collapse multiple pages
+* `memory/thp/collapse_alloc_failed` - number of times the allocation of a
+  hugepage failed when attempting to collapse multiple pages
+* `memory/thp/deferred_split_page` - number of times a page split was deferred
+  by placing it on the split queue. This means the page is partially unmapped
+  and splitting will free some memory
+* `memory/thp/fault_alloc` - the number of times a huge page was allocated to
+  satisfy a page fault
+* `memory/thp/fault_fallback` - the number of times a page fault required a
+  base page allocation following a failure allocating a huge page
+* `memory/thp/split_page` - the number of huge pages which have been split into
+  base pages
+* `memory/thp/split_page_failed` - the number of times a huge page split failed
 * `memory/total` - total amount of usable RAM, in bytes, which is physical RAM
   minus a number of reserved bits and the kernel binary code
 * `memory/unevictable` - the amount of memory, in bytes, discovered by the

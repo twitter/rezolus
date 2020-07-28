@@ -119,17 +119,89 @@ pub enum MemoryStatistic {
     DirectMap2M,
     #[strum(serialize = "memory/directmap/1G")]
     DirectMap1G,
+    // NUMA
+    #[strum(serialize = "memory/numa/hit")]
+    NumaHit,
+    #[strum(serialize = "memory/numa/miss")]
+    NumaMiss,
+    #[strum(serialize = "memory/numa/foreign")]
+    NumaForeign,
+    #[strum(serialize = "memory/numa/interleave")]
+    NumaInterleave,
+    #[strum(serialize = "memory/numa/local")]
+    NumaLocal,
+    #[strum(serialize = "memory/numa/other")]
+    NumaOther,
+    // THP
+    #[strum(serialize = "memory/thp/fault_alloc")]
+    ThpFaultAlloc,
+    #[strum(serialize = "memory/thp/fault_fallback")]
+    ThpFaultFallback,
+    #[strum(serialize = "memory/thp/collapse_alloc")]
+    ThpCollapseAlloc,
+    #[strum(serialize = "memory/thp/collapse_alloc_failed")]
+    ThpCollapseAllocFailed,
+    #[strum(serialize = "memory/thp/split_page")]
+    ThpSplitPage,
+    #[strum(serialize = "memory/thp/split_page_failed")]
+    ThpSplitPageFailed,
+    #[strum(serialize = "memory/thp/deferred_split_page")]
+    ThpDeferredSplitPage,
+    // Compaction
+    #[strum(serialize = "memory/compact/stall")]
+    CompactStall,
+    #[strum(serialize = "memory/compact/fail")]
+    CompactFail,
+    #[strum(serialize = "memory/compact/success")]
+    CompactSuccess,
+    #[strum(serialize = "memory/compact/migrate_scanned")]
+    CompactMigrateScanned,
+    #[strum(serialize = "memory/compact/free_scanned")]
+    CompactFreeScanned,
+    #[strum(serialize = "memory/compact/isolated")]
+    CompactIsolated,
+    #[strum(serialize = "memory/compact/daemon/wake")]
+    CompactDaemonWake,
+    #[strum(serialize = "memory/compact/daemon/migrate_scanned")]
+    CompactDaemonMigrateScanned,
+    #[strum(serialize = "memory/compact/daemon/free_scanned")]
+    CompactDaemonFreeScanned,
 }
 
 impl MemoryStatistic {
     pub fn multiplier(self) -> u64 {
         match self {
+            // these are counts of pages or events
             Self::HugePagesTotal
             | Self::HugePagesFree
             | Self::HugePagesRsvd
             | Self::HugePagesSurp
             | Self::ShmemHugePages
-            | Self::ShmemPmdMapped => 1,
+            | Self::ShmemPmdMapped
+            | Self::ThpFaultAlloc
+            | Self::ThpFaultFallback
+            | Self::ThpCollapseAllocFailed
+            | Self::ThpCollapseAlloc
+            | Self::ThpSplitPage
+            | Self::ThpSplitPageFailed
+            | Self::ThpDeferredSplitPage
+            | Self::CompactStall
+            | Self::CompactFail
+            | Self::CompactSuccess
+            | Self::CompactMigrateScanned
+            | Self::CompactFreeScanned
+            | Self::CompactIsolated
+            | Self::CompactDaemonWake
+            | Self::CompactDaemonMigrateScanned
+            | Self::CompactDaemonFreeScanned => 1,
+            // convert from pages to bytes
+            Self::NumaHit
+            | Self::NumaMiss
+            | Self::NumaForeign
+            | Self::NumaInterleave
+            | Self::NumaLocal
+            | Self::NumaOther => 4096,
+            // convert from kilobytes to bytes
             _ => 1024,
         }
     }
@@ -149,6 +221,14 @@ impl Statistic for MemoryStatistic {
     }
 
     fn source(&self) -> Source {
-        Source::Gauge
+        match self {
+            Self::NumaHit
+            | Self::NumaMiss
+            | Self::NumaForeign
+            | Self::NumaInterleave
+            | Self::NumaLocal
+            | Self::NumaOther => Source::Counter,
+            _ => Source::Gauge,
+        }
     }
 }
