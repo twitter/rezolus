@@ -30,7 +30,7 @@
 int name(struct bpf_perf_event_data *ctx) { \
     KEY key = KEY_DEFAULT;                  \
     get_key(&key);                          \
-    name.increment(&key)                    \
+    name.increment(&key);                   \
     return 0;                               \
 } 
 
