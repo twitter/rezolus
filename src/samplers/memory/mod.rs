@@ -75,6 +75,7 @@ impl Sampler for Memory {
         self.register();
 
         self.map_result(self.sample_meminfo().await)?;
+        self.map_result(self.sample_vmstat().await)?;
 
         Ok(())
     }
@@ -160,6 +161,64 @@ impl Memory {
             if let Some(value) = result.get(stat) {
                 self.metrics()
                     .record_gauge(stat, time, *value * stat.multiplier());
+            }
+        }
+        Ok(())
+    }
+
+    async fn sample_vmstat(&self) -> Result<(), std::io::Error> {
+        let file = File::open("/proc/vmstat").await?;
+        let reader = BufReader::new(file);
+        let mut lines = reader.lines();
+
+        let mut result = HashMap::<MemoryStatistic, u64>::new();
+
+        let re = Regex::new(r"(?P<stat>\w+)\s+(?P<value>\d+)").expect("failed to compile regex");
+
+        while let Some(line) = lines.next_line().await? {
+            if let Some(caps) = re.captures(&line) {
+                if let Some(Ok(value)) = caps.name("value").map(|v| v.as_str().parse()) {
+                    if let Some(Some(stat)) = caps.name("stat").map(|v| match v.as_str() {
+                        "numa_hit" => Some(Stat::NumaHit),
+                        "numa_miss" => Some(Stat::NumaMiss),
+                        "numa_foreign" => Some(Stat::NumaForeign),
+                        "numa_interleave" => Some(Stat::NumaInterleave),
+                        "numa_local" => Some(Stat::NumaLocal),
+                        "numa_other" => Some(Stat::NumaOther),
+                        "thp_fault_alloc" => Some(Stat::ThpFaultAlloc),
+                        "thp_fault_fallback" => Some(Stat::ThpFaultFallback),
+                        "thp_collapse_alloc" => Some(Stat::ThpCollapseAlloc),
+                        "thp_collapse_alloc_failed" => Some(Stat::ThpCollapseAllocFailed),
+                        "thp_split_page" => Some(Stat::ThpSplitPage),
+                        "thp_split_page_failed" => Some(Stat::ThpSplitPageFailed),
+                        "thp_deferred_split_page" => Some(Stat::ThpDeferredSplitPage),
+                        "compact_migrate_scanned" => Some(Stat::CompactMigrateScanned),
+                        "compact_free_scanned" => Some(Stat::CompactFreeScanned),
+                        "compact_isolated" => Some(Stat::CompactIsolated),
+                        "compact_stall" => Some(Stat::CompactStall),
+                        "compact_fail" => Some(Stat::CompactFail),
+                        "compact_success" => Some(Stat::CompactSuccess),
+                        "compact_daemon_wake" => Some(Stat::CompactDaemonWake),
+                        "compact_daemon_migrate_scanned" => Some(Stat::CompactDaemonMigrateScanned),
+                        "compact_daemon_free_scanned" => Some(Stat::CompactDaemonFreeScanned),
+                        _ => None,
+                    }) {
+                        result.insert(stat, value);
+                    }
+                }
+            }
+        }
+
+        let time = time::precise_time_ns();
+        for stat in self.sampler_config().statistics() {
+            if let Some(value) = result.get(stat) {
+                if stat.source() == Source::Counter {
+                    self.metrics()
+                        .record_counter(stat, time, *value * stat.multiplier());
+                } else {
+                    self.metrics()
+                        .record_gauge(stat, time, *value * stat.multiplier());
+                }
             }
         }
         Ok(())
