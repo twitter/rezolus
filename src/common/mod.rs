@@ -31,6 +31,8 @@ pub const MEBIBYTE: u64 = 1_024 * KIBIBYTE;
 pub const KIBIBYTE: u64 = 1_024 * BYTE;
 pub const BYTE: u64 = 1;
 
+pub const SAMPLE_PERIOD: u64 = 100; 
+
 /// helper function to discover the number of hardware threads
 pub fn hardware_threads() -> Result<u64, ()> {
     let path = "/sys/devices/system/cpu/present";
