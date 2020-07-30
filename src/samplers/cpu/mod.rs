@@ -3,6 +3,8 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
 use async_trait::async_trait;
 use regex::Regex;
@@ -31,6 +33,13 @@ pub struct Cpu {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
+    tick_duration: u64,
+}
+
+pub fn nanos_per_tick() -> u64 {
+    let ticks_per_second = sysconf::raw::sysconf(sysconf::raw::SysconfVariable::ScClkTck)
+        .expect("Failed to get Clock Ticks per Second") as u64;
+    SECOND / ticks_per_second
 }
 
 #[async_trait]
@@ -44,7 +53,8 @@ impl Sampler for Cpu {
         let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
-            common,
+            common: common,
+            tick_duration: nanos_per_tick(),
         };
 
         if let Err(e) = sampler.initialize_bpf() {
@@ -118,7 +128,7 @@ impl Cpu {
     fn bpf_enabled(&self) -> bool {
         if self.sampler_config().bpf() {
             for statistic in self.sampler_config().statistics() {
-                if statistic.bpf_table().is_some() {
+                if statistic.bpf_config().is_some() {
                     return true;
                 }
             }
@@ -136,10 +146,10 @@ impl Cpu {
 
                 for statistic in self.sampler_config().statistics() {
                     if let Some((name, event)) = statistic.bpf_config() {
-                        PerfEventProbe::new()
-                            .name(table.0)
-                            .event(table.1)
-                            .sample_period(SAMPLE_PERIOD)
+                        bcc::core::PerfEventProbe::new()
+                            .name(name)
+                            .event(event)
+                            .sample_period(Some(SAMPLE_PERIOD)  )
                             .attach(&mut bpf);
                     }
                 }
@@ -158,7 +168,7 @@ impl Cpu {
                 let time = time::precise_time_ns();
 
                 for statistic in self.sampler_config().statistics() {
-                    if let Some((table, _)) = statistics.bpf_config() {
+                    if let Some((table, _)) = statistic.bpf_config() {
                         let mut table = (*bpf).inner.table(table);
 
                         // We only should have a single entry in the table right now

@@ -11,6 +11,14 @@ pub struct BPF {
 pub struct BPF {}
 
 #[cfg(feature = "bpf")]
+pub struct PerfEventProbe {
+    pub inner: bcc::core::PerfEventProbe,
+}
+
+#[cfg(not(feature = "bpf"))]
+pub struct PerfEventProbe {}
+
+#[cfg(feature = "bpf")]
 pub fn key_to_value(index: u64) -> Option<u64> {
     let index = index;
     if index < 100 {
