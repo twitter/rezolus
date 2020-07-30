@@ -62,7 +62,7 @@ impl Sampler for Cpu {
                 return Err(e);
             }
         }
-        
+
         Ok(sampler)
     }
 
@@ -149,7 +149,7 @@ impl Cpu {
                         bcc::core::PerfEventProbe::new()
                             .name(name)
                             .event(event)
-                            .sample_period(Some(SAMPLE_PERIOD)  )
+                            .sample_period(Some(SAMPLE_PERIOD))
                             .attach(&mut bpf);
                     }
                 }
@@ -172,7 +172,7 @@ impl Cpu {
                         let mut table = (*bpf).inner.table(table);
 
                         // We only should have a single entry in the table right now
-                        let mut total = 0; 
+                        let mut total = 0;
                         for entry in table.iter() {
                             let mut v = [0_u8; 8];
                             for (i, byte) in v.iter_mut().enumerate() {
@@ -182,8 +182,7 @@ impl Cpu {
                             total += u64::from_ne_bytes(v);
                         }
 
-                        self.metrics()
-                            .record_counter(statistic, time, total)
+                        self.metrics().record_counter(statistic, time, total)
                     }
                 }
             }

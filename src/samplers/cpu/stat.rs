@@ -108,21 +108,49 @@ impl Statistic for CpuStatistic {
 impl CpuStatistic {
     #[cfg(feature = "bpf")]
     pub fn bpf_config(self) -> Option<(&'static str, bcc::perf::Event)> {
-        use bcc::perf::{Event, HardwareEvent, CacheId, CacheOp, CacheResult};
+        use bcc::perf::{CacheId, CacheOp, CacheResult, Event, HardwareEvent};
         match self {
-            Self::BpuBranches => Some(("bpu_branch", Event::Hardware(HardwareEvent::BranchInstructions))),
-            Self::BpuMiss => Some(("bpu_miss", Event::Hardware(HardwareEvent::BranchMisses))),  
-            Self::CacheAccess => Some(("cache_access", Event::Hardware(HardwareEvent::CacheReferences))),
+            Self::BpuBranches => Some((
+                "bpu_branch",
+                Event::Hardware(HardwareEvent::BranchInstructions),
+            )),
+            Self::BpuMiss => Some(("bpu_miss", Event::Hardware(HardwareEvent::BranchMisses))),
+            Self::CacheAccess => Some((
+                "cache_access",
+                Event::Hardware(HardwareEvent::CacheReferences),
+            )),
             Self::CacheMiss => Some(("cache_miss", Event::Hardware(HardwareEvent::CacheMisses))),
             Self::Cycles => Some(("cycles", Event::Hardware(HardwareEvent::CpuCycles))),
-            Self::DtlbLoadAccess => Some(("dtlb_load_access", Event::HardwareCache(CacheId::DTLB, CacheOp::Read, CacheResult::Access))),
-            Self::DtlbLoadMiss => Some(("dtlb_load_miss", Event::HardwareCache(CacheId::DTLB, CacheOp::Read, CacheResult::Miss))),
-            Self::DtlbStoreAccess => Some(("dtlb_store_access", Event::HardwareCache(CacheId::DTLB, CacheOp::Write, CacheResult::Access))),
-            Self::DtlbStoreMiss => Some(("dtlb_store_miss", Event::HardwareCache(CacheId::DTLB, CacheOp::Write, CacheResult::Miss))),
-            Self::Instructions => Some(("instructions", Event::Hardware(HardwareEvent::Instructions))),
-            Self::ReferenceCycles => Some(("ref_cycles", Event::Hardware(HardwareEvent::RefCpuCycles))),
-            Self::StalledCyclesBackend => Some(("stalled_backend", Event::Hardware(HardwareEvent::StalledCyclesBackend))),
-            Self::StalledCyclesFrontend => Some(("stalled_frontend", Event::Hardware(HardwareEvent::StalledCyclesFrontend))),
+            Self::DtlbLoadAccess => Some((
+                "dtlb_load_access",
+                Event::HardwareCache(CacheId::DTLB, CacheOp::Read, CacheResult::Access),
+            )),
+            Self::DtlbLoadMiss => Some((
+                "dtlb_load_miss",
+                Event::HardwareCache(CacheId::DTLB, CacheOp::Read, CacheResult::Miss),
+            )),
+            Self::DtlbStoreAccess => Some((
+                "dtlb_store_access",
+                Event::HardwareCache(CacheId::DTLB, CacheOp::Write, CacheResult::Access),
+            )),
+            Self::DtlbStoreMiss => Some((
+                "dtlb_store_miss",
+                Event::HardwareCache(CacheId::DTLB, CacheOp::Write, CacheResult::Miss),
+            )),
+            Self::Instructions => {
+                Some(("instructions", Event::Hardware(HardwareEvent::Instructions)))
+            }
+            Self::ReferenceCycles => {
+                Some(("ref_cycles", Event::Hardware(HardwareEvent::RefCpuCycles)))
+            }
+            Self::StalledCyclesBackend => Some((
+                "stalled_backend",
+                Event::Hardware(HardwareEvent::StalledCyclesBackend),
+            )),
+            Self::StalledCyclesFrontend => Some((
+                "stalled_frontend",
+                Event::Hardware(HardwareEvent::StalledCyclesFrontend),
+            )),
             _ => None,
         }
     }
