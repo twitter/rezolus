@@ -33,12 +33,6 @@ pub struct Cpu {
     common: Common,
 }
 
-pub fn nanos_per_tick() -> u64 {
-    let ticks_per_second = sysconf::raw::sysconf(sysconf::raw::SysconfVariable::ScClkTck)
-        .expect("Failed to get Clock Ticks per Second") as u64;
-    SECOND / ticks_per_second
-}
-
 #[async_trait]
 impl Sampler for Cpu {
     type Statistic = CpuStatistic;
@@ -141,7 +135,7 @@ impl Cpu {
                 let mut bpf = bcc::core::BPF::new(code)?;
 
                 for statistic in self.sampler_config().statistics() {
-                    if let Some(config) = statistic.bpf_config() {
+                    if let Some((name, event)) = statistic.bpf_config() {
                         PerfEventProbe::new()
                             .name(table.0)
                             .event(table.1)
@@ -161,11 +155,11 @@ impl Cpu {
         if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();
-                let time - time::precise_time_ns();
+                let time = time::precise_time_ns();
 
                 for statistic in self.sampler_config().statistics() {
-                    if let Some(config) = statistics.bpf_config() {
-                        let mut table = (*bpf).inner.table(config.0);
+                    if let Some((table, _)) = statistics.bpf_config() {
+                        let mut table = (*bpf).inner.table(table);
 
                         // We only should have a single entry in the table right now
                         let mut total = 0; 
