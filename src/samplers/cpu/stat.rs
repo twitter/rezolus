@@ -10,8 +10,6 @@ use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
-use bcc::perf::{Event, HardwareEvent, CacheId, CacheOp, CacheResult};
-
 #[derive(
     Clone,
     Copy,
@@ -109,7 +107,8 @@ impl Statistic for CpuStatistic {
 
 impl CpuStatistic {
     #[cfg(feature = "bpf")]
-    pub fn bpf_config(self) -> Option<(&'static str, Event)> {
+    pub fn bpf_config(self) -> Option<(&'static str, bcc::perf::Event)> {
+        use bcc::perf::{Event, HardwareEvent, CacheId, CacheOp, CacheResult};
         match self {
             Self::BpuBranches => Some(("bpu_branch", Event::Hardware(HardwareEvent::BranchInstructions))),
             Self::BpuMiss => Some(("bpu_miss", Event::Hardware(HardwareEvent::BranchMisses))),  
