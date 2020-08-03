@@ -127,7 +127,7 @@ impl Ext4 {
                 let addr = "0x".to_string()
                     + &crate::common::bpf::symbol_lookup("ext4_file_operations").unwrap();
                 let code = code.replace("EXT4_FILE_OPERATIONS", &addr);
-                let mut bpf = bcc::core::BPF::new(&code)?;
+                let mut bpf = bcc::BPF::new(&code)?;
 
                 // load + attach kprobes!
                 bcc::Kprobe::new()

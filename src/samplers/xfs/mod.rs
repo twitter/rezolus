@@ -125,7 +125,7 @@ impl Xfs {
 
                 // load the code and compile
                 let code = include_str!("bpf.c");
-                let mut bpf = bcc::core::BPF::new(code)?;
+                let mut bpf = bcc::BPF::new(code)?;
 
                 // load + attach kprobes!
                 bcc::Kprobe::new()

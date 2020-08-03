@@ -129,7 +129,7 @@ impl Interrupt {
                 debug!("initializing bpf");
 
                 let code = include_str!("bpf.c");
-                let mut bpf = bcc::core::BPF::new(code)?;
+                let mut bpf = bcc::BPF::new(code)?;
 
                 bcc::Kprobe::new()
                     .name("hardirq_entry")

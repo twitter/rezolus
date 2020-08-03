@@ -140,7 +140,7 @@ impl Network {
                 debug!("initializing bpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");
-                let mut bpf = bcc::core::BPF::new(code)?;
+                let mut bpf = bcc::BPF::new(code)?;
 
                 bcc::Tracepoint::new()
                     .name("trace_transmit")
