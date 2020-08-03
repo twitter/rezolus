@@ -30,9 +30,9 @@ struct PerfCounter {}
 
 #[allow(dead_code)]
 pub struct Cpu {
-    bpf: Option<Arc<Mutex<BPF>>>,
-    bpf_last: Arc<Mutex<Instant>>,
     common: Common,
+    perf: Option<Arc<Mutex<BPF>>>,
+    perf_last: Arc<Mutex<Instant>>,
     tick_duration: u64,
 }
 
@@ -51,13 +51,13 @@ impl Sampler for Cpu {
 
         #[allow(unused_mut)]
         let mut sampler = Self {
-            bpf: None,
-            bpf_last: Arc::new(Mutex::new(Instant::now())),
+            perf: None,
+            perf_last: Arc::new(Mutex::new(Instant::now())),
             common: common,
             tick_duration: nanos_per_tick(),
         };
 
-        if let Err(e) = sampler.initialize_bpf() {
+        if let Err(e) = sampler.initialize_perf() {
             if !fault_tolerant {
                 return Err(e);
             }
@@ -107,8 +107,8 @@ impl Sampler for Cpu {
         self.map_result(self.sample_cstates().await)?;
         self.map_result(self.sample_cpu_usage().await)?;
 
-        #[cfg(feature = "bpf")]
-        self.map_result(self.sample_bpf())?;
+        #[cfg(feature = "perf")]
+        self.map_result(self.sample_perf())?;
 
         Ok(())
     }
@@ -124,11 +124,11 @@ impl Sampler for Cpu {
 }
 
 impl Cpu {
-    #[cfg(feature = "bpf")]
-    fn bpf_enabled(&self) -> bool {
-        if self.sampler_config().bpf() {
+    #[cfg(feature = "perf")]
+    fn perf_enabled(&self) -> bool {
+        if self.sampler_config().perf_events() {
             for statistic in self.sampler_config().statistics() {
-                if statistic.bpf_config().is_some() {
+                if statistic.perf_config().is_some() {
                     return true;
                 }
             }
@@ -136,40 +136,40 @@ impl Cpu {
         false
     }
 
-    fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
-        #[cfg(feature = "bpf")]
+    fn initialize_perf(&mut self) -> Result<(), failure::Error> {
+        #[cfg(feature = "perf")]
         {
-            if self.enabled() && self.bpf_enabled() {
-                debug!("initializing bpf");
-                let code = include_str!("bpf.c");
-                let mut bpf = bcc::core::BPF::new(code)?;
+            if self.enabled() && self.perf_enabled() {
+                debug!("initializing perf");
+                let code = include_str!("perf.c");
+                let mut perf = bcc::core::BPF::new(code)?;
 
                 for statistic in self.sampler_config().statistics() {
-                    if let Some((name, event)) = statistic.bpf_config() {
+                    if let Some((name, event)) = statistic.perf_config() {
                         bcc::core::PerfEventProbe::new()
                             .name(name)
                             .event(event)
                             .sample_period(Some(SAMPLE_PERIOD))
-                            .attach(&mut bpf);
+                            .attach(&mut perf);
                     }
                 }
 
-                self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
+                self.perf = Some(Arc::new(Mutex::new(BPF { inner: perf })))
             }
         }
         Ok(())
     }
 
-    #[cfg(feature = "bpf")]
-    fn sample_bpf(&self) -> Result<(), std::io::Error> {
-        if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
-            if let Some(ref bpf) = self.bpf {
-                let bpf = bpf.lock().unwrap();
+    #[cfg(feature = "perf")]
+    fn sample_perf(&self) -> Result<(), std::io::Error> {
+        if self.perf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+            if let Some(ref perf) = self.perf {
+                let perf = perf.lock().unwrap();
                 let time = time::precise_time_ns();
 
                 for statistic in self.sampler_config().statistics() {
-                    if let Some((table, _)) = statistic.bpf_config() {
-                        let mut table = (*bpf).inner.table(table);
+                    if let Some((table, _)) = statistic.perf_config() {
+                        let mut table = (*perf).inner.table(table);
 
                         // We only should have a single entry in the table right now
                         let mut total = 0;
@@ -186,7 +186,7 @@ impl Cpu {
                     }
                 }
             }
-            *self.bpf_last.lock().unwrap() = Instant::now();
+            *self.perf_last.lock().unwrap() = Instant::now();
         }
         Ok(())
     }

@@ -5,8 +5,6 @@
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-#[cfg(feature = "perf")]
-pub use perfcnt::linux::*;
 use rustcommon_metrics::{Source, Statistic};
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;

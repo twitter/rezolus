@@ -32,7 +32,7 @@ int name(struct bpf_perf_event_data *ctx) { \
     get_key(&key);                          \
     name.increment(&key);                   \
     return 0;                               \
-} 
+}
 
 // Update later with the key values you need.
 static inline __attribute__((always_inline)) void get_key(KEY *key) {
