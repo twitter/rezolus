@@ -143,12 +143,12 @@ impl Network {
                 let mut bpf = bcc::BPF::new(code)?;
 
                 bcc::Tracepoint::new()
-                    .name("trace_transmit")
+                    .handler("trace_transmit")
                     .subsystem("net")
                     .tracepoint("net_dev_queue")
                     .attach(&mut bpf)?;
                 bcc::Tracepoint::new()
-                    .name("trace_receive")
+                    .handler("trace_receive")
                     .subsystem("net")
                     .tracepoint("netif_rx")
                     .attach(&mut bpf)?;

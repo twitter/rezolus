@@ -131,35 +131,35 @@ impl Ext4 {
 
                 // load + attach kprobes!
                 bcc::Kprobe::new()
-                    .name("trace_read_entry")
+                    .handler("trace_read_entry")
                     .function("generic_file_read_iter")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_entry")
+                    .handler("trace_entry")
                     .function("ext4_file_write_iter")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_entry")
+                    .handler("trace_entry")
                     .function("ext4_file_open")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_entry")
+                    .handler("trace_entry")
                     .function("ext4_sync_file")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_read_return")
+                    .handler("trace_read_return")
                     .function("generic_file_read_iter")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_write_return")
+                    .handler("trace_write_return")
                     .function("ext4_file_write_iter")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_open_return")
+                    .handler("trace_open_return")
                     .function("ext4_file_open")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_fsync_return")
+                    .handler("trace_fsync_return")
                     .function("ext4_sync_file")
                     .attach(&mut bpf)?;
 

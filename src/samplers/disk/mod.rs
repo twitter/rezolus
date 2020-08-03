@@ -143,19 +143,19 @@ impl Disk {
                 let mut bpf = bcc::BPF::new(code)?;
                 // load + attach kprobes!
                 bcc::Kprobe::new()
-                    .name("trace_pid_start")
+                    .handler("trace_pid_start")
                     .function("blk_account_io_start")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_req_start")
+                    .handler("trace_req_start")
                     .function("blk_start_request")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_req_start")
+                    .handler("trace_req_start")
                     .function("blk_mq_start_request")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("do_count")
+                    .handler("do_count")
                     .function("blk_account_io_completion")
                     .attach(&mut bpf)?;
 

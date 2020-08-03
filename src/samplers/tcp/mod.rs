@@ -141,15 +141,15 @@ impl Tcp {
 
                 // load + attach kprobes!
                 bcc::Kprobe::new()
-                    .name("trace_connect")
+                    .handler("trace_connect")
                     .function("tcp_v4_connect")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_connect")
+                    .handler("trace_connect")
                     .function("tcp_v6_connect")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_tcp_rcv_state_process")
+                    .handler("trace_tcp_rcv_state_process")
                     .function("tcp_rcv_state_process")
                     .attach(&mut bpf)?;
 

@@ -287,15 +287,15 @@ impl Scheduler {
 
                 // load + attach kprobes!
                 bcc::Kprobe::new()
-                    .name("trace_run")
+                    .handler("trace_run")
                     .function("finish_task_switch")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_ttwu_do_wakeup")
+                    .handler("trace_ttwu_do_wakeup")
                     .function("ttwu_do_wakeup")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_wake_up_new_task")
+                    .handler("trace_wake_up_new_task")
                     .function("wake_up_new_task")
                     .attach(&mut bpf)?;
 

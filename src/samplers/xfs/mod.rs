@@ -129,35 +129,35 @@ impl Xfs {
 
                 // load + attach kprobes!
                 bcc::Kprobe::new()
-                    .name("trace_entry")
+                    .handler("trace_entry")
                     .function("xfs_file_read_iter")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_entry")
+                    .handler("trace_entry")
                     .function("xfs_file_write_iter")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_entry")
+                    .handler("trace_entry")
                     .function("xfs_file_open")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
-                    .name("trace_entry")
+                    .handler("trace_entry")
                     .function("xfs_file_fsync")
                     .attach(&mut bpf)?;
                 bcc::Kretprobe::new()
-                    .name("trace_read_return")
+                    .handler("trace_read_return")
                     .function("xfs_file_read_iter")
                     .attach(&mut bpf)?;
                 bcc::Kretprobe::new()
-                    .name("trace_write_return")
+                    .handler("trace_write_return")
                     .function("xfs_file_write_iter")
                     .attach(&mut bpf)?;
                 bcc::Kretprobe::new()
-                    .name("trace_open_return")
+                    .handler("trace_open_return")
                     .function("xfs_file_open")
                     .attach(&mut bpf)?;
                 bcc::Kretprobe::new()
-                    .name("trace_fsync_return")
+                    .handler("trace_fsync_return")
                     .function("xfs_file_fsync")
                     .attach(&mut bpf)?;
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
