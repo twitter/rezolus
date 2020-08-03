@@ -131,7 +131,7 @@ impl Interrupt {
                 let code = include_str!("bpf.c");
                 let mut bpf = bcc::core::BPF::new(code)?;
 
-                bcc::core::::kprobe::Kprobe::new()
+                bcc::core::kprobe::Kprobe::new()
                     .name("hardirq_entry")
                     .function("handle_irq_event_percpu")
                     .attach(&mut bpf)?;
