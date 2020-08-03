@@ -128,35 +128,35 @@ impl Xfs {
                 let mut bpf = bcc::core::BPF::new(code)?;
 
                 // load + attach kprobes!
-                bcc::core::Kprobe::new()
+                bcc::core::kprobe::Kprobe::new()
                     .name("trace_entry")
                     .function("xfs_file_read_iter")
                     .attach(&mut bpf)?;
-                bcc::core::Kprobe::new()
+                bcc::core::kprobe::Kprobe::new()
                     .name("trace_entry")
                     .function("xfs_file_write_iter")
                     .attach(&mut bpf)?;
-                bcc::core::Kprobe::new()
+                bcc::core::kprobe::Kprobe::new()
                     .name("trace_entry")
                     .function("xfs_file_open")
                     .attach(&mut bpf)?;
-                bcc::core::Kprobe::new()
+                bcc::core::kprobe::Kprobe::new()
                     .name("trace_entry")
                     .function("xfs_file_fsync")
                     .attach(&mut bpf)?;
-                bcc::core::Kretprobe::new()
+                bcc::core::kprobe::Kretprobe::new()
                     .name("trace_read_return")
                     .function("xfs_file_read_iter")
                     .attach(&mut bpf)?;
-                bcc::core::Kretprobe::new()
+                bcc::core::kprobe::Kretprobe::new()
                     .name("trace_write_return")
                     .function("xfs_file_write_iter")
                     .attach(&mut bpf)?;
-                bcc::core::Kretprobe::new()
+                bcc::core::kprobe::Kretprobe::new()
                     .name("trace_open_return")
                     .function("xfs_file_open")
                     .attach(&mut bpf)?;
-                bcc::core::Kretprobe::new()
+                bcc::core::kprobe::Kretprobe::new()
                     .name("trace_fsync_return")
                     .function("xfs_file_fsync")
                     .attach(&mut bpf)?;

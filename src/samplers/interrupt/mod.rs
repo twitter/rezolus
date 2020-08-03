@@ -130,21 +130,21 @@ impl Interrupt {
 
                 let code = include_str!("bpf.c");
                 let mut bpf = bcc::core::BPF::new(code)?;
-                
-                bcc::core::Kprobe::new()
+
+                bcc::core::::kprobe::Kprobe::new()
                     .name("hardirq_entry")
                     .function("handle_irq_event_percpu")
                     .attach(&mut bpf)?;
-                bcc::core::Kretprobe::new()
+                bcc::core::::kprobe::Kretprobe::new()
                     .name("hardirq_exit")
                     .function("handle_irq_event_percpu")
                     .attach(&mut bpf)?;
-                bcc::core::Tracepoint::new()
+                bcc::core::tracepoint::Tracepoint::new()
                     .name("softirq_entry")
                     .subsystem("irq")
                     .tracepoint("softirq_entry")
                     .attach(&mut bpf)?;
-                bcc::core::Tracepoint::new()
+                bcc::core::tracepoint::Tracepoint::new()
                     .name("softirq_exit")
                     .subsystem("irq")
                     .tracepoint("softirq_exit")
