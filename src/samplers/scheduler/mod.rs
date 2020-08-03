@@ -286,14 +286,19 @@ impl Scheduler {
                 let mut bpf = bcc::core::BPF::new(code)?;
 
                 // load + attach kprobes!
-                let trace_run = bpf.load_kprobe("trace_run")?;
-                let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup")?;
-                let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task")?;
-
-                bpf.attach_kprobe("finish_task_switch", trace_run)?;
-                bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task)?;
-                bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)?;
-
+                bcc::core::Kprobe::new()
+                    .name("trace_run")
+                    .function("finish_task_switch")
+                    .attach(&mut bpf)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_ttwu_do_wakeup")
+                    .function("ttwu_do_wakeup")
+                    .attach(&mut bpf)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_wake_up_new_task")
+                    .function("wake_up_new_task")
+                    .attach(&mut bpf)?;
+                    
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }

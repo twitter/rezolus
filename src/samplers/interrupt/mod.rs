@@ -130,15 +130,25 @@ impl Interrupt {
 
                 let code = include_str!("bpf.c");
                 let mut bpf = bcc::core::BPF::new(code)?;
-
-                let hardirq_enter = bpf.load_kprobe("hardirq_entry")?;
-                let hardirq_exit = bpf.load_kprobe("hardirq_exit")?;
-                let softirq_entry = bpf.load_tracepoint("softirq_entry")?;
-                let softirq_exit = bpf.load_tracepoint("softirq_exit")?;
-                bpf.attach_kprobe("handle_irq_event_percpu", hardirq_enter)?;
-                bpf.attach_kretprobe("handle_irq_event_percpu", hardirq_exit)?;
-                bpf.attach_tracepoint("irq", "softirq_entry", softirq_entry)?;
-                bpf.attach_tracepoint("irq", "softirq_exit", softirq_exit)?;
+                
+                bcc::core::Kprobe::new()
+                    .name("hardirq_entry")
+                    .function("handle_irq_event_percpu")
+                    .attach(&mut bpf)?;
+                bcc::core::Kretprobe::new()
+                    .name("hardirq_exit")
+                    .function("handle_irq_event_percpu")
+                    .attach(&mut bpf)?;
+                bcc::core::Tracepoint::new()
+                    .name("softirq_entry")
+                    .subsystem("irq")
+                    .tracepoint("softirq_entry")
+                    .attach(&mut bpf)?;
+                bcc::core::Tracepoint::new()
+                    .name("softirq_exit")
+                    .subsystem("irq")
+                    .tracepoint("softirq_exit")
+                    .attach(&mut bpf)?;
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
             }

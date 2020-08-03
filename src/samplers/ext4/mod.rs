@@ -130,24 +130,39 @@ impl Ext4 {
                 let mut bpf = bcc::core::BPF::new(&code)?;
 
                 // load + attach kprobes!
-                let generic_file_read_iter_entry = bpf.load_kprobe("trace_read_entry")?;
-                let ext4_file_write_iter_entry = bpf.load_kprobe("trace_entry")?;
-                let ext4_file_open_entry = bpf.load_kprobe("trace_entry")?;
-                let ext4_sync_file_entry = bpf.load_kprobe("trace_entry")?;
-                let generic_file_read_iter_return = bpf.load_kprobe("trace_read_return")?;
-                let ext4_file_write_iter_return = bpf.load_kprobe("trace_write_return")?;
-                let ext4_file_open_return = bpf.load_kprobe("trace_open_return")?;
-                let ext4_sync_file_return = bpf.load_kprobe("trace_fsync_return")?;
-
-                bpf.attach_kprobe("generic_file_read_iter", generic_file_read_iter_entry)?;
-                bpf.attach_kprobe("ext4_file_write_iter", ext4_file_write_iter_entry)?;
-                bpf.attach_kprobe("ext4_file_open", ext4_file_open_entry)?;
-                bpf.attach_kprobe("ext4_sync_file", ext4_sync_file_entry)?;
-                bpf.attach_kretprobe("generic_file_read_iter", generic_file_read_iter_return)?;
-                bpf.attach_kretprobe("ext4_file_write_iter", ext4_file_write_iter_return)?;
-                bpf.attach_kretprobe("ext4_file_open", ext4_file_open_return)?;
-                bpf.attach_kretprobe("ext4_sync_file", ext4_sync_file_return)?;
-
+                bcc::core::Kprobe::new()
+                    .name("trace_read_entry")
+                    .function("generic_file_read_iter")
+                    .attach(&mut bpf)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_entry")
+                    .function("ext4_file_write_iter")
+                    .attach(&mut bpf)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_entry")
+                    .function("ext4_file_open")
+                    .attach(&mut bpf)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_entry")
+                    .function("ext4_sync_file")
+                    .attach(&mut bpf)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_read_return")
+                    .function("generic_file_read_iter")
+                    .attach(&mut bpf)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_write_return")
+                    .function("ext4_file_write_iter")
+                    .attach(&mut bpf)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_open_return")
+                    .function("ext4_file_open")
+                    .attach(&mut bpf)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_fsync_return")
+                    .function("ext4_sync_file")
+                    .attach(&mut bpf)?;
+                    
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }

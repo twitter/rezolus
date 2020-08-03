@@ -140,12 +140,18 @@ impl Tcp {
                 let mut bpf = bcc::core::BPF::new(code)?;
 
                 // load + attach kprobes!
-                let tcp_v4_connect = bpf.load_kprobe("trace_connect")?;
-                let tcp_v6_connect = bpf.load_kprobe("trace_connect")?;
-                let tcp_rcv_state_process = bpf.load_kprobe("trace_tcp_rcv_state_process")?;
-                bpf.attach_kprobe("tcp_v4_connect", tcp_v4_connect)?;
-                bpf.attach_kprobe("tcp_v6_connect", tcp_v6_connect)?;
-                bpf.attach_kprobe("tcp_rcv_state_process", tcp_rcv_state_process)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_connect")
+                    .function("tcp_v4_connect")
+                    .attach(&mut bpf)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_connect")
+                    .function("tcp_v6_connect")
+                    .attach(&mut bpf)?;
+                bcc::core::Kprobe::new()
+                    .name("trace_tcp_rcv_state_process")
+                    .function("tcp_rcv_state_process")
+                    .attach(&mut bpf)?;
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
             }
