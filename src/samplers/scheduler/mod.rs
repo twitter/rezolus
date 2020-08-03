@@ -286,15 +286,15 @@ impl Scheduler {
                 let mut bpf = bcc::core::BPF::new(code)?;
 
                 // load + attach kprobes!
-                bcc::kprobe::Kprobe::new()
+                bcc::Kprobe::new()
                     .name("trace_run")
                     .function("finish_task_switch")
                     .attach(&mut bpf)?;
-                bcc::kprobe::Kprobe::new()
+                bcc::Kprobe::new()
                     .name("trace_ttwu_do_wakeup")
                     .function("ttwu_do_wakeup")
                     .attach(&mut bpf)?;
-                bcc::kprobe::Kprobe::new()
+                bcc::Kprobe::new()
                     .name("trace_wake_up_new_task")
                     .function("wake_up_new_task")
                     .attach(&mut bpf)?;

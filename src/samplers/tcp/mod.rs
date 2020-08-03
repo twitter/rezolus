@@ -140,15 +140,15 @@ impl Tcp {
                 let mut bpf = bcc::core::BPF::new(code)?;
 
                 // load + attach kprobes!
-                bcc::kprobe::Kprobe::new()
+                bcc::Kprobe::new()
                     .name("trace_connect")
                     .function("tcp_v4_connect")
                     .attach(&mut bpf)?;
-                bcc::kprobe::Kprobe::new()
+                bcc::Kprobe::new()
                     .name("trace_connect")
                     .function("tcp_v6_connect")
                     .attach(&mut bpf)?;
-                bcc::kprobe::Kprobe::new()
+                bcc::Kprobe::new()
                     .name("trace_tcp_rcv_state_process")
                     .function("tcp_rcv_state_process")
                     .attach(&mut bpf)?;
