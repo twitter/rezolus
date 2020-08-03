@@ -135,7 +135,7 @@ impl Interrupt {
                     .name("hardirq_entry")
                     .function("handle_irq_event_percpu")
                     .attach(&mut bpf)?;
-                bcc::core::::kprobe::Kretprobe::new()
+                bcc::core::kprobe::Kretprobe::new()
                     .name("hardirq_exit")
                     .function("handle_irq_event_percpu")
                     .attach(&mut bpf)?;
