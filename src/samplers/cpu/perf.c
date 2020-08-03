@@ -26,12 +26,13 @@
 // Change key type if you need a more granular counters.
 #define KEY u8
 #define KEY_DEFAULT 0
-#define COUNTER(name) BPF_HASH(name, KEY)   \
-int name(struct bpf_perf_event_data *ctx) { \
-    KEY key = KEY_DEFAULT;                  \
-    get_key(&key);                          \
-    name.increment(&key);                   \
-    return 0;                               \
+#define COUNTER(name)                           \
+BPF_HASH(name, KEY);                            \
+int f_##name(struct bpf_perf_event_data *ctx) { \
+    KEY key = KEY_DEFAULT;                      \
+    get_key(&key);                              \
+    name.increment(key);                        \
+    return 0;                                   \
 }
 
 // Update later with the key values you need.

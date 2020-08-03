@@ -258,7 +258,7 @@ impl Scheduler {
                 for statistic in self.sampler_config().statistics() {
                     if let Some((name, event)) = statistic.perf_config() {
                         bcc::PerfEvent::new()
-                            .handler(name)
+                            .handler(&format!("f_{}", name))
                             .event(event)
                             .sample_period(Some(SAMPLE_PERIOD))
                             .attach(&mut perf_bpf)?;
