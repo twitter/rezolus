@@ -31,7 +31,7 @@ struct PerfCounter {}
 #[allow(dead_code)]
 pub struct Cpu {
     common: Common,
-    perf: Option<Arc<Mutex<BPF>>>,
+    perf: Option<Arc<Mutex<Perf>>>,
     perf_last: Arc<Mutex<Instant>>,
     tick_duration: u64,
 }
@@ -142,19 +142,19 @@ impl Cpu {
             if self.enabled() && self.perf_enabled() {
                 debug!("initializing perf");
                 let code = include_str!("perf.c");
-                let mut perf = bcc::core::BPF::new(code)?;
+                let mut perf = bcc::BPF::new(code)?;
 
                 for statistic in self.sampler_config().statistics() {
                     if let Some((name, event)) = statistic.perf_config() {
-                        bcc::core::PerfEventProbe::new()
-                            .name(name)
+                        bcc::PerfEvent::new()
+                            .handler(name)
                             .event(event)
                             .sample_period(Some(SAMPLE_PERIOD))
-                            .attach(&mut perf);
+                            .attach(&mut perf)?;
                     }
                 }
 
-                self.perf = Some(Arc::new(Mutex::new(BPF { inner: perf })))
+                self.perf = Some(Arc::new(Mutex::new(Perf { inner: perf })))
             }
         }
         Ok(())
@@ -169,7 +169,7 @@ impl Cpu {
 
                 for statistic in self.sampler_config().statistics() {
                     if let Some((table, _)) = statistic.perf_config() {
-                        let mut table = (*perf).inner.table(table);
+                        let table = (*perf).inner.table(table);
 
                         // We only should have a single entry in the table right now
                         let mut total = 0;

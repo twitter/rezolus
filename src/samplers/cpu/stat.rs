@@ -107,8 +107,8 @@ impl Statistic for CpuStatistic {
 
 impl CpuStatistic {
     #[cfg(feature = "perf")]
-    pub fn perf_config(self) -> Option<(&'static str, bcc::perf::Event)> {
-        use bcc::perf::{CacheId, CacheOp, CacheResult, Event, HardwareEvent};
+    pub fn perf_config(self) -> Option<(&'static str, bcc::perf_event::Event)> {
+        use bcc::perf_event::{CacheId, CacheOp, CacheResult, Event, HardwareEvent};
         match self {
             Self::BpuBranches => Some((
                 "bpu_branch",

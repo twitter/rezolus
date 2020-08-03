@@ -11,7 +11,7 @@ use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
 use crate::common::bpf::*;
-use crate::common::{MICROSECOND, SAMPLE_PERIOD};
+use crate::common::SAMPLE_PERIOD;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
@@ -27,7 +27,7 @@ pub struct Scheduler {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
-    perf: Option<Arc<Mutex<BPF>>>,
+    perf: Option<Arc<Mutex<Perf>>>,
     perf_last: Arc<Mutex<Instant>>,
 }
 
@@ -253,18 +253,18 @@ impl Scheduler {
             if self.enabled() && self.perf_enabled() {
                 debug!("initializing perf");
                 let code = include_str!("perf.c");
-                let mut perf_bpf = bcc::core::BPF::new(code)?;
+                let mut perf_bpf = bcc::BPF::new(code)?;
 
                 for statistic in self.sampler_config().statistics() {
                     if let Some((name, event)) = statistic.perf_config() {
-                        bcc::core::PerfEventProbe::new()
-                            .name(name)
+                        bcc::PerfEvent::new()
+                            .handler(name)
                             .event(event)
                             .sample_period(Some(SAMPLE_PERIOD))
-                            .attach(&mut perf_bpf);
+                            .attach(&mut perf_bpf)?;
                     }
                 }
-                self.perf = Some(Arc::new(Mutex::new(BPF { inner: perf_bpf })));
+                self.perf = Some(Arc::new(Mutex::new(Perf { inner: perf_bpf })));
             }
         }
         Ok(())
@@ -279,7 +279,7 @@ impl Scheduler {
 
                 for statistic in self.sampler_config().statistics() {
                     if let Some((name, _)) = statistic.perf_config() {
-                        let mut table = (*perf).inner.table(name);
+                        let table = (*perf).inner.table(name);
 
                         // We only should have a single entry in the table with key = 0
                         let mut total = 0;

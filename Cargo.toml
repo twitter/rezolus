@@ -52,7 +52,7 @@ bpf_v0_12_0 = ["bpf", "bcc/v0_12_0"]
 bpf_v0_13_0 = ["bpf", "bcc/v0_13_0"]
 bpf_v0_14_0 = ["bpf", "bcc/v0_14_0"]
 bpf_v0_15_0 = ["bpf", "bcc/v0_15_0"]
-perf = ["bpf"]
+perf = ["bcc"]
 push_kafka = ["kafka"]
 
 [profile.bench]

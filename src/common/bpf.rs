@@ -4,11 +4,19 @@
 
 #[cfg(feature = "bpf")]
 pub struct BPF {
-    pub inner: bcc::core::BPF,
+    pub inner: bcc::BPF,
 }
 
 #[cfg(not(feature = "bpf"))]
 pub struct BPF {}
+
+#[cfg(feature = "perf")]
+pub struct Perf {
+    pub inner: bcc::BPF,
+}
+
+#[cfg(not(feature = "perf"))]
+pub struct Perf {}
 
 #[cfg(feature = "bpf")]
 pub fn key_to_value(index: u64) -> Option<u64> {

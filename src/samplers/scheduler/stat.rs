@@ -50,8 +50,8 @@ impl SchedulerStatistic {
     }
 
     #[cfg(feature = "perf")]
-    pub fn perf_config(self) -> Option<(&'static str, bcc::perf::Event)> {
-        use bcc::perf::{Event, SoftwareEvent};
+    pub fn perf_config(self) -> Option<(&'static str, bcc::perf_event::Event)> {
+        use bcc::perf_event::{Event, SoftwareEvent};
         match self {
             Self::CpuMigrations => Some((
                 "cpu_migrations",
