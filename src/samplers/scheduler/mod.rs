@@ -27,7 +27,6 @@ pub struct Scheduler {
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
     perf: Option<Arc<Mutex<BPF>>>,
-    perf_last: Arc<Mutex<Instant>>,
 }
 
 #[async_trait]
@@ -42,7 +41,6 @@ impl Sampler for Scheduler {
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
             perf: None,
-            perf_last: Arc::new(Mutex::new(Instant::now())),
         };
 
         if let Err(e) = sampler.initialize_bpf() {
@@ -271,7 +269,6 @@ impl Scheduler {
                             .attach(&mut perf_bpf)?;
                     }
                 }
-                self.perf = Some(Arc::new(Mutex::new(BPF { inner: perf_bpf })));
             }
         }
         Ok(())
@@ -304,7 +301,6 @@ impl Scheduler {
                     }
                 }
             }
-            *self.perf_last.lock().unwrap() = Instant::now();
         }
         Ok(())
     }
