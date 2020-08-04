@@ -23,7 +23,7 @@
 // > stalled_cycles/backend - cylcles stalled waiting on backend
 // > stalled_cyles/frontend - cycles stalled waiting on frontend
 
-// Change key type if you need a more granular counters.
+// Change key type if you need more granular counters.
 #define KEY u8
 #define KEY_DEFAULT 0
 #define COUNTER(name)                           \
@@ -31,7 +31,7 @@ BPF_HASH(name, KEY);                            \
 int f_##name(struct bpf_perf_event_data *ctx) { \
     KEY key = KEY_DEFAULT;                      \
     get_key(&key);                              \
-    name.increment(key);                        \
+    (name).increment(key);                      \
     return 0;                                   \
 }
 
