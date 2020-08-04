@@ -43,12 +43,12 @@ static inline __attribute__((always_inline)) void get_key(KEY *key) {
 // Add more events as needed.
 COUNTER(bpu_branch);
 COUNTER(bpu_miss);
-COUNTER(cache_access,;
+COUNTER(cache_access);
 COUNTER(cache_miss);
 COUNTER(cycles);
 COUNTER(dtlb_load_access);
 COUNTER(dtlb_load_miss);
-COUNTER(dtlb_store_access,;
+COUNTER(dtlb_store_access);
 COUNTER(dtlb_store_miss);
 COUNTER(instructions);
 COUNTER(ref_cycles);
