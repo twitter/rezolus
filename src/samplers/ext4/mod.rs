@@ -146,19 +146,19 @@ impl Ext4 {
                     .handler("trace_entry")
                     .function("ext4_sync_file")
                     .attach(&mut bpf)?;
-                bcc::Kprobe::new()
+                bcc::Kretprobe::new()
                     .handler("trace_read_return")
                     .function("generic_file_read_iter")
                     .attach(&mut bpf)?;
-                bcc::Kprobe::new()
+                bcc::Kretprobe::new()
                     .handler("trace_write_return")
                     .function("ext4_file_write_iter")
                     .attach(&mut bpf)?;
-                bcc::Kprobe::new()
+                bcc::Kretprobe::new()
                     .handler("trace_open_return")
                     .function("ext4_file_open")
                     .attach(&mut bpf)?;
-                bcc::Kprobe::new()
+                bcc::Kretprobe::new()
                     .handler("trace_fsync_return")
                     .function("ext4_sync_file")
                     .attach(&mut bpf)?;
