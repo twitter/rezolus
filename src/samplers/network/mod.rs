@@ -140,13 +140,18 @@ impl Network {
                 debug!("initializing bpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");
-                let mut bpf = bcc::core::BPF::new(code)?;
+                let mut bpf = bcc::BPF::new(code)?;
 
-                // load + attach kprobes!
-                let trace_transmit = bpf.load_tracepoint("trace_transmit")?;
-                bpf.attach_tracepoint("net", "net_dev_queue", trace_transmit)?;
-                let trace_receive = bpf.load_tracepoint("trace_receive")?;
-                bpf.attach_tracepoint("net", "netif_rx", trace_receive)?;
+                bcc::Tracepoint::new()
+                    .handler("trace_transmit")
+                    .subsystem("net")
+                    .tracepoint("net_dev_queue")
+                    .attach(&mut bpf)?;
+                bcc::Tracepoint::new()
+                    .handler("trace_receive")
+                    .subsystem("net")
+                    .tracepoint("netif_rx")
+                    .attach(&mut bpf)?;
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }

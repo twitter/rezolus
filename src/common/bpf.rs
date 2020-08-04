@@ -4,7 +4,7 @@
 
 #[cfg(feature = "bpf")]
 pub struct BPF {
-    pub inner: bcc::core::BPF,
+    pub inner: bcc::BPF,
 }
 
 #[cfg(not(feature = "bpf"))]
