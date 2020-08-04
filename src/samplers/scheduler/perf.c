@@ -10,15 +10,15 @@
 // Currently supported events:
 // > scheduler/cpu_migrations - cpu migrations count
 
-// Change key type if you need a more granular counters.
+// Change key type if you need more granular counters.
 #define KEY u8
 #define KEY_DEFAULT_INIT 0
-#define FN_COUNT(name)                          \
-BPF_HASH(name, KEY)                             \
+#define COUNT(name)                             \
+BPF_HASH(name, KEY);                            \
 int f_##name(struct bpf_perf_event_data *ctx) { \
     KEY key = KEY_DEFAULT_INIT;                 \
     get_key(&key);                              \
-    name.increment(key);                        \
+    (name).increment(key);                      \
     return 0;                                   \
 } 
 
@@ -28,4 +28,4 @@ static inline __attribute__((always_inline)) void get_key(KEY *key) {
 }
 
 // Add more as needed.
-FN_COUNT(cpu_migrations);
+COUNT(cpu_migrations);
