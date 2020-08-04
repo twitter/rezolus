@@ -257,8 +257,7 @@ impl Scheduler {
         #[cfg(feature = "bpf")]
         {
             if self.enabled() && self.perf_enabled() {
-                use crate::common::SAMPLE_PERIOD;
-                
+                use crate::common::millis_to_hertz;
                 debug!("initializing perf");
                 let code = include_str!("perf.c");
                 let mut perf_bpf = bcc::BPF::new(code)?;
@@ -268,7 +267,7 @@ impl Scheduler {
                         bcc::PerfEvent::new()
                             .handler(&format!("f_{}", name))
                             .event(event)
-                            .sample_period(Some(SAMPLE_PERIOD))
+                            .sample_frequency(self.sampler_config().interval().map(millis_to_hertz))
                             .attach(&mut perf_bpf)?;
                     }
                 }
@@ -280,14 +279,14 @@ impl Scheduler {
 
     #[cfg(feature = "bpf")]
     fn sample_perf(&self) -> Result<(), std::io::Error> {
-        if self.perf_enabled() && self.perf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+        if self.perf_enabled() {
             if let Some(ref perf) = self.perf {
                 let perf = perf.lock().unwrap();
                 let time = time::precise_time_ns();
 
                 for statistic in self.sampler_config().statistics() {
                     if let Some((name, _)) = statistic.perf_config() {
-                        let table = (*perf).inner.table(name);
+                        let mut table = (*perf).inner.table(name);
 
                         // We only should have a single entry in the table with key = 0
                         let mut total = 0;
@@ -300,6 +299,7 @@ impl Scheduler {
                             total += u64::from_ne_bytes(v);
                         }
 
+                        let _ = table.delete_all();
                         self.metrics().record_counter(statistic, time, total)
                     }
                 }

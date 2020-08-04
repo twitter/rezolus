@@ -4,7 +4,6 @@
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
 
 use async_trait::async_trait;
 use regex::Regex;
@@ -29,7 +28,6 @@ pub use stat::*;
 pub struct Cpu {
     common: Common,
     perf: Option<Arc<Mutex<BPF>>>,
-    perf_last: Arc<Mutex<Instant>>,
     tick_duration: u64,
 }
 
@@ -49,7 +47,6 @@ impl Sampler for Cpu {
         #[allow(unused_mut)]
         let mut sampler = Self {
             perf: None,
-            perf_last: Arc::new(Mutex::new(Instant::now())),
             common: common,
             tick_duration: nanos_per_tick(),
         };
@@ -146,7 +143,7 @@ impl Cpu {
                         bcc::PerfEvent::new()
                             .handler(&format!("f_{}", name))
                             .event(event)
-                            .sample_period(Some(SAMPLE_PERIOD))
+                            .sample_frequency(self.sampler_config().interval().map(millis_to_hertz))
                             .attach(&mut perf)?;
                     }
                 }
@@ -159,14 +156,14 @@ impl Cpu {
 
     #[cfg(feature = "bpf")]
     fn sample_perf(&self) -> Result<(), std::io::Error> {
-        if self.perf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+        if self.perf_enabled() {
             if let Some(ref perf) = self.perf {
                 let perf = perf.lock().unwrap();
                 let time = time::precise_time_ns();
 
                 for statistic in self.sampler_config().statistics() {
                     if let Some((table, _)) = statistic.perf_config() {
-                        let table = (*perf).inner.table(table);
+                        let mut table = (*perf).inner.table(table);
 
                         // We only should have a single entry in the table right now
                         let mut total = 0;
@@ -179,11 +176,11 @@ impl Cpu {
                             total += u64::from_ne_bytes(v);
                         }
 
+                        let _ = table.delete_all();
                         self.metrics().record_counter(statistic, time, total)
                     }
                 }
             }
-            *self.perf_last.lock().unwrap() = Instant::now();
         }
         Ok(())
     }

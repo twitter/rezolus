@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use std::cmp::max;
 use std::collections::HashMap;
 use std::io::BufRead;
 use std::path::Path;
@@ -31,9 +32,6 @@ pub const MEBIBYTE: u64 = 1_024 * KIBIBYTE;
 pub const KIBIBYTE: u64 = 1_024 * BYTE;
 pub const BYTE: u64 = 1;
 
-#[allow(dead_code)]
-pub const SAMPLE_PERIOD: u64 = 1;
-
 /// helper function to discover the number of hardware threads
 pub fn hardware_threads() -> Result<u64, ()> {
     let path = "/sys/devices/system/cpu/present";
@@ -51,6 +49,10 @@ pub fn hardware_threads() -> Result<u64, ()> {
         .parse::<u64>()
         .map_err(|e| debug!("could not parse num cpus from file ({:?}): {}", path, e))
         .map(|i| i + 1)
+}
+
+pub fn millis_to_hertz(millis: usize) -> u64 {
+    max(1, millis as u64 / MILLISECOND)
 }
 
 /// helper function to create a nested map from files with the form of
