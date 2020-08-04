@@ -140,17 +140,25 @@ impl Disk {
                 debug!("initializing bpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");
-                let mut bpf = bcc::core::BPF::new(code)?;
+                let mut bpf = bcc::BPF::new(code)?;
                 // load + attach kprobes!
-                let trace_pid_start = bpf.load_kprobe("trace_pid_start")?;
-                let trace_req_start = bpf.load_kprobe("trace_req_start")?;
-                let trace_mq_req_start = bpf.load_kprobe("trace_req_start")?;
-                let do_count = bpf.load_kprobe("do_count")?;
+                bcc::Kprobe::new()
+                    .handler("trace_pid_start")
+                    .function("blk_account_io_start")
+                    .attach(&mut bpf)?;
+                bcc::Kprobe::new()
+                    .handler("trace_req_start")
+                    .function("blk_start_request")
+                    .attach(&mut bpf)?;
+                bcc::Kprobe::new()
+                    .handler("trace_req_start")
+                    .function("blk_mq_start_request")
+                    .attach(&mut bpf)?;
+                bcc::Kprobe::new()
+                    .handler("do_count")
+                    .function("blk_account_io_completion")
+                    .attach(&mut bpf)?;
 
-                bpf.attach_kprobe("blk_account_io_start", trace_pid_start)?;
-                bpf.attach_kprobe("blk_start_request", trace_req_start)?;
-                bpf.attach_kprobe("blk_mq_start_request", trace_mq_req_start)?;
-                bpf.attach_kprobe("blk_account_io_completion", do_count)?;
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }
