@@ -38,8 +38,8 @@ walkdir = "2.3.1"
 vergen = "3.0.4"
 
 [features]
-all = ["bpf", "push_kafka", "perf"]
-default = ["perf"]
+all = ["bpf", "push_kafka"]
+default = []
 bpf = ["bcc"]
 bpf_static = ["bpf", "bcc/static"]
 bpf_static_llvm_8 = ["bpf", "bcc/llvm_8", "bcc/static"]
@@ -52,7 +52,6 @@ bpf_v0_12_0 = ["bpf", "bcc/v0_12_0"]
 bpf_v0_13_0 = ["bpf", "bcc/v0_13_0"]
 bpf_v0_14_0 = ["bpf", "bcc/v0_14_0"]
 bpf_v0_15_0 = ["bpf", "bcc/v0_15_0"]
-perf = ["bcc"]
 push_kafka = ["kafka"]
 
 [profile.bench]

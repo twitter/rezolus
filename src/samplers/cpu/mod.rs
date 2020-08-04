@@ -25,13 +25,10 @@ mod stat;
 pub use config::*;
 pub use stat::*;
 
-#[cfg(not(feature = "perf"))]
-struct PerfCounter {}
-
 #[allow(dead_code)]
 pub struct Cpu {
     common: Common,
-    perf: Option<Arc<Mutex<Perf>>>,
+    perf: Option<Arc<Mutex<BPF>>>,
     perf_last: Arc<Mutex<Instant>>,
     tick_duration: u64,
 }
@@ -107,7 +104,7 @@ impl Sampler for Cpu {
         self.map_result(self.sample_cstates().await)?;
         self.map_result(self.sample_cpu_usage().await)?;
 
-        #[cfg(feature = "perf")]
+        #[cfg(feature = "bpf")]
         self.map_result(self.sample_perf())?;
 
         Ok(())
@@ -124,7 +121,7 @@ impl Sampler for Cpu {
 }
 
 impl Cpu {
-    #[cfg(feature = "perf")]
+    #[cfg(feature = "bpf")]
     fn perf_enabled(&self) -> bool {
         if self.sampler_config().perf_events() {
             for statistic in self.sampler_config().statistics() {
@@ -137,7 +134,7 @@ impl Cpu {
     }
 
     fn initialize_perf(&mut self) -> Result<(), failure::Error> {
-        #[cfg(feature = "perf")]
+        #[cfg(feature = "bpf")]
         {
             if self.enabled() && self.perf_enabled() {
                 debug!("initializing perf");
@@ -154,13 +151,13 @@ impl Cpu {
                     }
                 }
 
-                self.perf = Some(Arc::new(Mutex::new(Perf { inner: perf })))
+                self.perf = Some(Arc::new(Mutex::new(BPF { inner: perf })))
             }
         }
         Ok(())
     }
 
-    #[cfg(feature = "perf")]
+    #[cfg(feature = "bpf")]
     fn sample_perf(&self) -> Result<(), std::io::Error> {
         if self.perf_last.lock().unwrap().elapsed() >= self.general_config().window() {
             if let Some(ref perf) = self.perf {

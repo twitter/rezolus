@@ -11,7 +11,6 @@ use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
 use crate::common::bpf::*;
-use crate::common::SAMPLE_PERIOD;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
@@ -27,7 +26,7 @@ pub struct Scheduler {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
-    perf: Option<Arc<Mutex<Perf>>>,
+    perf: Option<Arc<Mutex<BPF>>>,
     perf_last: Arc<Mutex<Instant>>,
 }
 
@@ -101,9 +100,10 @@ impl Sampler for Scheduler {
 
         self.map_result(self.sample_proc_stat().await)?;
         #[cfg(feature = "bpf")]
-        self.map_result(self.sample_bpf())?;
-        #[cfg(feature = "perf")]
-        self.map_result(self.sample_perf())?;
+        {
+            self.map_result(self.sample_bpf())?;
+            self.map_result(self.sample_perf())?;
+        }
 
         Ok(())
     }
@@ -170,6 +170,7 @@ impl Scheduler {
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
+        use crate::common::MICROSECOND;
         if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();
@@ -240,7 +241,7 @@ impl Scheduler {
         Ok(())
     }
 
-    #[cfg(feature = "perf")]
+    #[cfg(feature = "bpf")]
     fn perf_enabled(&self) -> bool {
         if self.sampler_config().perf_events() {
             for statistic in self.sampler_config().statistics() {
@@ -253,9 +254,11 @@ impl Scheduler {
     }
 
     fn initialize_perf(&mut self) -> Result<(), failure::Error> {
-        #[cfg(feature = "perf")]
+        #[cfg(feature = "bpf")]
         {
             if self.enabled() && self.perf_enabled() {
+                use crate::common::SAMPLE_PERIOD;
+                
                 debug!("initializing perf");
                 let code = include_str!("perf.c");
                 let mut perf_bpf = bcc::BPF::new(code)?;
@@ -269,15 +272,15 @@ impl Scheduler {
                             .attach(&mut perf_bpf)?;
                     }
                 }
-                self.perf = Some(Arc::new(Mutex::new(Perf { inner: perf_bpf })));
+                self.perf = Some(Arc::new(Mutex::new(BPF { inner: perf_bpf })));
             }
         }
         Ok(())
     }
 
-    #[cfg(feature = "perf")]
+    #[cfg(feature = "bpf")]
     fn sample_perf(&self) -> Result<(), std::io::Error> {
-        if self.perf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+        if self.perf_enabled() && self.perf_last.lock().unwrap().elapsed() >= self.general_config().window() {
             if let Some(ref perf) = self.perf {
                 let perf = perf.lock().unwrap();
                 let time = time::precise_time_ns();

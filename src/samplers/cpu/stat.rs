@@ -106,7 +106,7 @@ impl Statistic for CpuStatistic {
 }
 
 impl CpuStatistic {
-    #[cfg(feature = "perf")]
+    #[cfg(feature = "bpf")]
     pub fn perf_config(self) -> Option<(&'static str, bcc::perf_event::Event)> {
         use bcc::perf_event::{CacheId, CacheOp, CacheResult, Event, HardwareEvent};
         match self {
