@@ -4,24 +4,24 @@
 
 // A simple tool for tracking various cpu perf events.
 
-//#include <linux/ptrace.h>
-//#include <uapi/linux/bpf_perf_event.h>
+#include <linux/ptrace.h>
+#include <uapi/linux/bpf_perf_event.h>
 
 // Supported events:
 //
-// > BPU/Branch - Total branch instructions
-// > BPU/Miss - Total branch instructions resulting in a miss
-// > Cache/Access - Total cache accesses
-// > Cache/Miss - Total cache accesses resulting in a miss
-// > Cycles - cpu cyles elapsed
-// > Dtlb/load/access - total dtlb loads
-// > Dtlb/load/miss - total dtlb loads resulting in a miss
-// > Dtlb/store/access - total dtlb stores
-// > Dtlb/store/miss - total dtlb stores resulting in a miss
-// > instructions - instructions retired
-// > Reference_cycles - reference number of cpu cycles elapsed
-// > stalled_cycles/backend - cylcles stalled waiting on backend
-// > stalled_cyles/frontend - cycles stalled waiting on frontend
+// > bpu/branch - Total branch instructions
+// > bpu/miss - Total branch instructions resulting in a miss
+// > cache/Access - Total cache accesses
+// > cache/ciss - Total cache accesses resulting in a miss
+// > cycles - CPU cycles elapsed
+// > dtlb/load/access - Total dtlb loads
+// > dtlb/load/miss - Total dtlb loads resulting in a miss
+// > dtlb/store/access - Total dtlb stores
+// > dtlb/store/miss - Total dtlb stores resulting in a miss
+// > instructions - Instructions retired
+// > reference_cycles - Reference number of cpu cycles elapsed
+// > stalled_cycles/backend - Cylcles stalled waiting on backend
+// > stalled_cycles/frontend - Cycles stalled waiting on frontend
 
 // Change key type if you need more granular counters.
 #define KEY u8

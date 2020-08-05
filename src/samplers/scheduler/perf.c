@@ -4,8 +4,8 @@
 
 // A simple tool for tracking various scheduler perf events.
 
-//#include <linux/ptrace.h>
-//#include <uapi/linux/bpf_perf_event.h>
+#include <linux/ptrace.h>
+#include <uapi/linux/bpf_perf_event.h>
 
 // Currently supported events:
 // > scheduler/cpu_migrations - cpu migrations count
