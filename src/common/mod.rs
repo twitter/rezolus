@@ -51,6 +51,7 @@ pub fn hardware_threads() -> Result<u64, ()> {
         .map(|i| i + 1)
 }
 
+// Convert an interval from milliseconds to hertz
 pub fn millis_to_hertz(millis: usize) -> u64 {
     max(1, millis as u64 / MILLISECOND)
 }

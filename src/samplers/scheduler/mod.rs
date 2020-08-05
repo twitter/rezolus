@@ -265,7 +265,7 @@ impl Scheduler {
                         bcc::PerfEvent::new()
                             .handler(&format!("f_{}", name))
                             .event(event)
-                            .sample_frequency(self.sampler_config().interval().map(millis_to_hertz))
+                            .sample_frequency(Some(millis_to_hertz(self.interval())))
                             .attach(&mut perf_bpf)?;
                     }
                 }

@@ -1,11 +1,11 @@
-// A simple tool for tracking various cpu perf events.
-//
 // Copyright 2019-2020 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-#include <linux/ptrace.h>
-#include <uapi/linux/bpf_perf_event.h>
+// A simple tool for tracking various cpu perf events.
+
+//#include <linux/ptrace.h>
+//#include <uapi/linux/bpf_perf_event.h>
 
 // Supported events:
 //
@@ -24,16 +24,8 @@
 // > stalled_cyles/frontend - cycles stalled waiting on frontend
 
 // Change key type if you need more granular counters.
-#define KEY u8
-#define KEY_DEFAULT 0
-#define COUNTER(name)                           \
-BPF_HASH(name, KEY);                            \
-int f_##name(struct bpf_perf_event_data *ctx) { \
-    KEY key = KEY_DEFAULT;                      \
-    get_key(&key);                              \
-    (name).increment(key);                      \
-    return 0;                                   \
-}
+#define KEY KEY
+#define KEY_DEFAULT_INIT 0
 
 // Update later with the key values you need.
 static inline __attribute__((always_inline)) void get_key(KEY *key) {
@@ -41,16 +33,106 @@ static inline __attribute__((always_inline)) void get_key(KEY *key) {
 }
 
 // Add more events as needed.
-COUNTER(bpu_branch);
-COUNTER(bpu_miss);
-COUNTER(cache_access);
-COUNTER(cache_miss);
-COUNTER(cycles);
-COUNTER(dtlb_load_access);
-COUNTER(dtlb_load_miss);
-COUNTER(dtlb_store_access);
-COUNTER(dtlb_store_miss);
-COUNTER(instructions);
-COUNTER(ref_cycles);
-COUNTER(stalled_backend);
-COUNTER(stalled_frontend);
+BPF_HASH(bpu_branch, KEY);
+int f_bpu_branch(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    bpu_branch.increment(key);
+    return 0; 
+};
+
+BPF_HASH(bpu_miss, KEY);
+int f_bpu_miss(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    bpu_miss.increment(key);
+    return 0; 
+};
+
+BPF_HASH(cache_access, KEY);
+int f_cache_access(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    cache_access.increment(key);
+    return 0; 
+};
+
+BPF_HASH(cache_miss, KEY);
+int f_cache_miss(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    cache_miss.increment(key);
+    return 0; 
+};
+
+BPF_HASH(cycles, KEY);
+int f_cycles(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    cycles.increment(key);
+    return 0; 
+};
+
+BPF_HASH(dtlb_load_access, KEY);
+int f_dtlb_load_access(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    dtlb_load_access.increment(key);
+    return 0; 
+};
+
+BPF_HASH(dtlb_load_miss, KEY);
+int f_dtlb_load_miss(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    dtlb_load_miss.increment(key);
+    return 0; 
+};
+
+BPF_HASH(dtlb_store_access, KEY);
+int f_dtlb_store_access(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    dtlb_store_access.increment(key);
+    return 0; 
+};
+
+BPF_HASH(dtlb_store_miss, KEY);
+int f_dtlb_store_miss(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    dtlb_store_miss.increment(key);
+    return 0; 
+};
+
+BPF_HASH(instructions, KEY);
+int f_instructions(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    instructions.increment(key);
+    return 0; 
+};
+
+BPF_HASH(ref_cycles, KEY);
+int f_ref_cycles(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    ref_cycles.increment(key);
+    return 0; 
+};
+
+BPF_HASH(stalled_backend, KEY);
+int f_stalled_backend(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    stalled_backend.increment(key);
+    return 0; 
+};
+
+BPF_HASH(stalled_frontend, KEY);
+int f_stalled_frontend(struct bpf_perf_event_data *ctx) {
+    KEY key = KEY_DEFAULT_INIT; 
+	get_key(&key);
+    stalled_frontend.increment(key);
+    return 0; 
+};
