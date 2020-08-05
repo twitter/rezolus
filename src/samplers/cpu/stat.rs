@@ -5,8 +5,6 @@
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-#[cfg(feature = "perf")]
-pub use perfcnt::linux::*;
 use rustcommon_metrics::{Source, Statistic};
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
@@ -108,55 +106,50 @@ impl Statistic for CpuStatistic {
 }
 
 impl CpuStatistic {
-    #[cfg(feature = "perf")]
-    pub fn perf_counter_builder(self) -> Option<PerfCounterBuilderLinux> {
+    #[cfg(feature = "bpf")]
+    pub fn perf_config(self) -> Option<(&'static str, bcc::perf_event::Event)> {
+        use bcc::perf_event::{CacheId, CacheOp, CacheResult, Event, HardwareEvent};
         match self {
-            Self::BpuBranches => Some(PerfCounterBuilderLinux::from_hardware_event(
-                HardwareEventType::BranchInstructions,
+            Self::BpuBranches => Some((
+                "bpu_branch",
+                Event::Hardware(HardwareEvent::BranchInstructions),
             )),
-            Self::BpuMiss => Some(PerfCounterBuilderLinux::from_hardware_event(
-                HardwareEventType::BranchMisses,
+            Self::BpuMiss => Some(("bpu_miss", Event::Hardware(HardwareEvent::BranchMisses))),
+            Self::CacheAccess => Some((
+                "cache_access",
+                Event::Hardware(HardwareEvent::CacheReferences),
             )),
-            Self::CacheMiss => Some(PerfCounterBuilderLinux::from_hardware_event(
-                HardwareEventType::CacheMisses,
+            Self::CacheMiss => Some(("cache_miss", Event::Hardware(HardwareEvent::CacheMisses))),
+            Self::Cycles => Some(("cycles", Event::Hardware(HardwareEvent::CpuCycles))),
+            Self::DtlbLoadAccess => Some((
+                "dtlb_load_access",
+                Event::HardwareCache(CacheId::DTLB, CacheOp::Read, CacheResult::Access),
             )),
-            Self::CacheAccess => Some(PerfCounterBuilderLinux::from_hardware_event(
-                HardwareEventType::CacheReferences,
+            Self::DtlbLoadMiss => Some((
+                "dtlb_load_miss",
+                Event::HardwareCache(CacheId::DTLB, CacheOp::Read, CacheResult::Miss),
             )),
-            Self::Cycles => Some(PerfCounterBuilderLinux::from_hardware_event(
-                HardwareEventType::CPUCycles,
+            Self::DtlbStoreAccess => Some((
+                "dtlb_store_access",
+                Event::HardwareCache(CacheId::DTLB, CacheOp::Write, CacheResult::Access),
             )),
-            Self::DtlbLoadMiss => Some(PerfCounterBuilderLinux::from_cache_event(
-                CacheId::DTLB,
-                CacheOpId::Read,
-                CacheOpResultId::Miss,
+            Self::DtlbStoreMiss => Some((
+                "dtlb_store_miss",
+                Event::HardwareCache(CacheId::DTLB, CacheOp::Write, CacheResult::Miss),
             )),
-            Self::DtlbLoadAccess => Some(PerfCounterBuilderLinux::from_cache_event(
-                CacheId::DTLB,
-                CacheOpId::Read,
-                CacheOpResultId::Access,
+            Self::Instructions => {
+                Some(("instructions", Event::Hardware(HardwareEvent::Instructions)))
+            }
+            Self::ReferenceCycles => {
+                Some(("ref_cycles", Event::Hardware(HardwareEvent::RefCpuCycles)))
+            }
+            Self::StalledCyclesBackend => Some((
+                "stalled_backend",
+                Event::Hardware(HardwareEvent::StalledCyclesBackend),
             )),
-            Self::DtlbStoreMiss => Some(PerfCounterBuilderLinux::from_cache_event(
-                CacheId::DTLB,
-                CacheOpId::Write,
-                CacheOpResultId::Miss,
-            )),
-            Self::DtlbStoreAccess => Some(PerfCounterBuilderLinux::from_cache_event(
-                CacheId::DTLB,
-                CacheOpId::Write,
-                CacheOpResultId::Access,
-            )),
-            Self::Instructions => Some(PerfCounterBuilderLinux::from_hardware_event(
-                HardwareEventType::Instructions,
-            )),
-            Self::ReferenceCycles => Some(PerfCounterBuilderLinux::from_hardware_event(
-                HardwareEventType::RefCPUCycles,
-            )),
-            Self::StalledCyclesBackend => Some(PerfCounterBuilderLinux::from_hardware_event(
-                HardwareEventType::StalledCyclesBackend,
-            )),
-            Self::StalledCyclesFrontend => Some(PerfCounterBuilderLinux::from_hardware_event(
-                HardwareEventType::StalledCyclesFrontend,
+            Self::StalledCyclesFrontend => Some((
+                "stalled_frontend",
+                Event::Hardware(HardwareEvent::StalledCyclesFrontend),
             )),
             _ => None,
         }

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use std::cmp::max;
 use std::collections::HashMap;
 use std::io::BufRead;
 use std::path::Path;
@@ -48,6 +49,11 @@ pub fn hardware_threads() -> Result<u64, ()> {
         .parse::<u64>()
         .map_err(|e| debug!("could not parse num cpus from file ({:?}): {}", path, e))
         .map(|i| i + 1)
+}
+
+// Convert an interval from milliseconds to hertz
+pub fn millis_to_hertz(millis: usize) -> u64 {
+    max(1, millis as u64 / MILLISECOND)
 }
 
 /// helper function to create a nested map from files with the form of

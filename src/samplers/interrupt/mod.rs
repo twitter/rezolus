@@ -283,8 +283,6 @@ impl Interrupt {
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
-        use crate::common::MICROSECOND;
-
         if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();

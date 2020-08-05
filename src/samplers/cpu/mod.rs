@@ -3,17 +3,17 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use dashmap::DashMap;
-#[cfg(feature = "perf")]
-use perfcnt::*;
 use regex::Regex;
 use rustcommon_metrics::*;
+use std::io::{Error, ErrorKind};
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::prelude::*;
 
+use crate::common::bpf::*;
 use crate::common::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
@@ -25,13 +25,10 @@ mod stat;
 pub use config::*;
 pub use stat::*;
 
-#[cfg(not(feature = "perf"))]
-struct PerfCounter {}
-
 #[allow(dead_code)]
 pub struct Cpu {
     common: Common,
-    perf_counters: DashMap<CpuStatistic, Vec<PerfCounter>>,
+    perf: Option<Arc<Mutex<BPF>>>,
     tick_duration: u64,
 }
 
@@ -47,46 +44,21 @@ impl Sampler for Cpu {
 
     fn new(common: Common) -> Result<Self, failure::Error> {
         let fault_tolerant = common.config.general().fault_tolerant();
-        let perf_counters = DashMap::new();
-        if common.config.samplers().cpu().enabled() && common.config.samplers().cpu().perf_events()
-        {
-            #[cfg(feature = "perf")]
-            {
-                if let Ok(cores) = crate::common::hardware_threads() {
-                    for statistic in common.config.samplers().cpu().statistics().iter() {
-                        if let Some(mut builder) = statistic.perf_counter_builder() {
-                            let mut event_counters = Vec::new();
-                            for core in 0..cores {
-                                match builder.on_cpu(core as isize).for_all_pids().finish() {
-                                    Ok(c) => event_counters.push(c),
-                                    Err(e) => {
-                                        debug!(
-                                            "Failed to create PerfCounter for {:?}: {}",
-                                            statistic, e
-                                        );
-                                    }
-                                }
-                            }
-                            if event_counters.len() as u64 == cores {
-                                trace!("Initialized PerfCounters for {:?}", statistic);
-                                perf_counters.insert(*statistic, event_counters);
-                            }
-                        }
-                    }
-                } else if !fault_tolerant {
-                    fatal!("failed to detect number of hardware threads");
-                } else {
-                    error!(
-                        "failed to detect number of hardware threads. skipping cpu perf telemetry"
-                    );
-                }
+
+        #[allow(unused_mut)]
+        let mut sampler = Self {
+            perf: None,
+            common: common,
+            tick_duration: nanos_per_tick(),
+        };
+
+        if let Err(e) = sampler.initialize_perf() {
+            if !fault_tolerant {
+                return Err(e);
             }
         }
-        Ok(Self {
-            common,
-            perf_counters,
-            tick_duration: nanos_per_tick(),
-        })
+
+        Ok(sampler)
     }
 
     fn spawn(common: Common) {
@@ -129,11 +101,9 @@ impl Sampler for Cpu {
 
         self.map_result(self.sample_cstates().await)?;
         self.map_result(self.sample_cpu_usage().await)?;
-        #[cfg(feature = "perf")]
-        {
-            let result = self.sample_perf_counters().await;
-            self.map_result(result)?;
-        }
+
+        #[cfg(feature = "bpf")]
+        self.map_result(self.sample_perf())?;
 
         Ok(())
     }
@@ -149,6 +119,75 @@ impl Sampler for Cpu {
 }
 
 impl Cpu {
+    #[cfg(feature = "bpf")]
+    fn perf_enabled(&self) -> bool {
+        if self.sampler_config().perf_events() {
+            for statistic in self.sampler_config().statistics() {
+                if statistic.perf_config().is_some() {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn initialize_perf(&mut self) -> Result<(), failure::Error> {
+        #[cfg(feature = "bpf")]
+        {
+            if self.enabled() && self.perf_enabled() {
+                debug!("initializing perf");
+                let code = include_str!("perf.c");
+                let mut perf = bcc::BPF::new(code)?;
+
+                for statistic in self.sampler_config().statistics() {
+                    if let Some((name, event)) = statistic.perf_config() {
+                        let result = bcc::PerfEvent::new()
+                            .handler(&format!("f_{}", name))
+                            .event(event)
+                            .sample_frequency(Some(millis_to_hertz(self.interval())))
+                            .attach(&mut perf);
+
+                        self.map_result(result.map_err(|e| Error::new(ErrorKind::Other, e)))?;
+                    }
+                }
+
+                self.perf = Some(Arc::new(Mutex::new(BPF { inner: perf })));
+            }
+        }
+        Ok(())
+    }
+
+    #[cfg(feature = "bpf")]
+    fn sample_perf(&self) -> Result<(), std::io::Error> {
+        if self.perf_enabled() {
+            if let Some(ref perf) = self.perf {
+                let perf = perf.lock().unwrap();
+                let time = time::precise_time_ns();
+
+                for statistic in self.sampler_config().statistics() {
+                    if let Some((table, _)) = statistic.perf_config() {
+                        let mut table = (*perf).inner.table(table);
+
+                        // We only should have a single entry in the table right now
+                        let mut total = 0;
+                        for entry in table.iter() {
+                            let mut v = [0_u8; 8];
+                            for (i, byte) in v.iter_mut().enumerate() {
+                                *byte = *(entry.value).get(i).unwrap_or(&0);
+                            }
+
+                            total += u64::from_ne_bytes(v);
+                        }
+
+                        let _ = table.delete_all();
+                        self.metrics().record_counter(statistic, time, total)
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     async fn sample_cpu_usage(&self) -> Result<(), std::io::Error> {
         let file = File::open("/proc/stat").await?;
         let reader = BufReader::new(file);
@@ -165,32 +204,6 @@ impl Cpu {
             if let Some(value) = result.get(stat) {
                 self.metrics()
                     .record_counter(stat, time, value * self.tick_duration);
-            }
-        }
-
-        Ok(())
-    }
-
-    #[cfg(feature = "perf")]
-    async fn sample_perf_counters(&mut self) -> Result<(), std::io::Error> {
-        let time = time::precise_time_ns();
-        for stat in self.sampler_config().statistics() {
-            if let Some(mut counters) = self.perf_counters.get_mut(stat) {
-                let mut value = 0;
-                for counter in counters.iter_mut() {
-                    let count = match counter.read() {
-                        Ok(c) => c,
-                        Err(e) => {
-                            debug!("Could not read perf counter for event {:?}: {}", stat, e);
-                            0
-                        }
-                    };
-                    value += count;
-                }
-                if value > 0 {
-                    debug!("recording value for: {:?}", stat);
-                }
-                self.metrics().record_counter(stat, time, value);
             }
         }
 
