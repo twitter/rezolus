@@ -7,6 +7,7 @@ use std::time::Instant;
 
 use async_trait::async_trait;
 use rustcommon_metrics::*;
+use std::io::{Error, ErrorKind};
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
@@ -258,17 +259,21 @@ impl Scheduler {
                 use crate::common::millis_to_hertz;
                 debug!("initializing perf");
                 let code = include_str!("perf.c");
-                let mut perf_bpf = bcc::BPF::new(code)?;
+                let mut perf = bcc::BPF::new(code)?;
 
                 for statistic in self.sampler_config().statistics() {
                     if let Some((name, event)) = statistic.perf_config() {
-                        bcc::PerfEvent::new()
+                        let result = bcc::PerfEvent::new()
                             .handler(&format!("f_{}", name))
                             .event(event)
                             .sample_frequency(Some(millis_to_hertz(self.interval())))
-                            .attach(&mut perf_bpf)?;
+                            .attach(&mut perf);
+
+                        self.map_result(result.map_err(|e| Error::new(ErrorKind::Other, e)))?;
                     }
                 }
+
+                self.perf = Some(Arc::new(Mutex::new(BPF { inner: perf })));
             }
         }
         Ok(())
