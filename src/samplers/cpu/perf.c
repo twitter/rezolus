@@ -24,7 +24,7 @@
 // > stalled_cyles/frontend - cycles stalled waiting on frontend
 
 // Change key type if you need more granular counters.
-#define KEY KEY
+#define KEY u8
 #define KEY_DEFAULT_INIT 0
 
 // Update later with the key values you need.
