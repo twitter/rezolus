@@ -6,6 +6,8 @@ use crate::common::SECOND;
 use core::convert::TryFrom;
 use core::str::FromStr;
 
+#[cfg(feature = "perf")]
+pub use perfcnt::linux::*;
 use rustcommon_metrics::{Source, Statistic};
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
@@ -49,13 +51,11 @@ impl SchedulerStatistic {
         }
     }
 
-    #[cfg(feature = "bpf")]
-    pub fn perf_config(self) -> Option<(&'static str, bcc::perf_event::Event)> {
-        use bcc::perf_event::{Event, SoftwareEvent};
+    #[cfg(feature = "perf")]
+    pub fn perf_counter_builder(self) -> Option<PerfCounterBuilderLinux> {
         match self {
-            Self::CpuMigrations => Some((
-                "cpu_migrations",
-                Event::Software(SoftwareEvent::CpuMigrations),
+            Self::CpuMigrations => Some(PerfCounterBuilderLinux::from_software_event(
+                SoftwareEventType::CpuMigrations,
             )),
             _ => None,
         }

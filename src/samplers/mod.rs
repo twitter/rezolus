@@ -62,18 +62,14 @@ pub trait Sampler: Sized + Send {
     /// Wait until the next time to sample
     fn delay(&mut self) -> &mut Option<Interval> {
         if self.common_mut().interval().is_none() {
-            let duration = self.interval();
+            let duration = self
+                .sampler_config()
+                .interval()
+                .unwrap_or_else(|| self.general_config().interval());
             self.common_mut()
                 .set_interval(Some(interval(Duration::from_millis(duration as u64))));
         }
         self.common_mut().interval()
-    }
-
-    // Get the sampling interval defined in config or default
-    fn interval(&self) -> usize {
-        self.sampler_config()
-            .interval()
-            .unwrap_or_else(|| self.general_config().interval())
     }
 
     /// Access the specific sampler config
