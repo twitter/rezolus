@@ -92,11 +92,11 @@ pub trait Sampler: Sized + Send {
                 .register(statistic, self.summary(statistic));
             self.common()
                 .metrics()
-                .delete_output(statistic, Output::Reading);
+                .add_output(statistic, Output::Reading);
             for percentile in self.sampler_config().percentiles() {
                 self.common()
                     .metrics()
-                    .delete_output(statistic, Output::Percentile(*percentile));
+                    .add_output(statistic, Output::Percentile(*percentile));
             }
         }
     }

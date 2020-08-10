@@ -141,5 +141,11 @@ else
     cargo test --release
 fi
 
-sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml
-sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml
+sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml &
+sleep 180
+curl -s http://localhost:4242/vars
+sleep 180
+sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml &
+sleep 180
+curl -s http://localhost:4242/vars
+sleep 180
