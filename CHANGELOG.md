@@ -1,5 +1,13 @@
 # [Unreleased]
 
+# [2.6.0] - 2020-08-11
+## Added
+- Expanded memory sampler coverage to include telemetry related to NUMA access
+  patterns, transparent hugepages, and compaction.
+
+## Fixed
+- Disk sampler was not reporting stats for all disks on some multi-disk systems.
+
 # [2.5.0] - 2020-07-24
 ## Added
 - Interrupt sampler now has BPF sampling of time distribution of hardirq/softirq
@@ -91,7 +99,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.5.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.6.0...HEAD
+[2.5.0]: https://github.com/twitter/rezolus/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/twitter/rezolus/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/twitter/rezolus/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/twitter/rezolus/compare/v2.2.0...v2.3.0
