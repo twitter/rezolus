@@ -174,7 +174,7 @@ impl Disk {
         let mut lines = reader.lines();
         let mut result = HashMap::new();
         // regex to match devices we care about
-        let re = Regex::new(r"^((sd[a-z]+)|(hd[a-z]+)|(nvme\d+n\d+)$")
+        let re = Regex::new(r"^((sd[a-z]+)|(hd[a-z]+)|(nvme\d+n\d+))$")
             .expect("failed to compile regex");
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
