@@ -110,9 +110,9 @@ checksum = "3441f0f7b02788e948e47f457ca01f1d7e6d92c693bc132c22b087d3141c03ff"
 
 [[package]]
 name = "bcc"
-version = "0.0.21"
+version = "0.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70f5e0d209f5e6cadf1e4c794b525cece7d3012469a0ef5871a7a9a74ca88d22"
+checksum = "2923c9e1f1039b9758691180d3655c532c83a2df90f142958e33847309d1de3b"
 dependencies = [
  "bcc-sys",
  "byteorder 1.3.4",
