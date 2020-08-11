@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use async_trait::async_trait;
+use regex::Regex;
 use rustcommon_metrics::*;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
@@ -172,9 +173,12 @@ impl Disk {
         let reader = BufReader::new(file);
         let mut lines = reader.lines();
         let mut result = HashMap::new();
+        // regex to match devices we care about
+        let re = Regex::new(r"^((sd[a-z]+)|(hd[a-z]+)|(nvme\d+n\d+))$")
+            .expect("failed to compile regex");
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts.get(1) == Some(&"0") {
+            if re.is_match(parts.get(2).unwrap_or(&"unknown")) {
                 for statistic in self.sampler_config().statistics() {
                     if let Some(field) = statistic.diskstat_field() {
                         if !result.contains_key(statistic) {
