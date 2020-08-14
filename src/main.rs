@@ -63,6 +63,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .threaded_scheduler()
         .enable_time()
         .core_threads(config.general().threads())
+        .max_threads(config.general().threads() * 2) // extra threads for block_on
+        .thread_name("rezolus-worker")
         .build()
         .unwrap();
 
