@@ -131,7 +131,7 @@ bpf = true
 # percentile metrics for configured counters and gauges. It is intended to be
 # used for host-local http endpoints to avoid introducing noise into the
 # percentiles due to variable request service time.
-[samplers.http]
+# [samplers.http]
 # Controls whether to use this sampler
 # enabled = false
 
