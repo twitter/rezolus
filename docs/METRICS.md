@@ -30,6 +30,7 @@ Provides system-wide CPU telemetry.
   shutdown and PLL off
 * `cpu/cstate/c7/time` - nanoseconds spent in c7 state, c6 + LLC may flush
 * `cpu/cstate/c8/time` - nanoseconds spent in c8 state, c7 + LLC must flush
+* `cpu/frequency` - instantaneous cpu frequency in Hz
 * `cpu/usage/guest` - nanoseconds spent running a guest VM
 * `cpu/usage/guestnice` - nanoseconds spent running a low-priority guest VM
 * `cpu/usage/idle` - nanoseconds spent idle

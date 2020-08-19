@@ -127,6 +127,7 @@ impl Sampler for Cpu {
         debug!("sampling");
         self.register();
 
+        self.map_result(self.sample_cpuinfo().await)?;
         self.map_result(self.sample_cstates().await)?;
         self.map_result(self.sample_cpu_usage().await)?;
         #[cfg(feature = "perf")]
@@ -165,6 +166,29 @@ impl Cpu {
             if let Some(value) = result.get(stat) {
                 self.metrics()
                     .record_counter(stat, time, value * self.tick_duration);
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn sample_cpuinfo(&self) -> Result<(), std::io::Error> {
+        let frequency_re = Regex::new(r"^cpu MHz\s+:\s+([\d\.]+)$").unwrap();
+
+        let file = File::open("/proc/cpuinfo").await?;
+        let reader = BufReader::new(file);
+        let mut lines = reader.lines();
+
+        let time = time::precise_time_ns();
+        while let Some(line) = lines.next_line().await? {
+            if let Some(freq) = frequency_re.captures(&line).map(|m| m.get(1).unwrap()) {
+                if let Ok(mhz) = freq.as_str().parse::<f64>() {
+                    self.metrics().record_gauge(
+                        &CpuStatistic::Frequency,
+                        time,
+                        (mhz * 1_000_000.0_f64) as u64,
+                    );
+                }
             }
         }
 

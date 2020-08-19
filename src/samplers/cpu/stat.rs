@@ -87,6 +87,8 @@ pub enum CpuStatistic {
     CstateC7Time,
     #[strum(serialize = "cpu/cstate/c8/time")]
     CstateC8Time,
+    #[strum(serialize = "cpu/frequency")]
+    Frequency,
 }
 
 impl TryFrom<&str> for CpuStatistic {
@@ -103,7 +105,10 @@ impl Statistic for CpuStatistic {
     }
 
     fn source(&self) -> Source {
-        Source::Counter
+        match self {
+            Self::Frequency => Source::Gauge,
+            _ => Source::Counter,
+        }
     }
 }
 

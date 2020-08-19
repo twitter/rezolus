@@ -1,73 +1,393 @@
+# This example configuration covers detailed configuration for each sampler
+
+# General configuration
 [general]
+# Sets the socket address for Rezolus to listen on. This is a required parameter
 listen = "0.0.0.0:4242"
-# the default interval between samples, in milliseconds
-interval = 1000
-# set number of worker threads for running samplers
-threads = 1
 
+# Specify the logging level: error, info, debug, trace,
+# logging = "info"
+
+# The default interval, in milliseconds, for all samplers
+# interval = 1000
+
+# The default window for percentiles in seconds. Samples older than this will
+# age-out of the histograms.
+# window = 60
+
+# The number of worker threads which are used to run samplers. This should be
+# increased if the process is CPU bound and falling behind when running a large
+# number of samplers. Individual samplers cannot be running concurrently on
+# multiple workers, so increasing this will not help if a particular sampler is
+# falling behind due to its interval being too short, but would allow for other
+# samplers to run in parallel.
+# threads = 1
+
+# Control whether errors during initialization/sampling should be treated as
+# critical errors and cause the program to exit. Typically, this would only be
+# changed for development/CI purposes.
+# fault_tolerant = true
+
+# Specify a suffix that should be appended to counter/gauge readings. This may
+# be set to an empty string to remove the suffix entirely.
+# reading_suffix = "count"
+
+# Per-sampler configuration sections
 [samplers]
+
+# The cpu sampler provides telemetry for CPU utilization, C-states, and
+# processor performance telemetry.
 [samplers.cpu]
-# enable the cpu sampler
+# Controls whether to use this sampler
 enabled = true
-# enable perf_events telemetry
-perf_events = true
-# the complete set of statistics can be specified
-statistics = [
-	"cpu/cache/access",
-	"cpu/cache/miss",
-	"cpu/cycles",
-	"cpu/instructions",
-	"cpu/reference_cycles",
-	"cpu/usage/user",
-	"cpu/usage/system",
-	"cpu/usage/idle",
-	"cpu/cstate/c0/time",
-]
 
+# Enable sampling performance counters
+perf_events = true
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"cpu/cache/access",
+# 	"cpu/cache/miss",
+# 	"cpu/cycles",
+# 	"cpu/instructions",
+# 	"cpu/reference_cycles",
+# 	"cpu/usage/user",
+# 	"cpu/usage/system",
+# 	"cpu/usage/idle",
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+
+# The disk sampler provides telemetry about disk IO operations, bandwidth, and
+# with BPF enabled, IO size and latency distributions.
 [samplers.disk]
-# enable the bpf telemetry
-bpf = true
-# enable the disk sampler
+# Controls whether to use this sampler
 enabled = true
-# the complete set of percentiles can be specified
-percentiles = [
-	"p10",
-	"p50",
-	"p90",
-]
 
+# Enable BPF sampling
+bpf = true
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"disk/read/bytes",
+# 	"disk/write/bytes",
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+# The ext4 sampler provides telemetry about ext4 filesystem operations.
+# Currently this sampler only provides telemetry from BPF. If you want to enable
+# this sampler, you should also enable BPF.
 [samplers.ext4]
-bpf = true
+# Controls whether to use this sampler
 enabled = true
 
+# Enable BPF sampling
+bpf = true
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"ext4/read/latency",
+# 	"ext4/write/latency",
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+# This sampler reads from a JSON key-value http endpoint and can calculate
+# percentile metrics for configured counters and gauges. It is intended to be
+# used for host-local http endpoints to avoid introducing noise into the
+# percentiles due to variable request service time.
+# [samplers.http]
+# Controls whether to use this sampler
+# enabled = false
+
+# Specify the full URL to read JSON metrics from
+# url = "http://0.0.0.0:8080/vars.json"
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# Specify raw metric names that should be treated as counters and have
+# percentile metrics calculated. The percentiles will be of secondly rates seen
+# calculated from the difference in consecutive readings and the elapsed time
+# between those readings.
+# counters = [
+#   # "some_counter_metric",
+# ]
+
+# Specify raw metric names that should be treated as gauges and have percentile
+# metrics calculated. The percentiles will be of instantaneous gauge values.
+# gauges = [
+#   # "some_gauge_metric",
+# ]
+
+# Enable pass-through of raw metric readings. The names will have the reading
+# suffix appended to them, see the general config section.
+# passthrough = false
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+
+# The interrupt sampler provides telemetry about system interrupts
 [samplers.interrupt]
-bpf = true
+# Controls whether to use this sampler
 enabled = true
 
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"interrupt/total",
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+
+# The memory sampler provides telemetry for system memory utilization
 [samplers.memory]
+# Controls whether to use this sampler
 enabled = true
 
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+#   "memory/total",
+# 	"memory/free",
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+
+# The network sampler provides telemetry for network bandwidth, packet rates,
+# errors, and optionally the distribution of transmit/receive sizes.
 [samplers.network]
-bpf = true
+# Controls whether to use this sampler
 enabled = true
 
+# Enable BPF sampling
+bpf = true
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"network/receive/bytes",
+#   "network/transmit/bytes"
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+
+# The rezolus sampler provides telemetry about the CPU and memory utilization
+# for Rezolus itself.
 [samplers.rezolus]
+# Controls whether to use this sampler
 enabled = true
 
+
+# The scheduler sampler provides telemetry about the system scheduler and number
+# of running/blocked/created processes.
 [samplers.scheduler]
+# Controls whether to use this sampler
+enabled = true
+
+# Enable BPF sampling
 bpf = true
+
+# Enable sampling performance counters
 perf_events = true
 
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"scheduler/context_switches",
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+
+# The softnet scheduler provides telemetry about kernel processing of network
+# frames.
 [samplers.softnet]
+# Controls whether to use this sampler
 enabled = true
 
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"softnet/processed",
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+
+# The tcp sampler provides telemetry about tcp traffic
 [samplers.tcp]
-bpf = true
+# Controls whether to use this sampler
 enabled = true
 
+# Enable BPF sampling
+bpf = true
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"tcp/receive/segment",
+#   "tcp/transmit/segment",
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+
+# The udp sampler provides telemetry about udp traffic
 [samplers.udp]
+# Controls whether to use this sampler
 enabled = true
 
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"udp/receive/datagrams",
+#   "udp/transmit/datagrams",
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+
+# The xfs sampler provides telemetry for xfs filesystem operations.
+# Currently this sampler only provides telemetry from BPF. If you want to enable
+# this sampler, you should also enable BPF.
 [samplers.xfs]
-bpf = true
+# Controls whether to use this sampler
 enabled = true
+
+# Enable BPF sampling
+bpf = true
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"xfs/read/latency",
+# 	"xfs/write/latency",
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
