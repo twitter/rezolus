@@ -11,7 +11,7 @@ listen = "0.0.0.0:4242"
 
 [samplers]
 [samplers.cpu]
-enabled = true
+enabled = false
 perf_events = false
 
 [samplers.disk]
