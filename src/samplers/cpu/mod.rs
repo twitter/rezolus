@@ -16,7 +16,7 @@ use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::prelude::*;
 
-use crate::common::bpf::{BPF};
+use crate::common::bpf::BPF;
 use crate::common::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;

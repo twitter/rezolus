@@ -97,7 +97,6 @@ pub fn map_from_table(table: &mut bcc::table::Table) -> std::collections::HashMa
     current
 }
 
-
 #[cfg(feature = "bpf")]
 pub fn perf_table_to_map(table: &bcc::table::Table) -> std::collections::HashMap<u32, u64> {
     let mut map = std::collections::HashMap::new();
