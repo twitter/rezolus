@@ -16,7 +16,7 @@ use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::prelude::*;
 
-use crate::common::bpf::BPF;
+use crate::common::bpf::{BPF};
 use crate::common::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
@@ -238,7 +238,7 @@ impl Cpu {
             let time = time::precise_time_ns();
             for stat in self.sampler_config().statistics() {
                 if let Some(table) = stat.table() {
-                    let map = to_map(&(*bpf).inner.table(table));
+                    let map = crate::common::bpf::perf_table_to_map(&(*bpf).inner.table(table));
                     let mut total = 0;
                     for (_cpu, count) in map.iter() {
                         total += count;
@@ -351,40 +351,6 @@ fn parse_proc_stat(line: &str) -> HashMap<CpuStatistic, u64> {
         }
     }
     result
-}
-
-#[cfg(feature = "bpf")]
-fn to_map(table: &bcc::table::Table) -> HashMap<u32, u64> {
-    let mut map = HashMap::new();
-
-    for entry in table.iter() {
-        let key = parse_u32(entry.key);
-        let value = parse_u64(entry.value);
-
-        map.insert(key, value);
-    }
-
-    map
-}
-
-#[cfg(feature = "bpf")]
-fn parse_u32(x: Vec<u8>) -> u32 {
-    let mut v = [0_u8; 4];
-    for (i, byte) in v.iter_mut().enumerate() {
-        *byte = *x.get(i).unwrap_or(&0);
-    }
-
-    u32::from_ne_bytes(v)
-}
-
-#[cfg(feature = "bpf")]
-fn parse_u64(x: Vec<u8>) -> u64 {
-    let mut v = [0_u8; 8];
-    for (i, byte) in v.iter_mut().enumerate() {
-        *byte = *x.get(i).unwrap_or(&0);
-    }
-
-    u64::from_ne_bytes(v)
 }
 
 #[cfg(test)]
