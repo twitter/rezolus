@@ -16,8 +16,8 @@ use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::prelude::*;
 
-use crate::common::*;
 use crate::common::bpf::BPF;
+use crate::common::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
@@ -131,10 +131,7 @@ impl Cpu {
     #[cfg(feature = "bpf")]
     fn initialize_bpf_perf(&mut self) -> Result<(), std::io::Error> {
         let cpus = crate::common::hardware_threads().unwrap();
-        let interval = self
-            .sampler_config()
-            .interval()
-            .unwrap_or_else(|| self.general_config().interval()) as u64;
+        let interval = self.interval() as u64;
         let frequency = if interval > 1000 {
             1
         } else if interval == 0 {
@@ -167,12 +164,19 @@ impl Cpu {
                     }
                 }
             }
-            PerfEvent::new()
+            if PerfEvent::new()
                 .handler("do_count")
                 .event(Event::Software(SoftwareEvent::CpuClock))
                 .sample_frequency(Some(frequency))
                 .attach(&mut bpf)
-                .unwrap();
+                .is_err()
+            {
+                if !self.common().config().general().fault_tolerant() {
+                    fatal!("failed to initialize perf bpf for cpu");
+                } else {
+                    error!("failed to initialize perf bpf for cpu");
+                }
+            }
             self.perf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
         } else if !self.common().config().general().fault_tolerant() {
             fatal!("failed to initialize perf bpf");

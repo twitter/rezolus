@@ -59,6 +59,12 @@ pub trait Sampler: Sized + Send {
     /// wait until next sample interval
     async fn sample(&mut self) -> Result<(), std::io::Error>;
 
+    fn interval(&self) -> usize {
+        self.sampler_config()
+            .interval()
+            .unwrap_or_else(|| self.general_config().interval())
+    }
+
     /// Wait until the next time to sample
     fn delay(&mut self) -> &mut Option<Interval> {
         if self.common_mut().interval().is_none() {
