@@ -67,6 +67,8 @@ impl Sampler for Scheduler {
             }
         }
 
+        // delay by half the sample interval so that we land between perf
+        // counter updates
         std::thread::sleep(std::time::Duration::from_micros(
             (1000 * sampler.interval()) as u64 / 2,
         ));
