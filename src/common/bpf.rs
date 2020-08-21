@@ -96,3 +96,37 @@ pub fn map_from_table(table: &mut bcc::table::Table) -> std::collections::HashMa
     }
     current
 }
+
+#[cfg(feature = "bpf")]
+pub fn perf_table_to_map(table: &bcc::table::Table) -> std::collections::HashMap<u32, u64> {
+    let mut map = std::collections::HashMap::new();
+
+    for entry in table.iter() {
+        let key = parse_u32(entry.key);
+        let value = parse_u64(entry.value);
+
+        map.insert(key, value);
+    }
+
+    map
+}
+
+#[cfg(feature = "bpf")]
+fn parse_u32(x: Vec<u8>) -> u32 {
+    let mut v = [0_u8; 4];
+    for (i, byte) in v.iter_mut().enumerate() {
+        *byte = *x.get(i).unwrap_or(&0);
+    }
+
+    u32::from_ne_bytes(v)
+}
+
+#[cfg(feature = "bpf")]
+fn parse_u64(x: Vec<u8>) -> u64 {
+    let mut v = [0_u8; 8];
+    for (i, byte) in v.iter_mut().enumerate() {
+        *byte = *x.get(i).unwrap_or(&0);
+    }
+
+    u64::from_ne_bytes(v)
+}

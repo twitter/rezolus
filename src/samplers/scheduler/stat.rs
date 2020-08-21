@@ -6,8 +6,8 @@ use crate::common::SECOND;
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-#[cfg(feature = "perf")]
-pub use perfcnt::linux::*;
+#[cfg(feature = "bpf")]
+use bcc::perf_event::*;
 use rustcommon_metrics::{Source, Statistic};
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
@@ -51,23 +51,26 @@ impl SchedulerStatistic {
         }
     }
 
-    #[cfg(feature = "perf")]
-    pub fn perf_counter_builder(self) -> Option<PerfCounterBuilderLinux> {
+    #[allow(dead_code)]
+    pub fn perf_table(self) -> Option<&'static str> {
         match self {
-            Self::CpuMigrations => Some(PerfCounterBuilderLinux::from_software_event(
-                SoftwareEventType::CpuMigrations,
-            )),
+            Self::CpuMigrations => Some("cpu_migrations"),
+            _ => None,
+        }
+    }
+
+    #[cfg(feature = "bpf")]
+    pub fn event(self) -> Option<Event> {
+        match self {
+            Self::CpuMigrations => Some(Event::Software(SoftwareEvent::CpuMigrations)),
             _ => None,
         }
     }
 
     pub fn max(&self) -> u64 {
-        if self.bpf_table().is_some() {
-            SECOND
-        } else if *self == SchedulerStatistic::ContextSwitches {
-            1_000_000_000
-        } else {
-            1_000_000
+        match self {
+            Self::RunqueueLatency => SECOND,
+            _ => 1_000_000_000,
         }
     }
 }

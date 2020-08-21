@@ -160,9 +160,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: install rustfmt
-      run: rustup component add rustfmt
+      run: rustup +nightly component add rustfmt
     - name: rustfmt
-      run: cargo fmt -- --check
+      run: cargo +nightly fmt -- --check
   clippy:
     runs-on: ubuntu-latest
     steps:
