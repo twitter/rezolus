@@ -68,10 +68,9 @@ pub trait Sampler: Sized + Send {
     /// Wait until the next time to sample
     fn delay(&mut self) -> &mut Option<Interval> {
         if self.common_mut().interval().is_none() {
+            let millis = self.interval() as u64;
             self.common_mut()
-                .set_interval(Some(interval(
-                    Duration::from_millis(self.interval() as u64),
-                )));
+                .set_interval(Some(interval(Duration::from_millis(millis))));
         }
         self.common_mut().interval()
     }
