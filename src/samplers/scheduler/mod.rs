@@ -47,6 +47,15 @@ impl Sampler for Scheduler {
             perf: None,
         };
 
+        sampler.register();
+
+        if let Err(e) = sampler.initialize_bpf() {
+            if !fault_tolerant {
+                return Err(e);
+            }
+        }
+
+        // we initialize perf last so we can delay
         if sampler.sampler_config().enabled() && sampler.sampler_config().perf_events() {
             #[cfg(feature = "bpf")]
             {
@@ -58,11 +67,9 @@ impl Sampler for Scheduler {
             }
         }
 
-        if let Err(e) = sampler.initialize_bpf() {
-            if !fault_tolerant {
-                return Err(e);
-            }
-        }
+        std::thread::sleep(std::time::Duration::from_micros(
+            (1000 * sampler.interval()) as u64 / 2,
+        ));
 
         Ok(sampler)
     }
@@ -103,13 +110,15 @@ impl Sampler for Scheduler {
         }
 
         debug!("sampling");
-        self.register();
+
+        // we do perf sampling first, since it is time critical to keep it
+        // between underlying counter updates
+        #[cfg(feature = "bpf")]
+        self.map_result(self.sample_bpf_perf_counters())?;
 
         self.map_result(self.sample_proc_stat().await)?;
         #[cfg(feature = "bpf")]
         self.map_result(self.sample_bpf())?;
-        #[cfg(feature = "bpf")]
-        self.map_result(self.sample_bpf_perf_counters())?;
 
         Ok(())
     }
@@ -165,6 +174,7 @@ impl Scheduler {
                     }
                 }
             }
+            debug!("attaching software event to drive perf counter sampling");
             if PerfEvent::new()
                 .handler("do_count")
                 .event(Event::Software(SoftwareEvent::CpuClock))

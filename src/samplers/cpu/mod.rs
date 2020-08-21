@@ -53,6 +53,9 @@ impl Sampler for Cpu {
             tick_duration: nanos_per_tick(),
         };
 
+        sampler.register();
+
+        // we initialize perf last so we can delay
         if sampler.sampler_config().enabled() && sampler.sampler_config().perf_events() {
             #[cfg(feature = "bpf")]
             {
@@ -63,6 +66,10 @@ impl Sampler for Cpu {
                 }
             }
         }
+
+        std::thread::sleep(std::time::Duration::from_micros(
+            (1000 * sampler.interval()) as u64 / 2,
+        ));
 
         Ok(sampler)
     }
@@ -103,16 +110,18 @@ impl Sampler for Cpu {
         }
 
         debug!("sampling");
-        self.register();
 
-        self.map_result(self.sample_cpuinfo().await)?;
-        self.map_result(self.sample_cstates().await)?;
-        self.map_result(self.sample_cpu_usage().await)?;
+        // we do perf sampling first, since it is time critical to keep it
+        // between underlying counter updates
         #[cfg(feature = "bpf")]
         {
             let result = self.sample_bpf_perf_counters();
             self.map_result(result)?;
         }
+
+        self.map_result(self.sample_cpuinfo().await)?;
+        self.map_result(self.sample_cstates().await)?;
+        self.map_result(self.sample_cpu_usage().await)?;
 
         Ok(())
     }
@@ -164,6 +173,7 @@ impl Cpu {
                     }
                 }
             }
+            debug!("attaching software event to drive perf counter sampling");
             if PerfEvent::new()
                 .handler("do_count")
                 .event(Event::Software(SoftwareEvent::CpuClock))
