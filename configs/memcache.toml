@@ -6,6 +6,7 @@
 [general]
 listen = "0.0.0.0:4242"
 fault_tolerant = false
+reading_suffix = ""
 
 [samplers]
 [samplers.memcache]
