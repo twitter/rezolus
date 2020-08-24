@@ -157,7 +157,12 @@ jobs:
       run: bash -e build/ci.sh
   memcache-smoketest:
     name: memcache smoketest
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.15.0"
+      DIST: focal
+      FEATURES: bpf_v0_15_0 bpf_static
+      LLVM: 9
     services:
       memcached:
         image: memcached
