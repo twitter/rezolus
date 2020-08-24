@@ -33,6 +33,7 @@ pub use disk::Disk;
 pub use ext4::Ext4;
 pub use http::Http;
 pub use interrupt::Interrupt;
+pub use memcache::Memcache;
 pub use memory::Memory;
 pub use network::Network;
 pub use rezolus::Rezolus;
