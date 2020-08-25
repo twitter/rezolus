@@ -70,6 +70,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ext4::spawn(common.clone());
     Http::spawn(common.clone());
     Interrupt::spawn(common.clone());
+    Memcache::spawn(common.clone());
     Memory::spawn(common.clone());
     Network::spawn(common.clone());
     Rezolus::spawn(common.clone());

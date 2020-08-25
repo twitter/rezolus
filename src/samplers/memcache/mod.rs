@@ -51,6 +51,13 @@ impl Sampler for Memcache {
     type Statistic = MemcacheStatistic;
 
     fn new(common: Common) -> Result<Self, failure::Error> {
+        if !common.config.samplers().memcache().enabled() {
+            return Ok(Self {
+                address: "localhost:11211".to_socket_addrs().unwrap().next().unwrap(),
+                common,
+                stream: None,
+            });
+        }
         if common.config.samplers().memcache().endpoint().is_none() {
             return Err(format_err!("no memcache endpoint configured"));
         }
@@ -66,7 +73,6 @@ impl Sampler for Memcache {
             common,
             stream: None,
         };
-        ret.reconnect();
         Ok(ret)
     }
 
