@@ -68,7 +68,7 @@ impl Sampler for Memcache {
         let address = addrs.next().unwrap_or_else(|| {
             fatal!("ERROR: failed to resolve address: {}", endpoint);
         });
-        let mut ret = Self {
+        let ret = Self {
             address,
             common,
             stream: None,
