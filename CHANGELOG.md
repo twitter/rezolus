@@ -1,5 +1,20 @@
 # [Unreleased]
 
+# [2.7.0] - 2020-08-25
+## Changed
+- Perf event sampling now implemented with BPF. Now requires building with BPF
+  support.
+- Renamed worker threads and set limit for total number of runtime threads
+  instead of just core threads.
+
+## Added
+- CPU sampler now includes CPU frequency.
+
+## Fixed
+- BPF probes are now dropped properly on program termination. Previously, on
+  some kernel versions, BPF probes might remain after exit.
+- Memcache sampler was not being initialized. It's now re-enabled.
+
 # [2.6.0] - 2020-08-11
 ## Added
 - Expanded memory sampler coverage to include telemetry related to NUMA access
@@ -99,8 +114,9 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.6.0...HEAD
-[2.5.0]: https://github.com/twitter/rezolus/compare/v2.5.0...v2.6.0
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.7.0...HEAD
+[2.7.0]: https://github.com/twitter/rezolus/compare/v2.6.0...v2.7.0
+[2.6.0]: https://github.com/twitter/rezolus/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/twitter/rezolus/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/twitter/rezolus/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/twitter/rezolus/compare/v2.2.0...v2.3.0
