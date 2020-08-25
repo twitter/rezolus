@@ -161,7 +161,7 @@ jobs:
     env:
       BCC: "0.15.0"
       DIST: focal
-      FEATURES: bpf_v0_15_0 bpf_static
+      FEATURES: bpf_v0_15_0
       LLVM: 9
     services:
       memcached:
