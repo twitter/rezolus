@@ -73,7 +73,6 @@ impl Sampler for Memcache {
             common,
             stream: None,
         };
-        ret.reconnect();
         Ok(ret)
     }
 
