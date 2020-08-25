@@ -47,6 +47,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let runnable = Arc::new(AtomicBool::new(true));
     let r = runnable.clone();
 
+    // initialize signal handler
+    debug!("initializing signal handler");
+    ctrlc::set_handler(move || {
+        r.store(false, Ordering::Relaxed);
+    })
+    .expect("Failed to set handler for SIGINT / SIGTERM");
+
     // initialize metrics
     debug!("initializing metrics");
     let metrics = Arc::new(Metrics::<AtomicU32>::new());
@@ -99,13 +106,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         metrics,
         config.general().reading_suffix(),
     );
-
-    // initialize signal handler
-    debug!("initializing signal handler");
-    ctrlc::set_handler(move || {
-        r.store(false, Ordering::Relaxed);
-    })
-    .expect("Failed to set handler for SIGINT / SIGTERM");
 
     while runnable.load(Ordering::Relaxed) {
         http.run();
