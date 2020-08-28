@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::io::{Read, Write};
+use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 
 use async_trait::async_trait;
 use rustcommon_metrics::*;
@@ -92,7 +92,6 @@ impl Sampler for Memcache {
         }
 
         if let Some(ref mut stream) = self.stream {
-
             if stream.write_all(b"stats\r\n").is_ok() {
                 let mut buffer = [0_u8; 16355];
                 loop {
@@ -133,7 +132,9 @@ impl Sampler for Memcache {
                                                 Some(self.general_config().window()),
                                             )),
                                         );
-                                        self.common().metrics().add_output(&statistic, Output::Reading);
+                                        self.common()
+                                            .metrics()
+                                            .add_output(&statistic, Output::Reading);
                                         self.common()
                                             .metrics()
                                             .record_counter(&statistic, time, value);
@@ -152,11 +153,10 @@ impl Sampler for Memcache {
                                         value.parse::<f64>().map(|v| v.floor() as u64)
                                     {
                                         let statistic = MemcacheStatistic::new((*name).to_string());
-                                        self.common().metrics().register(
-                                            &statistic,
-                                            None,
-                                        );
-                                        self.common().metrics().add_output(&statistic, Output::Reading);
+                                        self.common().metrics().register(&statistic, None);
+                                        self.common()
+                                            .metrics()
+                                            .add_output(&statistic, Output::Reading);
                                         // gauge type is used to pass-through raw metrics
                                         self.common()
                                             .metrics()
