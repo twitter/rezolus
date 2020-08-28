@@ -53,7 +53,9 @@ impl Sampler for Cpu {
             tick_duration: nanos_per_tick(),
         };
 
-        sampler.register();
+        if sampler.sampler_config().enabled() {
+            sampler.register();
+        }
 
         // we initialize perf last so we can delay
         if sampler.sampler_config().enabled() && sampler.sampler_config().perf_events() {
