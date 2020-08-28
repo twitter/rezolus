@@ -91,9 +91,9 @@ impl Sampler for Memcache {
 
         if let Some(ref mut stream) = self.stream {
             if stream.write_all(b"stats\r\n").is_ok() {
-                let mut buffer = [0_u8; 16355];
                 loop {
-                    if let Ok(length) = stream.read(&mut buffer) {
+                    let mut buffer = [0_u8; 65536];
+                    if let Ok(length) = stream.peek(&mut buffer) {
                         if length == 0 {
                             error!("zero length read. disconnect");
                             self.stream = None;
@@ -106,6 +106,8 @@ impl Sampler for Memcache {
                         }
                     }
                 }
+                let mut buffer = [0_u8; 65536];
+                let _ = stream.read(&mut buffer);
                 let time = time::precise_time_ns();
                 let stats = std::str::from_utf8(&buffer).unwrap().to_string();
                 let lines: Vec<&str> = stats.split("\r\n").collect();
@@ -136,14 +138,14 @@ impl Sampler for Memcache {
                                         self.common()
                                             .metrics()
                                             .record_counter(&statistic, time, value);
-                                        if self.summary(&statistic).is_some() {
-                                            for percentile in self.sampler_config().percentiles() {
-                                                self.common().metrics().add_output(
-                                                    &statistic,
-                                                    Output::Percentile(*percentile),
-                                                );
-                                            }
+                                        for percentile in self.sampler_config().percentiles() {
+                                            self.common().metrics().add_output(
+                                                &statistic,
+                                                Output::Percentile(*percentile),
+                                            );
                                         }
+                                    } else {
+                                        warn!("could not parse: {} {}", *name, value);
                                     }
                                 }
                                 _ => {
@@ -159,6 +161,8 @@ impl Sampler for Memcache {
                                         self.common()
                                             .metrics()
                                             .record_gauge(&statistic, time, value);
+                                    } else {
+                                        warn!("could not parse: {} {}", *name, value);
                                     }
                                 }
                             }
