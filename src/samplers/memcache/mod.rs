@@ -7,8 +7,6 @@ use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 
 use async_trait::async_trait;
 use rustcommon_metrics::*;
-// use tokio::io::{AsyncReadExt, AsyncWriteExt};
-// use tokio::net::TcpStream;
 
 use crate::config::*;
 use crate::samplers::Common;
