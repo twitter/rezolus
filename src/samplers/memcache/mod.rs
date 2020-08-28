@@ -144,8 +144,6 @@ impl Sampler for Memcache {
                                                 Output::Percentile(*percentile),
                                             );
                                         }
-                                    } else {
-                                        warn!("could not parse: {} {}", *name, value);
                                     }
                                 }
                                 _ => {
@@ -161,8 +159,6 @@ impl Sampler for Memcache {
                                         self.common()
                                             .metrics()
                                             .record_gauge(&statistic, time, value);
-                                    } else {
-                                        warn!("could not parse: {} {}", *name, value);
                                     }
                                 }
                             }
