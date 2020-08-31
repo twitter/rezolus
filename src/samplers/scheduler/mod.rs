@@ -47,7 +47,9 @@ impl Sampler for Scheduler {
             perf: None,
         };
 
-        sampler.register();
+        if sampler.sampler_config().enabled() {
+            sampler.register();
+        }
 
         if let Err(e) = sampler.initialize_bpf() {
             if !fault_tolerant {

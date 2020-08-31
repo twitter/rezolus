@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::net::{SocketAddr, ToSocketAddrs};
+use std::io::{Read, Write};
+use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 
 use async_trait::async_trait;
 use rustcommon_metrics::*;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::TcpStream;
 
 use crate::config::*;
 use crate::samplers::Common;
@@ -23,27 +22,6 @@ pub struct Memcache {
     address: SocketAddr,
     common: Common,
     stream: Option<TcpStream>,
-}
-
-impl Memcache {
-    fn reconnect(&mut self) {
-        if self.stream.is_none() {
-            match std::net::TcpStream::connect(self.address) {
-                Ok(stream) => match TcpStream::from_std(stream) {
-                    Ok(stream) => {
-                        info!("Connected to memcache");
-                        self.stream = Some(stream)
-                    }
-                    Err(e) => {
-                        error!("Failed to create tokio TcpStream: {}", e);
-                    }
-                },
-                Err(e) => {
-                    error!("Failed to connect to memcache: {}", e);
-                }
-            }
-        }
-    }
 }
 
 #[async_trait]
@@ -112,21 +90,25 @@ impl Sampler for Memcache {
         }
 
         if let Some(ref mut stream) = self.stream {
-            stream.write_all(b"stats\r\n").await?;
-            let mut buffer = [0_u8; 16355];
-            loop {
-                let length = stream.peek(&mut buffer).await?;
-                if length > 0 {
-                    let stats = std::str::from_utf8(&buffer).unwrap().to_string();
-                    let lines: Vec<&str> = stats.split("\r\n").collect();
-                    if lines.len() >= 2 && lines[lines.len() - 2] == "END" {
-                        break;
+            if stream.write_all(b"stats\r\n").is_ok() {
+                loop {
+                    let mut buffer = [0_u8; 65536];
+                    if let Ok(length) = stream.peek(&mut buffer) {
+                        if length == 0 {
+                            error!("zero length read. disconnect");
+                            self.stream = None;
+                            return Ok(());
+                        }
+                        let stats = std::str::from_utf8(&buffer).unwrap().to_string();
+                        let lines: Vec<&str> = stats.split("\r\n").collect();
+                        if lines.len() >= 2 && lines[lines.len() - 2] == "END" {
+                            break;
+                        }
                     }
                 }
-            }
-            let time = time::precise_time_ns();
-            let length = stream.read(&mut buffer).await?;
-            if length > 0 {
+                let mut buffer = [0_u8; 65536];
+                let _ = stream.read(&mut buffer);
+                let time = time::precise_time_ns();
                 let stats = std::str::from_utf8(&buffer).unwrap().to_string();
                 let lines: Vec<&str> = stats.split("\r\n").collect();
                 for line in lines {
@@ -152,14 +134,15 @@ impl Sampler for Memcache {
                                         );
                                         self.common()
                                             .metrics()
+                                            .add_output(&statistic, Output::Reading);
+                                        self.common()
+                                            .metrics()
                                             .record_counter(&statistic, time, value);
-                                        if self.summary(&statistic).is_some() {
-                                            for percentile in self.sampler_config().percentiles() {
-                                                self.common().metrics().add_output(
-                                                    &statistic,
-                                                    Output::Percentile(*percentile),
-                                                );
-                                            }
+                                        for percentile in self.sampler_config().percentiles() {
+                                            self.common().metrics().add_output(
+                                                &statistic,
+                                                Output::Percentile(*percentile),
+                                            );
                                         }
                                     }
                                 }
@@ -168,6 +151,10 @@ impl Sampler for Memcache {
                                         value.parse::<f64>().map(|v| v.floor() as u64)
                                     {
                                         let statistic = MemcacheStatistic::new((*name).to_string());
+                                        self.common().metrics().register(&statistic, None);
+                                        self.common()
+                                            .metrics()
+                                            .add_output(&statistic, Output::Reading);
                                         // gauge type is used to pass-through raw metrics
                                         self.common()
                                             .metrics()
@@ -178,12 +165,14 @@ impl Sampler for Memcache {
                         }
                     }
                 }
-            } else {
-                error!("failed to get stats. disconnect");
-                self.stream = None;
             }
         } else {
-            self.reconnect();
+            if let Ok(stream) = TcpStream::connect(self.address) {
+                let _ = stream.set_nonblocking(true);
+                self.stream = Some(stream);
+            } else {
+                error!("error connecting to memcache");
+            }
         }
 
         Ok(())
