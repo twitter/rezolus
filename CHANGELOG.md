@@ -1,5 +1,10 @@
 # [Unreleased]
 
+# [2.7.1] - 2020-08-31
+## Fixed
+- Fixed memcache sampler causing tokio worker to panic due to issues registering
+  the tcp stream with the tokio runtime.
+
 # [2.7.0] - 2020-08-25
 ## Changed
 - Perf event sampling now implemented with BPF. Now requires building with BPF
@@ -114,7 +119,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.7.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.7.1...HEAD
+[2.7.1]: https://github.com/twitter/rezolus/compare/v2.7.0...v2.7.1
 [2.7.0]: https://github.com/twitter/rezolus/compare/v2.6.0...v2.7.0
 [2.6.0]: https://github.com/twitter/rezolus/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/twitter/rezolus/compare/v2.4.0...v2.5.0
