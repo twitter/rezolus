@@ -45,7 +45,7 @@ pub use xfs::Xfs;
 
 #[async_trait]
 pub trait Sampler: Sized + Send {
-    type Statistic: Statistic;
+    type Statistic: Statistic<AtomicU64, AtomicU32>;
 
     /// Create a new instance of the sampler
     fn new(common: Common) -> Result<Self, failure::Error>;
@@ -93,23 +93,42 @@ pub trait Sampler: Sized + Send {
         for statistic in self.sampler_config().statistics() {
             self.common()
                 .metrics()
-                .register(statistic, self.summary(statistic));
-            self.common()
-                .metrics()
-                .add_output(statistic, Output::Reading);
-            for percentile in self.sampler_config().percentiles() {
+                .add_output(&statistic, Output::Reading);
+            let percentiles = self.sampler_config().percentiles();
+            if !percentiles.is_empty() {
+                if statistic.source() == Source::Distribution {
+                    self.common().metrics().set_summary(
+                        &statistic,
+                        Summary::heatmap(
+                            1_000_000_000,
+                            2,
+                            self.common().config().general().window(),
+                            Duration::new(1, 0),
+                        ),
+                    );
+                } else {
+                    self.common()
+                        .metrics()
+                        .set_summary(&statistic, Summary::stream(self.samples()));
+                }
+            }
+            for percentile in percentiles {
                 self.common()
                     .metrics()
-                    .add_output(statistic, Output::Percentile(*percentile));
+                    .add_output(&statistic, Output::Percentile(*percentile));
             }
         }
     }
 
-    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
-        None
+    fn samples(&self) -> usize {
+        (1000 / self.interval()) * self.general_config().window()
     }
 
-    fn metrics(&self) -> &Metrics<AtomicU32> {
+    // fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary<Value, Count>> {
+    //     None
+    // }
+
+    fn metrics(&self) -> &Metrics<AtomicU64, AtomicU32> {
         self.common().metrics()
     }
 
@@ -135,7 +154,7 @@ pub struct Common {
     config: Arc<Config>,
     handle: Handle,
     interval: Option<Interval>,
-    metrics: Arc<Metrics<AtomicU32>>,
+    metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
 }
 
 impl Clone for Common {
@@ -150,7 +169,11 @@ impl Clone for Common {
 }
 
 impl Common {
-    pub fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>, handle: Handle) -> Self {
+    pub fn new(
+        config: Arc<Config>,
+        metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
+        handle: Handle,
+    ) -> Self {
         Self {
             config,
             handle,
@@ -171,7 +194,7 @@ impl Common {
         self.interval = interval
     }
 
-    pub fn metrics(&self) -> &Metrics<AtomicU32> {
+    pub fn metrics(&self) -> &Metrics<AtomicU64, AtomicU32> {
         &self.metrics
     }
 }

@@ -5,7 +5,7 @@
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-use rustcommon_metrics::{Source, Statistic};
+use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -43,25 +43,25 @@ impl UdpStatistic {
     }
 }
 
-impl Statistic for UdpStatistic {
+impl Statistic<AtomicU64, AtomicU32> for UdpStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }
 
-    fn description(&self) -> Option<&str> {
-        match self {
-            Self::InDatagrams => Some("udp datagrams received"),
-            Self::InErrors => Some("udp datagrams that were not delivered to valid port"),
-            Self::OutDatagrams => Some("udp datagrams transmitted"),
-        }
-    }
+    // fn description(&self) -> Option<&str> {
+    //     match self {
+    //         Self::InDatagrams => Some("udp datagrams received"),
+    //         Self::InErrors => Some("udp datagrams that were not delivered to valid port"),
+    //         Self::OutDatagrams => Some("udp datagrams transmitted"),
+    //     }
+    // }
 
-    fn unit(&self) -> Option<&str> {
-        match self {
-            Self::InDatagrams | Self::OutDatagrams => Some("datagrams"),
-            _ => None,
-        }
-    }
+    // fn unit(&self) -> Option<&str> {
+    //     match self {
+    //         Self::InDatagrams | Self::OutDatagrams => Some("datagrams"),
+    //         _ => None,
+    //     }
+    // }
 
     fn source(&self) -> Source {
         Source::Counter

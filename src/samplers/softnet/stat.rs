@@ -5,7 +5,7 @@
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-use rustcommon_metrics::{Source, Statistic};
+use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -39,21 +39,21 @@ pub enum SoftnetStatistic {
     FlowLimitCount = 5,
 }
 
-impl Statistic for SoftnetStatistic {
+impl Statistic<AtomicU64, AtomicU32> for SoftnetStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }
 
-    fn description(&self) -> Option<&str> {
-        Some(match self {
-            Self::Processed => "total number of frames processed",
-            Self::Dropped => "number of frames dropped due to no room on processing queue",
-            Self::TimeSqueezed => "number of times net_rx_action had more work, but budget or time exhausted",
-            Self::CpuCollision => "number of times collision occurred on obtaining device lock while transmitting",
-            Self::ReceivedRps => "number of times CPU has been woken up to process packets via inter-processor interrupt",
-            Self::FlowLimitCount => "number of times the flow limit has been reached",
-        })
-    }
+    // fn description(&self) -> Option<&str> {
+    //     Some(match self {
+    //         Self::Processed => "total number of frames processed",
+    //         Self::Dropped => "number of frames dropped due to no room on processing queue",
+    //         Self::TimeSqueezed => "number of times net_rx_action had more work, but budget or time exhausted",
+    //         Self::CpuCollision => "number of times collision occurred on obtaining device lock while transmitting",
+    //         Self::ReceivedRps => "number of times CPU has been woken up to process packets via inter-processor interrupt",
+    //         Self::FlowLimitCount => "number of times the flow limit has been reached",
+    //     })
+    // }
 
     fn source(&self) -> Source {
         Source::Counter

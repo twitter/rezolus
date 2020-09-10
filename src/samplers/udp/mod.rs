@@ -3,7 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use async_trait::async_trait;
-use rustcommon_metrics::*;
+use std::time::Instant;
 
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
@@ -71,25 +71,17 @@ impl Sampler for Udp {
     fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
         self.common.config().samplers().udp()
     }
-
-    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
-        Some(Summary::histogram(
-            1_000_000_000_000,
-            3,
-            Some(self.general_config().window()),
-        ))
-    }
 }
 
 impl Udp {
     async fn sample_snmp(&self) -> Result<(), std::io::Error> {
         let snmp = crate::common::nested_map_from_file("/proc/net/snmp").await?;
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for statistic in self.sampler_config().statistics() {
             if let Some((pkey, lkey)) = statistic.keys() {
                 if let Some(inner) = snmp.get(pkey) {
                     if let Some(value) = inner.get(lkey) {
-                        self.metrics().record_counter(statistic, time, *value);
+                        let _ = self.metrics().record_counter(&statistic, time, *value);
                     }
                 }
             }
@@ -99,12 +91,12 @@ impl Udp {
 
     async fn sample_netstat(&self) -> Result<(), std::io::Error> {
         let netstat = crate::common::nested_map_from_file("/proc/net/netstat").await?;
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for statistic in self.sampler_config().statistics() {
             if let Some((pkey, lkey)) = statistic.keys() {
                 if let Some(inner) = netstat.get(pkey) {
                     if let Some(value) = inner.get(lkey) {
-                        self.metrics().record_counter(statistic, time, *value);
+                        let _ = self.metrics().record_counter(&statistic, time, *value);
                     }
                 }
             }

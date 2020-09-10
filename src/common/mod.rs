@@ -19,18 +19,6 @@ pub const MILLISECOND: u64 = 1_000 * MICROSECOND;
 pub const MICROSECOND: u64 = 1_000 * NANOSECOND;
 pub const NANOSECOND: u64 = 1;
 
-pub const TERABIT: u64 = 1_000 * GIGABIT;
-pub const GIGABIT: u64 = 1_000 * MEGABIT;
-pub const MEGABIT: u64 = 1_000 * KILOBIT;
-pub const KILOBIT: u64 = 1_000 * BIT;
-pub const BIT: u64 = 1;
-
-pub const TEBIBYTE: u64 = 1_024 * GIBIBYTE;
-pub const GIBIBYTE: u64 = 1_024 * MEBIBYTE;
-pub const MEBIBYTE: u64 = 1_024 * KIBIBYTE;
-pub const KIBIBYTE: u64 = 1_024 * BYTE;
-pub const BYTE: u64 = 1;
-
 /// helper function to discover the number of hardware threads
 pub fn hardware_threads() -> Result<u64, ()> {
     let path = "/sys/devices/system/cpu/present";
@@ -78,4 +66,8 @@ pub async fn nested_map_from_file<T: AsRef<Path>>(
         }
     }
     Ok(ret)
+}
+
+pub fn default_percentiles() -> Vec<f64> {
+    vec![1.0, 10.0, 50.0, 90.0, 99.0]
 }

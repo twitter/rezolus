@@ -2,12 +2,13 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use core::convert::TryFrom;
+use core::convert::{TryFrom, TryInto};
 use core::str::FromStr;
+use std::time::Duration;
 
 #[cfg(feature = "perf")]
 pub use perfcnt::linux::*;
-use rustcommon_metrics::{Source, Statistic};
+use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -123,7 +124,7 @@ impl TryFrom<&str> for InterruptStatistic {
     }
 }
 
-impl Statistic for InterruptStatistic {
+impl Statistic<AtomicU64, AtomicU32> for InterruptStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

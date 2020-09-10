@@ -3,6 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::io::{Error, ErrorKind};
+use std::time::*;
 
 use async_trait::async_trait;
 use rustcommon_metrics::*;
@@ -86,7 +87,7 @@ impl Sampler for Http {
             ));
         }
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         if let Ok(response) = self.client.get(self.url.as_ref().unwrap()).send() {
             if let Ok(body) = response.text() {
                 if let Ok(json) = json::parse(&body) {
@@ -94,26 +95,22 @@ impl Sampler for Http {
                     for counter in self.common.config().samplers().http().counters() {
                         statistics.insert(
                             counter.to_string(),
-                            HttpStatistic::new(counter.to_string(), stat::Source::Counter),
+                            HttpStatistic::new(counter.to_string(), Source::Counter),
                         );
                     }
                     for gauge in self.common.config().samplers().http().gauges() {
                         statistics.insert(
                             gauge.to_string(),
-                            HttpStatistic::new(gauge.to_string(), stat::Source::Counter),
+                            HttpStatistic::new(gauge.to_string(), Source::Counter),
                         );
                     }
                     for (key, value) in json.entries() {
                         if let Some(value) = value.as_u64() {
                             if let Some(statistic) = statistics.get(key) {
-                                self.common().metrics().register(
-                                    statistic,
-                                    Some(Summary::histogram(
-                                        1_000_000_000,
-                                        3,
-                                        Some(self.general_config().window()),
-                                    )),
-                                );
+                                self.common().metrics().register(statistic);
+                                self.common()
+                                    .metrics()
+                                    .set_summary(statistic, Summary::stream(self.samples()));
                                 if self.passthrough {
                                     self.common()
                                         .metrics()
@@ -125,26 +122,28 @@ impl Sampler for Http {
                                         .add_output(statistic, Output::Percentile(*percentile));
                                 }
                                 match statistic.source() {
-                                    rustcommon_metrics::Source::Counter => {
-                                        self.common()
+                                    Source::Counter => {
+                                        let _ = self
+                                            .common()
                                             .metrics()
                                             .record_counter(statistic, time, value);
                                     }
-                                    rustcommon_metrics::Source::Gauge => {
-                                        self.common()
+                                    Source::Gauge => {
+                                        let _ = self
+                                            .common()
                                             .metrics()
                                             .record_gauge(statistic, time, value);
                                     }
                                     _ => unimplemented!(),
                                 }
                             } else if self.passthrough {
-                                let statistic =
-                                    HttpStatistic::new(key.to_string(), stat::Source::Gauge);
-                                self.common().metrics().register(&statistic, None);
+                                let statistic = HttpStatistic::new(key.to_string(), Source::Gauge);
+                                self.common().metrics().register(&statistic);
                                 self.common()
                                     .metrics()
                                     .add_output(&statistic, Output::Reading);
-                                self.common()
+                                let _ = self
+                                    .common()
                                     .metrics()
                                     .record_gauge(&statistic, time, value);
                             }

@@ -4,6 +4,7 @@
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use std::time::*;
 
 use async_trait::async_trait;
 #[cfg(feature = "bpf")]
@@ -11,7 +12,7 @@ use bcc::perf_event::{Event, SoftwareEvent};
 #[cfg(feature = "bpf")]
 use bcc::{PerfEvent, PerfEventArray};
 use regex::Regex;
-use rustcommon_metrics::*;
+
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::prelude::*;
@@ -130,14 +131,14 @@ impl Sampler for Cpu {
         Ok(())
     }
 
-    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
-        let max = crate::common::hardware_threads().unwrap_or(1024) * SECOND;
-        Some(Summary::histogram(
-            max,
-            3,
-            Some(self.general_config().window()),
-        ))
-    }
+    // fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
+    //     let max = crate::common::hardware_threads().unwrap_or(1024) * SECOND;
+    //     Some(Summary::histogram(
+    //         max,
+    //         3,
+    //         Some(self.general_config().window()),
+    //     ))
+    // }
 }
 
 impl Cpu {
@@ -211,11 +212,12 @@ impl Cpu {
             result.extend(parse_proc_stat(&line));
         }
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for stat in self.sampler_config().statistics() {
-            if let Some(value) = result.get(stat) {
-                self.metrics()
-                    .record_counter(stat, time, value * self.tick_duration);
+            if let Some(value) = result.get(&stat) {
+                let _ = self
+                    .metrics()
+                    .record_counter(&stat, time, value * self.tick_duration);
             }
         }
 
@@ -229,11 +231,11 @@ impl Cpu {
         let reader = BufReader::new(file);
         let mut lines = reader.lines();
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         while let Some(line) = lines.next_line().await? {
             if let Some(freq) = frequency_re.captures(&line).map(|m| m.get(1).unwrap()) {
                 if let Ok(mhz) = freq.as_str().parse::<f64>() {
-                    self.metrics().record_gauge(
+                    let _ = self.metrics().record_gauge(
                         &CpuStatistic::Frequency,
                         time,
                         (mhz * 1_000_000.0_f64) as u64,
@@ -249,7 +251,7 @@ impl Cpu {
     fn sample_bpf_perf_counters(&self) -> Result<(), std::io::Error> {
         if let Some(ref bpf) = self.perf {
             let bpf = bpf.lock().unwrap();
-            let time = time::precise_time_ns();
+            let time = Instant::now();
             for stat in self.sampler_config().statistics() {
                 if let Some(table) = stat.table() {
                     let map = crate::common::bpf::perf_table_to_map(&(*bpf).inner.table(table));
@@ -257,7 +259,7 @@ impl Cpu {
                     for (_cpu, count) in map.iter() {
                         total += count;
                     }
-                    self.metrics().record_counter(stat, time, total);
+                    let _ = self.metrics().record_counter(&stat, time, total);
                 }
             }
         }
@@ -332,10 +334,10 @@ impl Cpu {
             }
         }
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for stat in self.sampler_config().statistics() {
-            if let Some(value) = result.get(stat) {
-                self.metrics().record_counter(stat, time, *value);
+            if let Some(value) = result.get(&stat) {
+                let _ = self.metrics().record_counter(&stat, time, *value);
             }
         }
 

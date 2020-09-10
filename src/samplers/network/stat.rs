@@ -4,8 +4,9 @@
 
 use core::convert::TryFrom;
 use core::str::FromStr;
+use std::time::Duration;
 
-use rustcommon_metrics::{Source, Statistic};
+use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -95,7 +96,7 @@ impl NetworkStatistic {
     }
 }
 
-impl Statistic for NetworkStatistic {
+impl Statistic<AtomicU64, AtomicU32> for NetworkStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

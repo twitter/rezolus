@@ -3,14 +3,13 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
+use std::time::*;
 
 use async_trait::async_trait;
 #[cfg(feature = "bpf")]
 use bcc::perf_event::{Event, SoftwareEvent};
 #[cfg(feature = "bpf")]
 use bcc::{PerfEvent, PerfEventArray};
-use rustcommon_metrics::*;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
@@ -126,19 +125,6 @@ impl Sampler for Scheduler {
 
         Ok(())
     }
-
-    fn summary(&self, statistic: &Self::Statistic) -> Option<Summary> {
-        let precision = match statistic {
-            SchedulerStatistic::RunqueueLatency => 2,
-            _ => 3,
-        };
-
-        Some(Summary::histogram(
-            statistic.max(),
-            precision,
-            Some(self.general_config().window()),
-        ))
-    }
 }
 
 impl Scheduler {
@@ -206,33 +192,33 @@ impl Scheduler {
         let reader = BufReader::new(file);
         let mut lines = reader.lines();
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
             match parts.get(0) {
                 Some(&"ctxt") => {
-                    self.metrics().record_counter(
+                    let _ = self.metrics().record_counter(
                         &SchedulerStatistic::ContextSwitches,
                         time,
                         parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
                     );
                 }
                 Some(&"processes") => {
-                    self.metrics().record_counter(
+                    let _ = self.metrics().record_counter(
                         &SchedulerStatistic::ProcessesCreated,
                         time,
                         parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
                     );
                 }
                 Some(&"procs_running") => {
-                    self.metrics().record_gauge(
+                    let _ = self.metrics().record_gauge(
                         &SchedulerStatistic::ProcessesRunning,
                         time,
                         parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
                     );
                 }
                 Some(&"procs_blocked") => {
-                    self.metrics().record_gauge(
+                    let _ = self.metrics().record_gauge(
                         &SchedulerStatistic::ProcessesBlocked,
                         time,
                         parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
@@ -251,18 +237,20 @@ impl Scheduler {
 
         // sample bpf
         {
-            if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+            if self.bpf_last.lock().unwrap().elapsed()
+                >= Duration::new(self.general_config().window() as u64, 0)
+            {
                 if let Some(ref bpf) = self.bpf {
                     let bpf = bpf.lock().unwrap();
-                    let time = time::precise_time_ns();
+                    let time = Instant::now();
                     for statistic in self.sampler_config().statistics() {
                         if let Some(table) = statistic.bpf_table() {
                             let mut table = (*bpf).inner.table(table);
 
                             for (&value, &count) in &map_from_table(&mut table) {
                                 if count > 0 {
-                                    self.metrics().record_distribution(
-                                        statistic,
+                                    let _ = self.metrics().record_bucket(
+                                        &statistic,
                                         time,
                                         value * MICROSECOND,
                                         count,
@@ -283,7 +271,7 @@ impl Scheduler {
     fn sample_bpf_perf_counters(&self) -> Result<(), std::io::Error> {
         if let Some(ref bpf) = self.perf {
             let bpf = bpf.lock().unwrap();
-            let time = time::precise_time_ns();
+            let time = Instant::now();
             for stat in self.sampler_config().statistics() {
                 if let Some(table) = stat.perf_table() {
                     let map = crate::common::bpf::perf_table_to_map(&(*bpf).inner.table(table));
@@ -291,7 +279,7 @@ impl Scheduler {
                     for (_cpu, count) in map.iter() {
                         total += count;
                     }
-                    self.metrics().record_counter(stat, time, total);
+                    let _ = self.metrics().record_counter(&stat, time, total);
                 }
             }
         }

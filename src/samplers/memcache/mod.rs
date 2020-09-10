@@ -7,6 +7,7 @@ use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 
 use async_trait::async_trait;
 use rustcommon_metrics::*;
+use std::time::*;
 
 use crate::config::*;
 use crate::samplers::Common;
@@ -108,7 +109,7 @@ impl Sampler for Memcache {
                 }
                 let mut buffer = [0_u8; 65536];
                 let _ = stream.read(&mut buffer);
-                let time = time::precise_time_ns();
+                let time = Instant::now();
                 let stats = std::str::from_utf8(&buffer).unwrap().to_string();
                 let lines: Vec<&str> = stats.split("\r\n").collect();
                 for line in lines {
@@ -124,18 +125,16 @@ impl Sampler for Memcache {
                                         let statistic = MemcacheStatistic::new((*name).to_string());
                                         // these select metrics get histogram summaries and
                                         // percentile output
-                                        self.common().metrics().register(
+                                        self.common().metrics().register(&statistic);
+                                        self.common().metrics().set_summary(
                                             &statistic,
-                                            Some(Summary::histogram(
-                                                1_000_000_000,
-                                                3,
-                                                Some(self.general_config().window()),
-                                            )),
+                                            Summary::stream(self.samples()),
                                         );
                                         self.common()
                                             .metrics()
                                             .add_output(&statistic, Output::Reading);
-                                        self.common()
+                                        let _ = self
+                                            .common()
                                             .metrics()
                                             .record_counter(&statistic, time, value);
                                         for percentile in self.sampler_config().percentiles() {
@@ -151,12 +150,13 @@ impl Sampler for Memcache {
                                         value.parse::<f64>().map(|v| v.floor() as u64)
                                     {
                                         let statistic = MemcacheStatistic::new((*name).to_string());
-                                        self.common().metrics().register(&statistic, None);
+                                        self.common().metrics().register(&statistic);
                                         self.common()
                                             .metrics()
                                             .add_output(&statistic, Output::Reading);
                                         // gauge type is used to pass-through raw metrics
-                                        self.common()
+                                        let _ = self
+                                            .common()
                                             .metrics()
                                             .record_gauge(&statistic, time, value);
                                     }

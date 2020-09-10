@@ -4,8 +4,9 @@
 
 use core::convert::TryFrom;
 use core::str::FromStr;
+use std::time::Duration;
 
-use rustcommon_metrics::{Source, Statistic};
+use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -47,23 +48,23 @@ impl Ext4Statistic {
     }
 }
 
-impl Statistic for Ext4Statistic {
+impl Statistic<AtomicU64, AtomicU32> for Ext4Statistic {
     fn name(&self) -> &str {
         (*self).into()
     }
 
-    fn description(&self) -> Option<&str> {
-        match self {
-            Self::ReadLatency => Some("latency of ext4 read operations"),
-            Self::WriteLatency => Some("latency of ext4 write operations"),
-            Self::OpenLatency => Some("latency of ext4 open operations"),
-            Self::FsyncLatency => Some("latency of ext4 fsync operations"),
-        }
-    }
+    // fn description(&self) -> Option<&str> {
+    //     match self {
+    //         Self::ReadLatency => Some("latency of ext4 read operations"),
+    //         Self::WriteLatency => Some("latency of ext4 write operations"),
+    //         Self::OpenLatency => Some("latency of ext4 open operations"),
+    //         Self::FsyncLatency => Some("latency of ext4 fsync operations"),
+    //     }
+    // }
 
-    fn unit(&self) -> Option<&str> {
-        Some("nanoseconds")
-    }
+    // fn unit(&self) -> Option<&str> {
+    //     Some("nanoseconds")
+    // }
 
     fn source(&self) -> Source {
         Source::Distribution

@@ -4,8 +4,9 @@
 
 use core::convert::TryFrom;
 use core::str::FromStr;
+use rustcommon_metrics::*;
 
-use rustcommon_metrics::{Source, Statistic};
+// use rustcommon_metrics_legacy::{Source, Statistic};
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -35,7 +36,7 @@ pub enum RezolusStatistic {
     MemoryResident,
 }
 
-impl Statistic for RezolusStatistic {
+impl Statistic<AtomicU64, AtomicU32> for RezolusStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

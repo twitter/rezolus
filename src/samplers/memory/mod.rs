@@ -3,6 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
+use std::time::*;
 
 use async_trait::async_trait;
 use regex::Regex;
@@ -10,7 +11,6 @@ use rustcommon_metrics::*;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
-use crate::common::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
@@ -78,14 +78,6 @@ impl Sampler for Memory {
         self.map_result(self.sample_vmstat().await)?;
 
         Ok(())
-    }
-
-    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
-        Some(Summary::histogram(
-            TEBIBYTE,
-            3,
-            Some(self.general_config().window()),
-        ))
     }
 }
 
@@ -156,11 +148,12 @@ impl Memory {
             }
         }
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for stat in self.sampler_config().statistics() {
-            if let Some(value) = result.get(stat) {
-                self.metrics()
-                    .record_gauge(stat, time, *value * stat.multiplier());
+            if let Some(value) = result.get(&stat) {
+                let _ = self
+                    .metrics()
+                    .record_gauge(&stat, time, *value * stat.multiplier());
             }
         }
         Ok(())
@@ -209,15 +202,17 @@ impl Memory {
             }
         }
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for stat in self.sampler_config().statistics() {
-            if let Some(value) = result.get(stat) {
+            if let Some(value) = result.get(&stat) {
                 if stat.source() == Source::Counter {
-                    self.metrics()
-                        .record_counter(stat, time, *value * stat.multiplier());
+                    let _ = self
+                        .metrics()
+                        .record_counter(&stat, time, *value * stat.multiplier());
                 } else {
-                    self.metrics()
-                        .record_gauge(stat, time, *value * stat.multiplier());
+                    let _ = self
+                        .metrics()
+                        .record_gauge(&stat, time, *value * stat.multiplier());
                 }
             }
         }

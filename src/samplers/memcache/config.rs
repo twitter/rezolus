@@ -4,8 +4,6 @@
 
 use super::stat::*;
 use crate::config::SamplerConfig;
-use rustcommon_metrics::Percentile;
-
 use rustcommon_atomics::*;
 use serde_derive::*;
 
@@ -16,8 +14,8 @@ pub struct MemcacheConfig {
     enabled: AtomicBool,
     #[serde(default)]
     interval: Option<AtomicUsize>,
-    #[serde(default = "default_percentiles")]
-    percentiles: Vec<Percentile>,
+    #[serde(default = "crate::common::default_percentiles")]
+    percentiles: Vec<f64>,
     endpoint: Option<String>,
 }
 
@@ -26,20 +24,10 @@ impl Default for MemcacheConfig {
         Self {
             enabled: Default::default(),
             interval: Default::default(),
-            percentiles: default_percentiles(),
+            percentiles: crate::common::default_percentiles(),
             endpoint: None,
         }
     }
-}
-
-fn default_percentiles() -> Vec<Percentile> {
-    vec![
-        Percentile::p1,
-        Percentile::p10,
-        Percentile::p50,
-        Percentile::p90,
-        Percentile::p99,
-    ]
 }
 
 impl MemcacheConfig {
@@ -59,11 +47,11 @@ impl SamplerConfig for MemcacheConfig {
         self.interval.as_ref().map(|v| v.load(Ordering::Relaxed))
     }
 
-    fn percentiles(&self) -> &[Percentile] {
+    fn percentiles(&self) -> &[f64] {
         &self.percentiles
     }
 
-    fn statistics(&self) -> &[<Self as SamplerConfig>::Statistic] {
-        &[]
+    fn statistics(&self) -> Vec<<Self as SamplerConfig>::Statistic> {
+        Vec::new()
     }
 }

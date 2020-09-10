@@ -3,9 +3,10 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
+use std::time::*;
 
 use async_trait::async_trait;
-use rustcommon_metrics::*;
+
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
@@ -72,14 +73,6 @@ impl Sampler for Softnet {
 
         Ok(())
     }
-
-    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
-        Some(Summary::histogram(
-            1_000_000_000_000,
-            3,
-            Some(self.general_config().window()),
-        ))
-    }
 }
 
 impl Softnet {
@@ -93,20 +86,20 @@ impl Softnet {
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
             for statistic in self.sampler_config().statistics() {
-                if !result.contains_key(statistic) {
-                    result.insert(*statistic, 0);
+                if !result.contains_key(&statistic) {
+                    result.insert(statistic, 0);
                 }
-                let current = result.get_mut(statistic).unwrap();
+                let current = result.get_mut(&statistic).unwrap();
                 *current += parts
-                    .get(*statistic as usize)
+                    .get(statistic as usize)
                     .map(|v| u64::from_str_radix(v, 16).unwrap_or(0))
                     .unwrap_or(0);
             }
         }
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for (stat, value) in result {
-            self.metrics().record_counter(&stat, time, value);
+            let _ = self.metrics().record_counter(&stat, time, value);
         }
 
         Ok(())

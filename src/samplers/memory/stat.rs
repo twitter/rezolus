@@ -5,7 +5,7 @@
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-use rustcommon_metrics::{Source, Statistic};
+use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -215,7 +215,7 @@ impl TryFrom<&str> for MemoryStatistic {
     }
 }
 
-impl Statistic for MemoryStatistic {
+impl Statistic<AtomicU64, AtomicU32> for MemoryStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

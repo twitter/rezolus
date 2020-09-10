@@ -5,8 +5,6 @@
 use super::stat::*;
 use crate::config::SamplerConfig;
 use core::sync::atomic::AtomicBool;
-use rustcommon_metrics::Percentile;
-
 use rustcommon_atomics::*;
 use serde_derive::*;
 
@@ -21,8 +19,8 @@ pub struct HttpConfig {
     interval: Option<AtomicUsize>,
     #[serde(default)]
     passthrough: AtomicBool,
-    #[serde(default = "default_percentiles")]
-    percentiles: Vec<Percentile>,
+    #[serde(default = "crate::common::default_percentiles")]
+    percentiles: Vec<f64>,
     url: Option<String>,
 }
 
@@ -34,20 +32,10 @@ impl Default for HttpConfig {
             gauges: Vec::new(),
             interval: Default::default(),
             passthrough: Default::default(),
-            percentiles: default_percentiles(),
+            percentiles: crate::common::default_percentiles(),
             url: None,
         }
     }
-}
-
-fn default_percentiles() -> Vec<Percentile> {
-    vec![
-        Percentile::p1,
-        Percentile::p10,
-        Percentile::p50,
-        Percentile::p90,
-        Percentile::p99,
-    ]
 }
 
 impl HttpConfig {
@@ -86,11 +74,12 @@ impl SamplerConfig for HttpConfig {
         self.interval.as_ref().map(|v| v.load(Ordering::Relaxed))
     }
 
-    fn percentiles(&self) -> &[Percentile] {
+    fn percentiles(&self) -> &[f64] {
         &self.percentiles
     }
 
-    fn statistics(&self) -> &[<Self as SamplerConfig>::Statistic] {
-        &[]
+    fn statistics(&self) -> Vec<<Self as SamplerConfig>::Statistic> {
+        // we don't know the statistics yet, register at runtime instead
+        Vec::new()
     }
 }

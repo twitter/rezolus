@@ -3,17 +3,16 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
+use std::convert::TryInto;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
+use std::time::*;
 
 use async_trait::async_trait;
 use regex::Regex;
-use rustcommon_metrics::*;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
 use crate::common::bpf::*;
-use crate::common::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
@@ -99,25 +98,25 @@ impl Sampler for Disk {
         Ok(())
     }
 
-    fn summary(&self, statistic: &Self::Statistic) -> Option<Summary> {
-        let precision = if statistic.bpf_table().is_some() {
-            2
-        } else {
-            3
-        };
+    // fn summary(&self, statistic: &Self::Statistic) -> Option<Summary> {
+    //     let precision = if statistic.bpf_table().is_some() {
+    //         2
+    //     } else {
+    //         3
+    //     };
 
-        let max = if statistic.bpf_table().is_some() {
-            SECOND
-        } else {
-            TEBIBYTE
-        };
+    //     let max = if statistic.bpf_table().is_some() {
+    //         SECOND
+    //     } else {
+    //         TEBIBYTE
+    //     };
 
-        Some(Summary::histogram(
-            max,
-            precision,
-            Some(self.general_config().window()),
-        ))
-    }
+    //     Some(Summary::histogram(
+    //         max,
+    //         precision,
+    //         Some(self.general_config().window()),
+    //     ))
+    // }
 }
 
 impl Disk {
@@ -181,10 +180,10 @@ impl Disk {
             if re.is_match(parts.get(2).unwrap_or(&"unknown")) {
                 for statistic in self.sampler_config().statistics() {
                     if let Some(field) = statistic.diskstat_field() {
-                        if !result.contains_key(statistic) {
-                            result.insert(*statistic, 0);
+                        if !result.contains_key(&statistic) {
+                            result.insert(statistic, 0);
                         }
-                        let current = result.get_mut(statistic).unwrap();
+                        let current = result.get_mut(&statistic).unwrap();
                         *current += parts
                             .get(field)
                             .map(|v| v.parse().unwrap_or(0))
@@ -194,7 +193,7 @@ impl Disk {
             }
         }
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for (stat, value) in result {
             let value = match stat {
                 DiskStatistic::BandwidthWrite
@@ -202,15 +201,17 @@ impl Disk {
                 | DiskStatistic::BandwidthDiscard => value * 512,
                 _ => value,
             };
-            self.metrics().record_counter(&stat, time, value);
+            let _ = self.metrics().record_counter(&stat, time, value);
         }
         Ok(())
     }
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
-        if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
-            let time = time::precise_time_ns();
+        if self.bpf_last.lock().unwrap().elapsed()
+            >= Duration::new(self.general_config().window().try_into().unwrap(), 0)
+        {
+            let time = Instant::now();
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();
                 for statistic in self.sampler_config().statistics() {
@@ -219,10 +220,10 @@ impl Disk {
 
                         for (&value, &count) in &map_from_table(&mut table) {
                             if count > 0 {
-                                self.metrics().record_distribution(
-                                    statistic,
+                                let _ = self.metrics().record_bucket(
+                                    &statistic,
                                     time,
-                                    value * MICROSECOND,
+                                    value * crate::MICROSECOND,
                                     count,
                                 );
                             }
