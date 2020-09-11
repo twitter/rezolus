@@ -1112,7 +1112,7 @@ dependencies = [
 
 [[package]]
 name = "rezolus"
-version = "2.7.1"
+version = "2.7.2-alpha.0"
 dependencies = [
  "async-trait",
  "bcc",
