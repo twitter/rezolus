@@ -97,26 +97,6 @@ impl Sampler for Disk {
 
         Ok(())
     }
-
-    // fn summary(&self, statistic: &Self::Statistic) -> Option<Summary> {
-    //     let precision = if statistic.bpf_table().is_some() {
-    //         2
-    //     } else {
-    //         3
-    //     };
-
-    //     let max = if statistic.bpf_table().is_some() {
-    //         SECOND
-    //     } else {
-    //         TEBIBYTE
-    //     };
-
-    //     Some(Summary::histogram(
-    //         max,
-    //         precision,
-    //         Some(self.general_config().window()),
-    //     ))
-    // }
 }
 
 impl Disk {

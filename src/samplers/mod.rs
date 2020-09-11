@@ -124,10 +124,6 @@ pub trait Sampler: Sized + Send {
         (1000 / self.interval()) * self.general_config().window()
     }
 
-    // fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary<Value, Count>> {
-    //     None
-    // }
-
     fn metrics(&self) -> &Metrics<AtomicU64, AtomicU32> {
         self.common().metrics()
     }

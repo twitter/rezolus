@@ -91,14 +91,6 @@ impl Sampler for Ext4 {
 
         Ok(())
     }
-
-    // fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
-    //     Some(Summary::histogram(
-    //         SECOND,
-    //         2,
-    //         Some(self.general_config().window()),
-    //     ))
-    // }
 }
 
 impl Ext4 {

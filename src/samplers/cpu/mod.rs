@@ -12,7 +12,6 @@ use bcc::perf_event::{Event, SoftwareEvent};
 #[cfg(feature = "bpf")]
 use bcc::{PerfEvent, PerfEventArray};
 use regex::Regex;
-
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::prelude::*;
@@ -130,15 +129,6 @@ impl Sampler for Cpu {
 
         Ok(())
     }
-
-    // fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
-    //     let max = crate::common::hardware_threads().unwrap_or(1024) * SECOND;
-    //     Some(Summary::histogram(
-    //         max,
-    //         3,
-    //         Some(self.general_config().window()),
-    //     ))
-    // }
 }
 
 impl Cpu {

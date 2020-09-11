@@ -44,17 +44,6 @@ impl Statistic<AtomicU64, AtomicU32> for SoftnetStatistic {
         (*self).into()
     }
 
-    // fn description(&self) -> Option<&str> {
-    //     Some(match self {
-    //         Self::Processed => "total number of frames processed",
-    //         Self::Dropped => "number of frames dropped due to no room on processing queue",
-    //         Self::TimeSqueezed => "number of times net_rx_action had more work, but budget or time exhausted",
-    //         Self::CpuCollision => "number of times collision occurred on obtaining device lock while transmitting",
-    //         Self::ReceivedRps => "number of times CPU has been woken up to process packets via inter-processor interrupt",
-    //         Self::FlowLimitCount => "number of times the flow limit has been reached",
-    //     })
-    // }
-
     fn source(&self) -> Source {
         Source::Counter
     }

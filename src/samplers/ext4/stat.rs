@@ -53,19 +53,6 @@ impl Statistic<AtomicU64, AtomicU32> for Ext4Statistic {
         (*self).into()
     }
 
-    // fn description(&self) -> Option<&str> {
-    //     match self {
-    //         Self::ReadLatency => Some("latency of ext4 read operations"),
-    //         Self::WriteLatency => Some("latency of ext4 write operations"),
-    //         Self::OpenLatency => Some("latency of ext4 open operations"),
-    //         Self::FsyncLatency => Some("latency of ext4 fsync operations"),
-    //     }
-    // }
-
-    // fn unit(&self) -> Option<&str> {
-    //     Some("nanoseconds")
-    // }
-
     fn source(&self) -> Source {
         Source::Distribution
     }

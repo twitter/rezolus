@@ -48,21 +48,6 @@ impl Statistic<AtomicU64, AtomicU32> for UdpStatistic {
         (*self).into()
     }
 
-    // fn description(&self) -> Option<&str> {
-    //     match self {
-    //         Self::InDatagrams => Some("udp datagrams received"),
-    //         Self::InErrors => Some("udp datagrams that were not delivered to valid port"),
-    //         Self::OutDatagrams => Some("udp datagrams transmitted"),
-    //     }
-    // }
-
-    // fn unit(&self) -> Option<&str> {
-    //     match self {
-    //         Self::InDatagrams | Self::OutDatagrams => Some("datagrams"),
-    //         _ => None,
-    //     }
-    // }
-
     fn source(&self) -> Source {
         Source::Counter
     }

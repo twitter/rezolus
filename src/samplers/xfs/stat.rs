@@ -53,19 +53,6 @@ impl Statistic<AtomicU64, AtomicU32> for XfsStatistic {
         (*self).into()
     }
 
-    // fn description(&self) -> Option<&str> {
-    //     match self {
-    //         Self::ReadLatency => Some("latency of xfs read operations"),
-    //         Self::WriteLatency => Some("latency of xfs write operations"),
-    //         Self::OpenLatency => Some("latency of xfs open operations"),
-    //         Self::FsyncLatency => Some("latency of xfs fsync operations"),
-    //     }
-    // }
-
-    // fn unit(&self) -> Option<&str> {
-    //     Some("nanoseconds")
-    // }
-
     fn source(&self) -> Source {
         Source::Distribution
     }
