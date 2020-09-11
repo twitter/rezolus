@@ -36,11 +36,11 @@ impl Http {
     }
 
     pub fn run(&mut self) {
-        if self.updated.elapsed() >= Duration::from_millis(500) {
-            self.snapshot.refresh();
-            self.updated = Instant::now();
-        }
         if let Ok(Some(request)) = self.server.try_recv() {
+            if self.updated.elapsed() >= Duration::from_millis(500) {
+                self.snapshot.refresh();
+                self.updated = Instant::now();
+            }
             let url = request.url();
             let parts: Vec<&str> = url.split('?').collect();
             let url = parts[0];
