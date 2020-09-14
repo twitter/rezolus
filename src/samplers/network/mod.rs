@@ -48,6 +48,8 @@ impl Sampler for Network {
             }
         }
 
+        sampler.register();
+
         Ok(sampler)
     }
 
@@ -87,8 +89,6 @@ impl Sampler for Network {
         }
 
         debug!("sampling");
-        self.register();
-
         self.map_result(self.sample_proc_net_dev().await)?;
         #[cfg(feature = "bpf")]
         self.map_result(self.sample_bpf())?;

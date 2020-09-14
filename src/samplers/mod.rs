@@ -109,7 +109,7 @@ pub trait Sampler: Sized + Send {
                 } else {
                     self.common()
                         .metrics()
-                        .set_summary(&statistic, Summary::stream(self.samples()));
+                        .add_summary(&statistic, Summary::stream(self.samples()));
                 }
             }
             for percentile in percentiles {
