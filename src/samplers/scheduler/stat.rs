@@ -3,9 +3,9 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::common::SECOND;
+
 use core::convert::TryFrom;
 use core::str::FromStr;
-use std::time::Duration;
 
 #[cfg(feature = "bpf")]
 use bcc::perf_event::*;

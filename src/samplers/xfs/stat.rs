@@ -4,7 +4,6 @@
 
 use core::convert::TryFrom;
 use core::str::FromStr;
-use std::time::Duration;
 
 use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};

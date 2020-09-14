@@ -4,9 +4,8 @@
 
 use core::convert::TryFrom;
 use core::str::FromStr;
-use rustcommon_metrics::*;
-use std::time::Duration;
 
+use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
