@@ -3,7 +3,6 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::sync::{Arc, Mutex};
 use std::time::*;
 
