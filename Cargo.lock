@@ -728,11 +728,12 @@ dependencies = [
 
 [[package]]
 name = "miniz_oxide"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d7559a8a40d0f97e1edea3220f698f78b1c5ab67532e49f68fde3910323b722"
+checksum = "c60c0dfe32c10b43a144bad8fc83538c52f58302c92300ea7ec7bf7b38d5a7b9"
 dependencies = [
  "adler",
+ "autocfg",
 ]
 
 [[package]]
@@ -1149,7 +1150,7 @@ checksum = "4c691c0e608126e00913e33f0ccf3727d5fc84573623b8d65b2df340b5201783"
 [[package]]
 name = "rustcommon-atomics"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#e09ce572938270e89a010a3b8361e58b105f5c95"
+source = "git+https://github.com/twitter/rustcommon#f4621645d80520a32e0255dddeb0ce861cf490fa"
 dependencies = [
  "serde",
 ]
@@ -1157,7 +1158,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-heatmap"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon#e09ce572938270e89a010a3b8361e58b105f5c95"
+source = "git+https://github.com/twitter/rustcommon#f4621645d80520a32e0255dddeb0ce861cf490fa"
 dependencies = [
  "rustcommon-atomics",
  "rustcommon-histogram",
@@ -1167,7 +1168,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-histogram"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#e09ce572938270e89a010a3b8361e58b105f5c95"
+source = "git+https://github.com/twitter/rustcommon#f4621645d80520a32e0255dddeb0ce861cf490fa"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
@@ -1176,7 +1177,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-logger"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#e09ce572938270e89a010a3b8361e58b105f5c95"
+source = "git+https://github.com/twitter/rustcommon#f4621645d80520a32e0255dddeb0ce861cf490fa"
 dependencies = [
  "log 0.4.11",
  "time",
@@ -1185,7 +1186,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics"
 version = "2.0.0-alpha.0"
-source = "git+https://github.com/twitter/rustcommon#e09ce572938270e89a010a3b8361e58b105f5c95"
+source = "git+https://github.com/twitter/rustcommon#f4621645d80520a32e0255dddeb0ce861cf490fa"
 dependencies = [
  "dashmap",
  "rustcommon-atomics",
@@ -1196,7 +1197,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-streamstats"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon#e09ce572938270e89a010a3b8361e58b105f5c95"
+source = "git+https://github.com/twitter/rustcommon#f4621645d80520a32e0255dddeb0ce861cf490fa"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
@@ -1354,9 +1355,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.40"
+version = "1.0.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "963f7d3cc59b59b9325165add223142bbf1df27655d07789f109896d353d8350"
+checksum = "6690e3e9f692504b941dc6c3b188fd28df054f7fb8469ab40680df52fdcc842b"
 dependencies = [
  "proc-macro2",
  "quote",
