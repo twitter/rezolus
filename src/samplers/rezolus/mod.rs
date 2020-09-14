@@ -12,6 +12,7 @@ use crate::common::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
+use std::time::*;
 
 mod config;
 mod stat;
@@ -103,9 +104,9 @@ impl Rezolus {
             result.insert(RezolusStatistic::CpuSystem, system * self.nanos_per_tick);
         }
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for (stat, value) in result {
-            self.metrics().record_counter(&stat, time, value);
+            let _ = self.metrics().record_counter(&stat, time, value);
         }
         Ok(())
     }
@@ -125,9 +126,9 @@ impl Rezolus {
             result_memory.insert(RezolusStatistic::MemoryResident, rss);
         }
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for (stat, value) in result_memory {
-            self.metrics().record_gauge(&stat, time, value * 4096);
+            let _ = self.metrics().record_gauge(&stat, time, value * 4096);
         }
         Ok(())
     }

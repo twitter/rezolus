@@ -5,7 +5,7 @@
 use core::convert::TryFrom;
 use core::str::FromStr;
 
-use rustcommon_metrics::{Source, Statistic};
+use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -47,22 +47,9 @@ impl XfsStatistic {
     }
 }
 
-impl Statistic for XfsStatistic {
+impl Statistic<AtomicU64, AtomicU32> for XfsStatistic {
     fn name(&self) -> &str {
         (*self).into()
-    }
-
-    fn description(&self) -> Option<&str> {
-        match self {
-            Self::ReadLatency => Some("latency of xfs read operations"),
-            Self::WriteLatency => Some("latency of xfs write operations"),
-            Self::OpenLatency => Some("latency of xfs open operations"),
-            Self::FsyncLatency => Some("latency of xfs fsync operations"),
-        }
-    }
-
-    fn unit(&self) -> Option<&str> {
-        Some("nanoseconds")
     }
 
     fn source(&self) -> Source {

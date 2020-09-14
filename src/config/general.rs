@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::time::Duration;
-
 use rustcommon_atomics::*;
 
 use crate::config::*;
@@ -49,9 +47,9 @@ impl General {
         self.threads
     }
 
-    /// window for histogram lookback
-    pub fn window(&self) -> Duration {
-        Duration::new(self.window.load(Ordering::Relaxed) as u64, 0)
+    /// windows for histogram lookback
+    pub fn window(&self) -> usize {
+        self.window.load(Ordering::Relaxed) as usize
     }
 
     pub fn fault_tolerant(&self) -> bool {

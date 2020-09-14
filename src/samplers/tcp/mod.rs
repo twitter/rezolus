@@ -3,10 +3,9 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
+use std::time::*;
 
 use async_trait::async_trait;
-use rustcommon_metrics::*;
 
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;
@@ -94,26 +93,6 @@ impl Sampler for Tcp {
 
         Ok(())
     }
-
-    fn summary(&self, statistic: &Self::Statistic) -> Option<Summary> {
-        let precision = if statistic.bpf_table().is_some() {
-            2
-        } else {
-            3
-        };
-
-        let max = if statistic.bpf_table().is_some() {
-            1_000_000
-        } else {
-            1_000_000_000_000
-        };
-
-        Some(Summary::histogram(
-            max,
-            precision,
-            Some(self.general_config().window()),
-        ))
-    }
 }
 
 impl Tcp {
@@ -162,12 +141,12 @@ impl Tcp {
 
     async fn sample_snmp(&self) -> Result<(), std::io::Error> {
         let snmp = crate::common::nested_map_from_file("/proc/net/snmp").await?;
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for statistic in self.sampler_config().statistics() {
             if let Some((pkey, lkey)) = statistic.keys() {
                 if let Some(inner) = snmp.get(pkey) {
                     if let Some(value) = inner.get(lkey) {
-                        self.metrics().record_counter(statistic, time, *value);
+                        let _ = self.metrics().record_counter(&statistic, time, *value);
                     }
                 }
             }
@@ -177,12 +156,12 @@ impl Tcp {
 
     async fn sample_netstat(&self) -> Result<(), std::io::Error> {
         let netstat = crate::common::nested_map_from_file("/proc/net/netstat").await?;
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for statistic in self.sampler_config().statistics() {
             if let Some((pkey, lkey)) = statistic.keys() {
                 if let Some(inner) = netstat.get(pkey) {
                     if let Some(value) = inner.get(lkey) {
-                        self.metrics().record_counter(statistic, time, *value);
+                        let _ = self.metrics().record_counter(&statistic, time, *value);
                     }
                 }
             }
@@ -192,18 +171,20 @@ impl Tcp {
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
-        if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+        if self.bpf_last.lock().unwrap().elapsed()
+            >= Duration::new(self.general_config().window() as u64, 0)
+        {
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();
-                let time = time::precise_time_ns();
+                let time = Instant::now();
                 for statistic in self.sampler_config().statistics() {
                     if let Some(table) = statistic.bpf_table() {
                         let mut table = (*bpf).inner.table(table);
 
                         for (&value, &count) in &map_from_table(&mut table) {
                             if count > 0 {
-                                self.metrics().record_distribution(
-                                    statistic,
+                                let _ = self.metrics().record_bucket(
+                                    &statistic,
                                     time,
                                     value * 1000,
                                     count,

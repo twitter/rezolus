@@ -11,7 +11,6 @@ use std::net::{SocketAddr, ToSocketAddrs};
 
 use clap::{App, Arg};
 use rustcommon_logger::Level;
-use rustcommon_metrics::Percentile;
 use serde_derive::*;
 
 use crate::*;
@@ -132,9 +131,9 @@ pub trait SamplerConfig {
         false
     }
     fn interval(&self) -> Option<usize>;
-    fn percentiles(&self) -> &[Percentile];
+    fn percentiles(&self) -> &[f64];
     fn perf_events(&self) -> bool {
         false
     }
-    fn statistics(&self) -> &[<Self as config::SamplerConfig>::Statistic];
+    fn statistics(&self) -> Vec<<Self as config::SamplerConfig>::Statistic>;
 }

@@ -4,7 +4,7 @@
 
 use crate::Statistic;
 
-use rustcommon_metrics::Source;
+use rustcommon_metrics::*;
 
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct MemcacheStatistic {
@@ -17,7 +17,7 @@ impl MemcacheStatistic {
     }
 }
 
-impl Statistic for MemcacheStatistic {
+impl Statistic<AtomicU64, AtomicU32> for MemcacheStatistic {
     fn name(&self) -> &str {
         &self.inner
     }

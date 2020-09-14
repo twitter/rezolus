@@ -4,15 +4,13 @@
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
+use std::time::*;
 
 use async_trait::async_trait;
-use rustcommon_metrics::*;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
 use crate::common::bpf::*;
-use crate::common::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
@@ -49,6 +47,8 @@ impl Sampler for Network {
                 return Err(e);
             }
         }
+
+        sampler.register();
 
         Ok(sampler)
     }
@@ -89,33 +89,11 @@ impl Sampler for Network {
         }
 
         debug!("sampling");
-        self.register();
-
         self.map_result(self.sample_proc_net_dev().await)?;
         #[cfg(feature = "bpf")]
         self.map_result(self.sample_bpf())?;
 
         Ok(())
-    }
-
-    fn summary(&self, statistic: &Self::Statistic) -> Option<Summary> {
-        let precision = if statistic.bpf_table().is_some() {
-            2
-        } else {
-            3
-        };
-
-        let max = if statistic.bpf_table().is_some() {
-            SECOND
-        } else {
-            TERABIT
-        };
-
-        Some(Summary::histogram(
-            max,
-            precision,
-            Some(self.general_config().window()),
-        ))
     }
 }
 
@@ -173,10 +151,10 @@ impl Network {
             if !parts.is_empty() && parts[1].parse::<u64>().is_ok() {
                 for statistic in self.sampler_config().statistics() {
                     if let Some(field) = statistic.field_number() {
-                        if !result.contains_key(statistic) {
-                            result.insert(*statistic, 0);
+                        if !result.contains_key(&statistic) {
+                            result.insert(statistic, 0);
                         }
-                        let current = result.get_mut(statistic).unwrap();
+                        let current = result.get_mut(&statistic).unwrap();
                         *current += parts
                             .get(field)
                             .map(|v| v.parse().unwrap_or(0))
@@ -186,17 +164,19 @@ impl Network {
             }
         }
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for (stat, value) in result {
-            self.metrics().record_counter(&stat, time, value);
+            let _ = self.metrics().record_counter(&stat, time, value);
         }
         Ok(())
     }
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
-        if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
-            let time = time::precise_time_ns();
+        if self.bpf_last.lock().unwrap().elapsed()
+            >= Duration::new(self.general_config().window() as u64, 0)
+        {
+            let time = Instant::now();
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();
                 for statistic in self.sampler_config().statistics() {
@@ -205,8 +185,8 @@ impl Network {
 
                         for (&value, &count) in &map_from_table(&mut table) {
                             if count > 0 {
-                                self.metrics()
-                                    .record_distribution(statistic, time, value, count);
+                                let _ =
+                                    self.metrics().record_bucket(&statistic, time, value, count);
                             }
                         }
                     }

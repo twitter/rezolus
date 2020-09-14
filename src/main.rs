@@ -8,8 +8,10 @@ extern crate rustcommon_logger;
 #[macro_use]
 extern crate failure;
 
+use rustcommon_atomics::{Atomic, Ordering};
 use std::sync::Arc;
 
+use rustcommon_atomics::AtomicBool;
 use rustcommon_logger::Logger;
 use rustcommon_metrics::*;
 use tokio::runtime::Builder;
@@ -56,7 +58,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // initialize metrics
     debug!("initializing metrics");
-    let metrics = Arc::new(Metrics::<AtomicU32>::new());
+    let metrics = Arc::new(Metrics::<AtomicU64, AtomicU32>::new());
 
     // initialize async runtime
     debug!("initializing async runtime");
@@ -82,10 +84,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Network::spawn(common.clone());
     Rezolus::spawn(common.clone());
     Scheduler::spawn(common.clone());
-    Softnet::spawn(common.clone());
-    Tcp::spawn(common.clone());
-    Udp::spawn(common.clone());
-    Xfs::spawn(common);
+    // Softnet::spawn(common.clone());
+    // Tcp::spawn(common.clone());
+    // Udp::spawn(common.clone());
+    // Xfs::spawn(common);
 
     #[cfg(feature = "push_kafka")]
     {

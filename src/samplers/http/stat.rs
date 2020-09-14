@@ -3,14 +3,9 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::Statistic;
+use rustcommon_metrics::*;
 
-#[derive(Debug, Eq, PartialEq, Hash)]
-pub enum Source {
-    Counter,
-    Gauge,
-}
-
-#[derive(Debug, Eq, PartialEq, Hash)]
+// #[derive(Eq, PartialEq, Hash)]
 pub struct HttpStatistic {
     name: String,
     source: Source,
@@ -22,15 +17,12 @@ impl HttpStatistic {
     }
 }
 
-impl Statistic for HttpStatistic {
+impl Statistic<AtomicU64, AtomicU32> for HttpStatistic {
     fn name(&self) -> &str {
         &self.name
     }
 
-    fn source(&self) -> rustcommon_metrics::Source {
-        match self.source {
-            Source::Counter => rustcommon_metrics::Source::Counter,
-            Source::Gauge => rustcommon_metrics::Source::Gauge,
-        }
+    fn source(&self) -> Source {
+        self.source
     }
 }

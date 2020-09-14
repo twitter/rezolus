@@ -4,15 +4,13 @@
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
+use std::time::*;
 
 use async_trait::async_trait;
-use rustcommon_metrics::*;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
 use crate::common::bpf::*;
-use crate::common::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
@@ -97,15 +95,6 @@ impl Sampler for Interrupt {
         self.map_result(self.sample_bpf())?;
 
         Ok(())
-    }
-
-    fn summary(&self, _statistic: &Self::Statistic) -> Option<Summary> {
-        let max = crate::common::hardware_threads().unwrap_or(1024) * SECOND;
-        Some(Summary::histogram(
-            max,
-            3,
-            Some(self.general_config().window()),
-        ))
     }
 }
 
@@ -271,10 +260,10 @@ impl Interrupt {
             }
         }
 
-        let time = time::precise_time_ns();
+        let time = Instant::now();
         for stat in self.sampler_config().statistics() {
-            if let Some(value) = result.get(stat) {
-                self.metrics().record_counter(stat, time, *value);
+            if let Some(value) = result.get(&stat) {
+                let _ = self.metrics().record_counter(&stat, time, *value);
             }
         }
 
@@ -283,20 +272,22 @@ impl Interrupt {
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
-        if self.bpf_last.lock().unwrap().elapsed() >= self.general_config().window() {
+        if self.bpf_last.lock().unwrap().elapsed()
+            >= Duration::new(self.general_config().window() as u64, 0)
+        {
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();
-                let time = time::precise_time_ns();
+                let time = Instant::now();
                 for statistic in self.sampler_config().statistics() {
                     if let Some(table) = statistic.bpf_table() {
                         let mut table = (*bpf).inner.table(table);
 
                         for (&value, &count) in &map_from_table(&mut table) {
                             if count > 0 {
-                                self.metrics().record_distribution(
-                                    statistic,
+                                let _ = self.metrics().record_bucket(
+                                    &statistic,
                                     time,
-                                    value * MICROSECOND,
+                                    value * crate::MICROSECOND,
                                     count,
                                 );
                             }

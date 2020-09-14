@@ -8,7 +8,7 @@ use core::str::FromStr;
 #[cfg(feature = "bpf")]
 use bcc::perf_event::*;
 
-use rustcommon_metrics::{Source, Statistic};
+use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -96,7 +96,7 @@ impl TryFrom<&str> for CpuStatistic {
     }
 }
 
-impl Statistic for CpuStatistic {
+impl Statistic<AtomicU64, AtomicU32> for CpuStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }
@@ -144,7 +144,6 @@ impl CpuStatistic {
         }
     }
 
-    #[cfg(feature = "bpf")]
     pub fn table(self) -> Option<&'static str> {
         match self {
             Self::BpuBranches => Some("branch_instructions"),

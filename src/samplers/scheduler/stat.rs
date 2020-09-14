@@ -3,12 +3,13 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::common::SECOND;
+
 use core::convert::TryFrom;
 use core::str::FromStr;
 
 #[cfg(feature = "bpf")]
 use bcc::perf_event::*;
-use rustcommon_metrics::{Source, Statistic};
+use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
@@ -75,7 +76,7 @@ impl SchedulerStatistic {
     }
 }
 
-impl Statistic for SchedulerStatistic {
+impl Statistic<AtomicU64, AtomicU32> for SchedulerStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }
