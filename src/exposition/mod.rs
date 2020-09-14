@@ -50,10 +50,8 @@ impl MetricsSnapshot {
                         data.push(format!("{} {}", label, value));
                     }
                 }
-                Output::Percentile(percentile) => match percentile {
-                    _ => {
-                        data.push(format!("{}/histogram/p{:02} {}", label, percentile, value));
-                    }
+                Output::Percentile(percentile) => {
+                    data.push(format!("{}/histogram/p{:02} {}", label, percentile, value));
                 },
             }
         }
@@ -78,7 +76,7 @@ impl MetricsSnapshot {
                     }
                 }
                 Output::Percentile(percentile) => {
-                    data.push(format!("{}/histogram/p{:02} {}", label, percentile, value));
+                    data.push(format!("{}/histogram/p{:02}: {}", label, percentile, value));
                 }
             }
         }
@@ -106,7 +104,7 @@ impl MetricsSnapshot {
                     }
                 }
                 Output::Percentile(percentile) => {
-                    data.push(format!("{}/histogram/p{:02} {}", label, percentile, value));
+                    data.push(format!("{}/histogram/p{:02}: {}", label, percentile, value));
                 }
             }
         }
