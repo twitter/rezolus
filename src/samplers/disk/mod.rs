@@ -3,7 +3,6 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::sync::{Arc, Mutex};
 use std::time::*;
 
@@ -188,6 +187,7 @@ impl Disk {
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
+        use std::convert::TryInto;
         if self.bpf_last.lock().unwrap().elapsed()
             >= Duration::new(self.general_config().window().try_into().unwrap(), 0)
         {

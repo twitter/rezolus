@@ -84,10 +84,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Network::spawn(common.clone());
     Rezolus::spawn(common.clone());
     Scheduler::spawn(common.clone());
-    // Softnet::spawn(common.clone());
-    // Tcp::spawn(common.clone());
-    // Udp::spawn(common.clone());
-    // Xfs::spawn(common);
+    Softnet::spawn(common.clone());
+    Tcp::spawn(common.clone());
+    Udp::spawn(common.clone());
+    Xfs::spawn(common);
 
     #[cfg(feature = "push_kafka")]
     {
