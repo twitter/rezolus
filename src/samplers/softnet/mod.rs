@@ -3,6 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
+use std::io::SeekFrom;
 use std::time::*;
 
 use async_trait::async_trait;
@@ -22,13 +23,24 @@ pub use stat::*;
 
 pub struct Softnet {
     common: Common,
+    softnet_stat: Option<File>,
+    statistics: Vec<SoftnetStatistic>,
 }
 
 #[async_trait]
 impl Sampler for Softnet {
     type Statistic = SoftnetStatistic;
     fn new(common: Common) -> Result<Self, failure::Error> {
-        Ok(Self { common })
+        let statistics = common.config().samplers().softnet().statistics();
+        let sampler = Self {
+            common,
+            softnet_stat: None,
+            statistics,
+        };
+        if sampler.sampler_config().enabled() {
+            sampler.register();
+        }
+        Ok(sampler)
     }
 
     fn spawn(common: Common) {
@@ -67,39 +79,45 @@ impl Sampler for Softnet {
         }
 
         debug!("sampling");
-        self.register();
 
-        self.map_result(self.sample_softnet_stats().await)?;
+        let r = self.sample_softnet_stats().await;
+        self.map_result(r)?;
 
         Ok(())
     }
 }
 
 impl Softnet {
-    async fn sample_softnet_stats(&self) -> Result<(), std::io::Error> {
-        let file = File::open("/proc/net/softnet_stat").await?;
-        let reader = BufReader::new(file);
-        let mut lines = reader.lines();
-
-        let mut result = HashMap::new();
-
-        while let Some(line) = lines.next_line().await? {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            for statistic in self.sampler_config().statistics() {
-                if !result.contains_key(&statistic) {
-                    result.insert(statistic, 0);
-                }
-                let current = result.get_mut(&statistic).unwrap();
-                *current += parts
-                    .get(statistic as usize)
-                    .map(|v| u64::from_str_radix(v, 16).unwrap_or(0))
-                    .unwrap_or(0);
-            }
+    async fn sample_softnet_stats(&mut self) -> Result<(), std::io::Error> {
+        if self.softnet_stat.is_none() {
+            let file = File::open("/proc/net/softnet_stat").await?;
+            self.softnet_stat = Some(file);
         }
 
-        let time = Instant::now();
-        for (stat, value) in result {
-            let _ = self.metrics().record_counter(&stat, time, value);
+        if let Some(file) = &mut self.softnet_stat {
+            file.seek(SeekFrom::Start(0)).await?;
+            let mut reader = BufReader::new(file);
+            let mut line = String::new();
+            let mut result = HashMap::<SoftnetStatistic, u64>::new();
+
+            while reader.read_line(&mut line).await? > 0 {
+                for (id, part) in line.split_whitespace().enumerate() {
+                    if let Some(statistic) = num::FromPrimitive::from_usize(id) {
+                        if !result.contains_key(&statistic) {
+                            result.insert(statistic, 0);
+                        }
+                        let current = result.get_mut(&statistic).unwrap();
+                        *current += u64::from_str_radix(part, 16).unwrap_or(0);
+                    }
+                }
+            }
+
+            let time = Instant::now();
+            for statistic in &self.statistics {
+                if let Some(value) = result.get(statistic) {
+                    let _ = self.metrics().record_counter(statistic, time, *value);
+                }
+            }
         }
 
         Ok(())

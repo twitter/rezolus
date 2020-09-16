@@ -4,6 +4,7 @@
 
 use async_trait::async_trait;
 use std::time::Instant;
+use tokio::fs::File;
 
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
@@ -18,6 +19,9 @@ pub use stat::UdpStatistic;
 #[allow(dead_code)]
 pub struct Udp {
     common: Common,
+    proc_net_snmp: Option<File>,
+    proc_net_netstat: Option<File>,
+    statistics: Vec<UdpStatistic>,
 }
 
 #[async_trait]
@@ -25,7 +29,18 @@ impl Sampler for Udp {
     type Statistic = UdpStatistic;
 
     fn new(common: Common) -> Result<Self, failure::Error> {
-        Ok(Self { common })
+        let statistics = common.config().samplers().udp().statistics();
+
+        let sampler = Self {
+            common,
+            proc_net_snmp: None,
+            proc_net_netstat: None,
+            statistics,
+        };
+        if sampler.sampler_config().enabled() {
+            sampler.register();
+        }
+        Ok(sampler)
     }
 
     fn spawn(common: Common) {
@@ -60,10 +75,12 @@ impl Sampler for Udp {
         }
 
         debug!("sampling");
-        self.register();
 
-        self.map_result(self.sample_snmp().await)?;
-        self.map_result(self.sample_netstat().await)?;
+        let r = self.sample_snmp().await;
+        self.map_result(r)?;
+
+        let r = self.sample_netstat().await;
+        self.map_result(r)?;
 
         Ok(())
     }
@@ -74,29 +91,42 @@ impl Sampler for Udp {
 }
 
 impl Udp {
-    async fn sample_snmp(&self) -> Result<(), std::io::Error> {
-        let snmp = crate::common::nested_map_from_file("/proc/net/snmp").await?;
-        let time = Instant::now();
-        for statistic in self.sampler_config().statistics() {
-            if let Some((pkey, lkey)) = statistic.keys() {
-                if let Some(inner) = snmp.get(pkey) {
-                    if let Some(value) = inner.get(lkey) {
-                        let _ = self.metrics().record_counter(&statistic, time, *value);
+    async fn sample_snmp(&mut self) -> Result<(), std::io::Error> {
+        if self.proc_net_snmp.is_none() {
+            let file = File::open("/proc/net/snmp").await?;
+            self.proc_net_snmp = Some(file);
+        }
+        if let Some(file) = &mut self.proc_net_snmp {
+            let parsed = crate::common::nested_map_from_file(file).await?;
+            let time = Instant::now();
+            for statistic in &self.statistics {
+                if let Some((pkey, lkey)) = statistic.keys() {
+                    if let Some(inner) = parsed.get(pkey) {
+                        if let Some(value) = inner.get(lkey) {
+                            let _ = self.metrics().record_counter(statistic, time, *value);
+                        }
                     }
                 }
             }
         }
+
         Ok(())
     }
 
-    async fn sample_netstat(&self) -> Result<(), std::io::Error> {
-        let netstat = crate::common::nested_map_from_file("/proc/net/netstat").await?;
-        let time = Instant::now();
-        for statistic in self.sampler_config().statistics() {
-            if let Some((pkey, lkey)) = statistic.keys() {
-                if let Some(inner) = netstat.get(pkey) {
-                    if let Some(value) = inner.get(lkey) {
-                        let _ = self.metrics().record_counter(&statistic, time, *value);
+    async fn sample_netstat(&mut self) -> Result<(), std::io::Error> {
+        if self.proc_net_netstat.is_none() {
+            let file = File::open("/proc/net/netstat").await?;
+            self.proc_net_netstat = Some(file);
+        }
+        if let Some(file) = &mut self.proc_net_netstat {
+            let parsed = crate::common::nested_map_from_file(file).await?;
+            let time = Instant::now();
+            for statistic in &self.statistics {
+                if let Some((pkey, lkey)) = statistic.keys() {
+                    if let Some(inner) = parsed.get(pkey) {
+                        if let Some(value) = inner.get(lkey) {
+                            let _ = self.metrics().record_counter(statistic, time, *value);
+                        }
                     }
                 }
             }

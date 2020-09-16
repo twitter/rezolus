@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use std::collections::HashMap;
+use std::io::SeekFrom;
 use std::sync::{Arc, Mutex};
 use std::time::*;
 
@@ -30,6 +32,8 @@ pub struct Scheduler {
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
     perf: Option<Arc<Mutex<BPF>>>,
+    proc_stat: Option<File>,
+    statistics: Vec<SchedulerStatistic>,
 }
 
 #[async_trait]
@@ -37,6 +41,7 @@ impl Sampler for Scheduler {
     type Statistic = SchedulerStatistic;
     fn new(common: Common) -> Result<Self, failure::Error> {
         let fault_tolerant = common.config.general().fault_tolerant();
+        let statistics = common.config().samplers().scheduler().statistics();
 
         #[allow(unused_mut)]
         let mut sampler = Self {
@@ -44,6 +49,8 @@ impl Sampler for Scheduler {
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
             perf: None,
+            proc_stat: None,
+            statistics,
         };
 
         if sampler.sampler_config().enabled() {
@@ -119,7 +126,8 @@ impl Sampler for Scheduler {
         #[cfg(feature = "bpf")]
         self.map_result(self.sample_bpf_perf_counters())?;
 
-        self.map_result(self.sample_proc_stat().await)?;
+        let r = self.sample_proc_stat().await;
+        self.map_result(r)?;
         #[cfg(feature = "bpf")]
         self.map_result(self.sample_bpf())?;
 
@@ -146,7 +154,7 @@ impl Scheduler {
             include_str!("perf.c").to_string()
         );
         if let Ok(mut bpf) = bcc::BPF::new(&code) {
-            for statistic in self.sampler_config().statistics().iter() {
+            for statistic in &self.statistics {
                 if let Some(table) = statistic.perf_table() {
                     if let Some(event) = statistic.event() {
                         if PerfEventArray::new()
@@ -187,44 +195,36 @@ impl Scheduler {
         Ok(())
     }
 
-    async fn sample_proc_stat(&self) -> Result<(), std::io::Error> {
-        let file = File::open("/proc/stat").await?;
-        let reader = BufReader::new(file);
-        let mut lines = reader.lines();
+    async fn sample_proc_stat(&mut self) -> Result<(), std::io::Error> {
+        if self.proc_stat.is_none() {
+            let file = File::open("/proc/stat").await?;
+            self.proc_stat = Some(file);
+        }
 
-        let time = Instant::now();
-        while let Some(line) = lines.next_line().await? {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            match parts.get(0) {
-                Some(&"ctxt") => {
-                    let _ = self.metrics().record_counter(
-                        &SchedulerStatistic::ContextSwitches,
-                        time,
-                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
-                    );
+        if let Some(file) = &mut self.proc_stat {
+            file.seek(SeekFrom::Start(0)).await?;
+            let mut reader = BufReader::new(file);
+            let mut line = String::new();
+            let mut result = HashMap::new();
+
+            while reader.read_line(&mut line).await? > 0 {
+                let mut split = line.split_whitespace();
+                if let Some(stat) = match split.next() {
+                    Some("ctx") => Some(SchedulerStatistic::ContextSwitches),
+                    Some("processes") => Some(SchedulerStatistic::ProcessesCreated),
+                    Some("procs_running") => Some(SchedulerStatistic::ProcessesRunning),
+                    Some("procs_blocked") => Some(SchedulerStatistic::ProcessesBlocked),
+                    _ => None,
+                } {
+                    let value = split.next().map(|v| v.parse().unwrap_or(0)).unwrap_or(0);
+                    result.insert(stat, value);
                 }
-                Some(&"processes") => {
-                    let _ = self.metrics().record_counter(
-                        &SchedulerStatistic::ProcessesCreated,
-                        time,
-                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
-                    );
+            }
+            let time = Instant::now();
+            for statistic in &self.statistics {
+                if let Some(value) = result.get(statistic) {
+                    let _ = self.metrics().record_counter(statistic, time, *value);
                 }
-                Some(&"procs_running") => {
-                    let _ = self.metrics().record_gauge(
-                        &SchedulerStatistic::ProcessesRunning,
-                        time,
-                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
-                    );
-                }
-                Some(&"procs_blocked") => {
-                    let _ = self.metrics().record_gauge(
-                        &SchedulerStatistic::ProcessesBlocked,
-                        time,
-                        parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0),
-                    );
-                }
-                Some(_) | None => {}
             }
         }
 
@@ -243,14 +243,14 @@ impl Scheduler {
                 if let Some(ref bpf) = self.bpf {
                     let bpf = bpf.lock().unwrap();
                     let time = Instant::now();
-                    for statistic in self.sampler_config().statistics() {
+                    for statistic in &self.statistics {
                         if let Some(table) = statistic.bpf_table() {
                             let mut table = (*bpf).inner.table(table);
 
                             for (&value, &count) in &map_from_table(&mut table) {
                                 if count > 0 {
                                     let _ = self.metrics().record_bucket(
-                                        &statistic,
+                                        statistic,
                                         time,
                                         value * MICROSECOND,
                                         count,
@@ -272,14 +272,14 @@ impl Scheduler {
         if let Some(ref bpf) = self.perf {
             let bpf = bpf.lock().unwrap();
             let time = Instant::now();
-            for stat in self.sampler_config().statistics() {
+            for stat in &self.statistics {
                 if let Some(table) = stat.perf_table() {
                     let map = crate::common::bpf::perf_table_to_map(&(*bpf).inner.table(table));
                     let mut total = 0;
                     for (_cpu, count) in map.iter() {
                         total += count;
                     }
-                    let _ = self.metrics().record_counter(&stat, time, total);
+                    let _ = self.metrics().record_counter(stat, time, total);
                 }
             }
         }
@@ -290,7 +290,7 @@ impl Scheduler {
     #[cfg(feature = "bpf")]
     fn bpf_enabled(&self) -> bool {
         if self.sampler_config().bpf() {
-            for statistic in self.sampler_config().statistics() {
+            for statistic in &self.statistics {
                 match statistic {
                     SchedulerStatistic::RunqueueLatency => {
                         return true;
