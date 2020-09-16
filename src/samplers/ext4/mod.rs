@@ -23,6 +23,7 @@ pub struct Ext4 {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
+    statistics: Vec<Ext4Statistic>,
 }
 
 #[async_trait]
@@ -30,18 +31,24 @@ impl Sampler for Ext4 {
     type Statistic = Ext4Statistic;
     fn new(common: Common) -> Result<Self, failure::Error> {
         let fault_tolerant = common.config.general().fault_tolerant();
+        let statistics = common.config().samplers().ext4().statistics();
 
         #[allow(unused_mut)]
         let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
+            statistics,
         };
 
         if let Err(e) = sampler.initialize_bpf() {
             if !fault_tolerant {
                 return Err(e);
             }
+        }
+
+        if sampler.sampler_config().enabled() {
+            sampler.register();
         }
 
         Ok(sampler)
@@ -83,7 +90,6 @@ impl Sampler for Ext4 {
         }
 
         debug!("sampling");
-        self.register();
 
         // sample bpf
         #[cfg(feature = "bpf")]
@@ -98,7 +104,7 @@ impl Ext4 {
     #[cfg(feature = "bpf")]
     fn bpf_enabled(&self) -> bool {
         if self.sampler_config().bpf() {
-            for statistic in self.sampler_config().statistics() {
+            for statistic in &self.statistics {
                 if statistic.bpf_table().is_some() {
                     return true;
                 }
@@ -168,14 +174,14 @@ impl Ext4 {
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();
                 let time = Instant::now();
-                for statistic in self.sampler_config().statistics() {
+                for statistic in &self.statistics {
                     if let Some(table) = statistic.bpf_table() {
                         let mut table = (*bpf).inner.table(table);
 
                         for (&value, &count) in &map_from_table(&mut table) {
                             if count > 0 {
                                 let _ = self.metrics().record_bucket(
-                                    &statistic,
+                                    statistic,
                                     time,
                                     value * crate::MICROSECOND,
                                     count,

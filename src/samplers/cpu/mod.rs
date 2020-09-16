@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::io::SeekFrom;
+use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::time::*;
 
@@ -31,8 +33,14 @@ pub use stat::*;
 #[allow(dead_code)]
 pub struct Cpu {
     common: Common,
+    cpus: HashSet<String>,
+    cstates: HashMap<String, String>,
+    cstate_files: HashMap<String, HashMap<String, File>>,
     perf: Option<Arc<Mutex<BPF>>>,
     tick_duration: u64,
+    proc_cpuinfo: Option<File>,
+    proc_stat: Option<File>,
+    statistics: Vec<CpuStatistic>,
 }
 
 pub fn nanos_per_tick() -> u64 {
@@ -46,11 +54,18 @@ impl Sampler for Cpu {
     type Statistic = CpuStatistic;
 
     fn new(common: Common) -> Result<Self, failure::Error> {
+        let statistics = common.config().samplers().cpu().statistics();
         #[allow(unused_mut)]
         let mut sampler = Self {
             common,
+            cpus: HashSet::new(),
+            cstates: HashMap::new(),
+            cstate_files: HashMap::new(),
             perf: None,
             tick_duration: nanos_per_tick(),
+            proc_cpuinfo: None,
+            proc_stat: None,
+            statistics,
         };
 
         if sampler.sampler_config().enabled() {
@@ -119,13 +134,18 @@ impl Sampler for Cpu {
         // between underlying counter updates
         #[cfg(feature = "bpf")]
         {
-            let result = self.sample_bpf_perf_counters();
-            self.map_result(result)?;
+            let r = self.sample_bpf_perf_counters();
+            self.map_result(r)?;
         }
 
-        self.map_result(self.sample_cpuinfo().await)?;
-        self.map_result(self.sample_cstates().await)?;
-        self.map_result(self.sample_cpu_usage().await)?;
+        let r = self.sample_cpuinfo().await;
+        self.map_result(r)?;
+
+        let r = self.sample_cpu_usage().await;
+        self.map_result(r)?;
+
+        let r = self.sample_cstates().await;
+        self.map_result(r)?;
 
         Ok(())
     }
@@ -150,7 +170,7 @@ impl Cpu {
             include_str!("perf.c").to_string()
         );
         if let Ok(mut bpf) = bcc::BPF::new(&code) {
-            for statistic in self.sampler_config().statistics().iter() {
+            for statistic in &self.statistics {
                 if let Some(table) = statistic.table() {
                     if let Some(event) = statistic.event() {
                         if PerfEventArray::new()
@@ -191,46 +211,57 @@ impl Cpu {
         Ok(())
     }
 
-    async fn sample_cpu_usage(&self) -> Result<(), std::io::Error> {
-        let file = File::open("/proc/stat").await?;
-        let reader = BufReader::new(file);
-        let mut lines = reader.lines();
-
-        let mut result = HashMap::new();
-
-        while let Some(line) = lines.next_line().await? {
-            result.extend(parse_proc_stat(&line));
+    async fn sample_cpu_usage(&mut self) -> Result<(), std::io::Error> {
+        if self.proc_stat.is_none() {
+            let file = File::open("/proc/stat").await?;
+            self.proc_stat = Some(file);
         }
 
-        let time = Instant::now();
-        for stat in self.sampler_config().statistics() {
-            if let Some(value) = result.get(&stat) {
-                let _ = self
-                    .metrics()
-                    .record_counter(&stat, time, value * self.tick_duration);
+        if let Some(file) = &mut self.proc_stat {
+            file.seek(SeekFrom::Start(0)).await?;
+
+            let mut reader = BufReader::new(file);
+            let mut result = HashMap::new();
+            let mut buf = String::new();
+            while reader.read_line(&mut buf).await? > 0 {
+                result.extend(parse_proc_stat(&buf));
+            }
+
+            let time = Instant::now();
+            for stat in self.sampler_config().statistics() {
+                if let Some(value) = result.get(&stat) {
+                    let _ = self
+                        .metrics()
+                        .record_counter(&stat, time, value * self.tick_duration);
+                }
             }
         }
 
         Ok(())
     }
 
-    async fn sample_cpuinfo(&self) -> Result<(), std::io::Error> {
-        let frequency_re = Regex::new(r"^cpu MHz\s+:\s+([\d\.]+)$").unwrap();
+    async fn sample_cpuinfo(&mut self) -> Result<(), std::io::Error> {
+        if self.proc_cpuinfo.is_none() {
+            let file = File::open("/proc/cpuinfo").await?;
+            self.proc_cpuinfo = Some(file);
+        }
 
-        let file = File::open("/proc/cpuinfo").await?;
-        let reader = BufReader::new(file);
-        let mut lines = reader.lines();
-
-        let time = Instant::now();
-        while let Some(line) = lines.next_line().await? {
-            if let Some(freq) = frequency_re.captures(&line).map(|m| m.get(1).unwrap()) {
-                if let Ok(mhz) = freq.as_str().parse::<f64>() {
-                    let _ = self.metrics().record_gauge(
-                        &CpuStatistic::Frequency,
-                        time,
-                        (mhz * 1_000_000.0_f64) as u64,
-                    );
+        if let Some(file) = &mut self.proc_cpuinfo {
+            file.seek(SeekFrom::Start(0)).await?;
+            let mut reader = BufReader::new(file);
+            let mut buf = String::new();
+            let mut result = Vec::new();
+            while reader.read_line(&mut buf).await? > 0 {
+                if let Some(freq) = parse_frequency(&buf) {
+                    result.push(freq.ceil() as u64);
                 }
+            }
+
+            let time = Instant::now();
+            for frequency in result {
+                let _ = self
+                    .metrics()
+                    .record_gauge(&CpuStatistic::Frequency, time, frequency);
             }
         }
 
@@ -242,80 +273,59 @@ impl Cpu {
         if let Some(ref bpf) = self.perf {
             let bpf = bpf.lock().unwrap();
             let time = Instant::now();
-            for stat in self.sampler_config().statistics() {
+            for stat in &self.statistics {
                 if let Some(table) = stat.table() {
                     let map = crate::common::bpf::perf_table_to_map(&(*bpf).inner.table(table));
                     let mut total = 0;
                     for (_cpu, count) in map.iter() {
                         total += count;
                     }
-                    let _ = self.metrics().record_counter(&stat, time, total);
+                    let _ = self.metrics().record_counter(stat, time, total);
                 }
             }
         }
         Ok(())
     }
 
-    async fn sample_cstates(&self) -> Result<(), std::io::Error> {
+    async fn sample_cstates(&mut self) -> Result<(), std::io::Error> {
         let mut result = HashMap::<CpuStatistic, u64>::new();
 
-        // iterate through all cpus
-        let cpu_regex = Regex::new(r"^cpu\d+$").unwrap();
-        let state_regex = Regex::new(r"^state\d+$").unwrap();
-        let mut cpu_dir = tokio::fs::read_dir("/sys/devices/system/cpu").await?;
-        while let Some(cpu_entry) = cpu_dir.next_entry().await? {
-            if let Ok(cpu_name) = cpu_entry.file_name().into_string() {
-                if cpu_regex.is_match(&cpu_name) {
-                    // iterate through all cpuidle states
-                    let cpuidle_dir = format!("/sys/devices/system/cpu/{}/cpuidle", cpu_name);
-                    let mut cpuidle_dir = tokio::fs::read_dir(cpuidle_dir).await?;
-                    while let Some(cpuidle_entry) = cpuidle_dir.next_entry().await? {
-                        if let Ok(cpuidle_name) = cpuidle_entry.file_name().into_string() {
-                            if state_regex.is_match(&cpuidle_name) {
-                                // have an actual state here
+        // populate the cpu cache if empty
+        if self.cpus.is_empty() {
+            let cpu_regex = Regex::new(r"^cpu\d+$").unwrap();
+            let mut cpu_dir = tokio::fs::read_dir("/sys/devices/system/cpu").await?;
+            while let Some(cpu_entry) = cpu_dir.next_entry().await? {
+                if let Ok(cpu_name) = cpu_entry.file_name().into_string() {
+                    if cpu_regex.is_match(&cpu_name) {
+                        self.cpus.insert(cpu_name.to_string());
+                    }
+                }
+            }
+        }
 
-                                // get the name of the state
-                                let name_file = format!(
-                                    "/sys/devices/system/cpu/{}/cpuidle/{}/name",
-                                    cpu_name, cpuidle_name
-                                );
-                                let mut name_file = File::open(name_file).await?;
-                                let mut name_content = Vec::new();
-                                name_file.read_to_end(&mut name_content).await?;
-                                if let Ok(name_string) = std::str::from_utf8(&name_content) {
-                                    let name_parts: Vec<&str> =
-                                        name_string.split_whitespace().collect();
-                                    if let Some(Ok(state)) = name_parts.get(0).map(|v| v.parse()) {
-                                        // get the time spent in the state
-                                        let time_file = format!(
-                                            "/sys/devices/system/cpu/{}/cpuidle/{}/time",
-                                            cpu_name, cpuidle_name
-                                        );
-                                        let mut time_file = File::open(time_file).await?;
-                                        let mut time_content = Vec::new();
-                                        time_file.read_to_end(&mut time_content).await?;
-                                        if let Ok(time_string) = std::str::from_utf8(&time_content)
-                                        {
-                                            let time_parts: Vec<&str> =
-                                                time_string.split_whitespace().collect();
-                                            if let Some(Ok(time)) =
-                                                time_parts.get(0).map(|v| v.parse::<u64>())
-                                            {
-                                                let metric = match state {
-                                                    CState::C0 => CpuStatistic::CstateC0Time,
-                                                    CState::C1 => CpuStatistic::CstateC1Time,
-                                                    CState::C1E => CpuStatistic::CstateC1ETime,
-                                                    CState::C2 => CpuStatistic::CstateC2Time,
-                                                    CState::C3 => CpuStatistic::CstateC3Time,
-                                                    CState::C6 => CpuStatistic::CstateC6Time,
-                                                    CState::C7 => CpuStatistic::CstateC7Time,
-                                                    CState::C8 => CpuStatistic::CstateC8Time,
-                                                };
-                                                let counter = result.entry(metric).or_insert(0);
-                                                *counter += time * MICROSECOND;
-                                            }
-                                        }
-                                    }
+        // populate the cstate cache if empty
+        if self.cstates.is_empty() {
+            let state_regex = Regex::new(r"^state\d+$").unwrap();
+            for cpu in &self.cpus {
+                // iterate through all cpuidle states
+                let cpuidle_dir = format!("/sys/devices/system/cpu/{}/cpuidle", cpu);
+                let mut cpuidle_dir = tokio::fs::read_dir(cpuidle_dir).await?;
+                while let Some(cpuidle_entry) = cpuidle_dir.next_entry().await? {
+                    if let Ok(cpuidle_name) = cpuidle_entry.file_name().into_string() {
+                        if state_regex.is_match(&cpuidle_name) {
+                            // get the name of the state
+                            let name_file = format!(
+                                "/sys/devices/system/cpu/{}/cpuidle/{}/name",
+                                cpu, cpuidle_name
+                            );
+                            let mut name_file = File::open(name_file).await?;
+                            let mut name_content = Vec::new();
+                            name_file.read_to_end(&mut name_content).await?;
+                            if let Ok(name_string) = std::str::from_utf8(&name_content) {
+                                if let Some(Ok(state)) =
+                                    name_string.split_whitespace().next().map(|v| v.parse())
+                                {
+                                    self.cstates.insert(cpuidle_name, state);
                                 }
                             }
                         }
@@ -324,10 +334,47 @@ impl Cpu {
             }
         }
 
+        for cpu in &self.cpus {
+            if !self.cstate_files.contains_key(cpu) {
+                self.cstate_files.insert(cpu.to_string(), HashMap::new());
+            }
+            if let Some(cpuidle_files) = self.cstate_files.get_mut(cpu) {
+                for (cpuidle_name, state) in &self.cstates {
+                    if !cpuidle_files.contains_key(cpuidle_name) {
+                        let time_file = format!(
+                            "/sys/devices/system/cpu/{}/cpuidle/{}/time",
+                            cpu, cpuidle_name
+                        );
+                        let file = File::open(time_file).await?;
+                        cpuidle_files.insert(cpuidle_name.to_string(), file);
+                    }
+                    if let Some(file) = cpuidle_files.get_mut(cpuidle_name) {
+                        file.seek(SeekFrom::Start(0)).await?;
+                        let mut reader = BufReader::new(file);
+                        if let Ok(time) = reader.read_u64().await {
+                            let metric = match CState::from_str(&state) {
+                                Ok(CState::C0) => CpuStatistic::CstateC0Time,
+                                Ok(CState::C1) => CpuStatistic::CstateC1Time,
+                                Ok(CState::C1E) => CpuStatistic::CstateC1ETime,
+                                Ok(CState::C2) => CpuStatistic::CstateC2Time,
+                                Ok(CState::C3) => CpuStatistic::CstateC3Time,
+                                Ok(CState::C6) => CpuStatistic::CstateC6Time,
+                                Ok(CState::C7) => CpuStatistic::CstateC7Time,
+                                Ok(CState::C8) => CpuStatistic::CstateC8Time,
+                                _ => continue,
+                            };
+                            let counter = result.entry(metric).or_insert(0);
+                            *counter += time * MICROSECOND;
+                        }
+                    }
+                }
+            }
+        }
+
         let time = Instant::now();
-        for stat in self.sampler_config().statistics() {
-            if let Some(value) = result.get(&stat) {
-                let _ = self.metrics().record_counter(&stat, time, *value);
+        for stat in &self.statistics {
+            if let Some(value) = result.get(stat) {
+                let _ = self.metrics().record_counter(stat, time, *value);
             }
         }
 
@@ -337,26 +384,53 @@ impl Cpu {
 
 fn parse_proc_stat(line: &str) -> HashMap<CpuStatistic, u64> {
     let mut result = HashMap::new();
-    let parts: Vec<&str> = line.split_whitespace().collect();
-    if let Some(&"cpu") = parts.get(0) {
-        match parts.len() {
-            11 => {
-                result.insert(CpuStatistic::UsageUser, parts[1].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageNice, parts[2].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageSystem, parts[3].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageIdle, parts[4].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageIrq, parts[6].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageSoftirq, parts[7].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageSteal, parts[8].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageGuest, parts[9].parse().unwrap_or(0));
-                result.insert(CpuStatistic::UsageGuestNice, parts[10].parse().unwrap_or(0));
+    for (id, part) in line.split_whitespace().enumerate() {
+        match id {
+            0 => {
+                if part != "cpu" {
+                    return result;
+                }
             }
-            _ => {
-                debug!("parsed cpu line but got unexpected number of fields");
+            1 => {
+                result.insert(CpuStatistic::UsageUser, part.parse().unwrap_or(0));
             }
+            2 => {
+                result.insert(CpuStatistic::UsageNice, part.parse().unwrap_or(0));
+            }
+            3 => {
+                result.insert(CpuStatistic::UsageSystem, part.parse().unwrap_or(0));
+            }
+            4 => {
+                result.insert(CpuStatistic::UsageIdle, part.parse().unwrap_or(0));
+            }
+            6 => {
+                result.insert(CpuStatistic::UsageIrq, part.parse().unwrap_or(0));
+            }
+            7 => {
+                result.insert(CpuStatistic::UsageSoftirq, part.parse().unwrap_or(0));
+            }
+            8 => {
+                result.insert(CpuStatistic::UsageSteal, part.parse().unwrap_or(0));
+            }
+            9 => {
+                result.insert(CpuStatistic::UsageGuest, part.parse().unwrap_or(0));
+            }
+            10 => {
+                result.insert(CpuStatistic::UsageGuestNice, part.parse().unwrap_or(0));
+            }
+            _ => {}
         }
     }
     result
+}
+
+fn parse_frequency(line: &str) -> Option<f64> {
+    let mut split = line.split_whitespace();
+    if split.next() == Some("cpu") && split.next() == Some("MHz") {
+        split.last().map(|v| v.parse().unwrap_or(0.0) * 1_000_000.0)
+    } else {
+        None
+    }
 }
 
 #[cfg(test)]
@@ -370,5 +444,11 @@ mod test {
         assert_eq!(result.get(&CpuStatistic::UsageUser), Some(&131586));
         assert_eq!(result.get(&CpuStatistic::UsageNice), Some(&0));
         assert_eq!(result.get(&CpuStatistic::UsageSystem), Some(&53564));
+    }
+
+    #[test]
+    fn test_parse_frequency() {
+        let result = parse_frequency("cpu MHz         : 1979.685");
+        assert_eq!(result, Some(1_979_685_000.0));
     }
 }

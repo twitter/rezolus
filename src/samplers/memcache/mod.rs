@@ -47,12 +47,15 @@ impl Sampler for Memcache {
         let address = addrs.next().unwrap_or_else(|| {
             fatal!("ERROR: failed to resolve address: {}", endpoint);
         });
-        let ret = Self {
+        let sampler = Self {
             address,
             common,
             stream: None,
         };
-        Ok(ret)
+        if sampler.sampler_config().enabled() {
+            sampler.register();
+        }
+        Ok(sampler)
     }
 
     fn spawn(common: Common) {

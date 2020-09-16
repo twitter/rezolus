@@ -27,6 +27,9 @@ pub struct Disk {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
+    proc_diskstats: Option<File>,
+    disk_regex: Option<Regex>,
+    statistics: Vec<DiskStatistic>,
 }
 
 #[async_trait]
@@ -35,18 +38,26 @@ impl Sampler for Disk {
 
     fn new(common: Common) -> Result<Self, failure::Error> {
         let fault_tolerant = common.config.general().fault_tolerant();
+        let statistics = common.config().samplers().disk().statistics();
 
         #[allow(unused_mut)]
         let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
+            proc_diskstats: None,
+            disk_regex: None,
+            statistics,
         };
 
         if let Err(e) = sampler.initialize_bpf() {
             if !fault_tolerant {
                 return Err(e);
             }
+        }
+
+        if sampler.sampler_config().enabled() {
+            sampler.register();
         }
 
         Ok(sampler)
@@ -88,9 +99,9 @@ impl Sampler for Disk {
         }
 
         debug!("sampling");
-        self.register();
 
-        self.map_result(self.sample_diskstats().await)?;
+        let r = self.sample_diskstats().await;
+        self.map_result(r)?;
         #[cfg(feature = "bpf")]
         self.map_result(self.sample_bpf())?;
 
@@ -145,43 +156,60 @@ impl Disk {
         Ok(())
     }
 
-    async fn sample_diskstats(&self) -> Result<(), std::io::Error> {
-        // process diskstats
-        let file = File::open("/proc/diskstats").await?;
-        let reader = BufReader::new(file);
-        let mut lines = reader.lines();
-        let mut result = HashMap::new();
-        // regex to match devices we care about
-        let re = Regex::new(r"^((sd[a-z]+)|(hd[a-z]+)|(nvme\d+n\d+))$")
-            .expect("failed to compile regex");
-        while let Some(line) = lines.next_line().await? {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if re.is_match(parts.get(2).unwrap_or(&"unknown")) {
-                for statistic in self.sampler_config().statistics() {
-                    if let Some(field) = statistic.diskstat_field() {
-                        if !result.contains_key(&statistic) {
-                            result.insert(statistic, 0);
+    async fn sample_diskstats(&mut self) -> Result<(), std::io::Error> {
+        if self.proc_diskstats.is_none() {
+            let file = File::open("/proc/diskstats").await?;
+            self.proc_diskstats = Some(file);
+        }
+
+        if self.disk_regex.is_none() {
+            let re = Regex::new(r"^((sd[a-z]+)|(hd[a-z]+)|(nvme\d+n\d+))$")
+                .expect("failed to compile regex");
+            self.disk_regex = Some(re);
+        }
+
+        if let Some(file) = &mut self.proc_diskstats {
+            if let Some(re) = &mut self.disk_regex {
+                let mut reader = BufReader::new(file);
+                let mut line = String::new();
+                let mut result = HashMap::<DiskStatistic, u64>::new();
+                while reader.read_line(&mut line).await? > 0 {
+                    let parts: Vec<&str> = line.split_whitespace().collect();
+                    if re.is_match(parts.get(2).unwrap_or(&"unknown")) {
+                        for (id, part) in parts.iter().enumerate() {
+                            if let Some(statistic) = match id {
+                                3 => Some(DiskStatistic::OperationsRead),
+                                5 => Some(DiskStatistic::BandwidthRead),
+                                7 => Some(DiskStatistic::OperationsWrite),
+                                9 => Some(DiskStatistic::BandwidthWrite),
+                                14 => Some(DiskStatistic::OperationsDiscard),
+                                16 => Some(DiskStatistic::BandwidthDiscard),
+                                _ => None,
+                            } {
+                                if !result.contains_key(&statistic) {
+                                    result.insert(statistic, 0);
+                                }
+                                let current = result.get_mut(&statistic).unwrap();
+                                *current += part.parse().unwrap_or(0);
+                            }
                         }
-                        let current = result.get_mut(&statistic).unwrap();
-                        *current += parts
-                            .get(field)
-                            .map(|v| v.parse().unwrap_or(0))
-                            .unwrap_or(0);
+                    }
+                }
+                let time = Instant::now();
+                for stat in &self.statistics {
+                    if let Some(value) = result.get(stat) {
+                        let value = match stat {
+                            DiskStatistic::BandwidthWrite
+                            | DiskStatistic::BandwidthRead
+                            | DiskStatistic::BandwidthDiscard => value * 512,
+                            _ => *value,
+                        };
+                        let _ = self.metrics().record_counter(stat, time, value);
                     }
                 }
             }
         }
 
-        let time = Instant::now();
-        for (stat, value) in result {
-            let value = match stat {
-                DiskStatistic::BandwidthWrite
-                | DiskStatistic::BandwidthRead
-                | DiskStatistic::BandwidthDiscard => value * 512,
-                _ => value,
-            };
-            let _ = self.metrics().record_counter(&stat, time, value);
-        }
         Ok(())
     }
 

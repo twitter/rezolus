@@ -61,6 +61,16 @@ impl SamplerConfig for XfsConfig {
     }
 
     fn statistics(&self) -> Vec<<Self as SamplerConfig>::Statistic> {
-        self.statistics.clone()
+        let mut enabled = Vec::new();
+        for statistic in self.statistics.iter() {
+            if statistic.bpf_table().is_some() {
+                if self.bpf() {
+                    enabled.push(statistic.clone());
+                }
+            } else {
+                enabled.push(statistic.clone());
+            }
+        }
+        enabled
     }
 }

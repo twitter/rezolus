@@ -26,6 +26,7 @@ pub struct Network {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
+    statistics: Vec<NetworkStatistic>,
 }
 
 #[async_trait]
@@ -34,12 +35,14 @@ impl Sampler for Network {
 
     fn new(common: Common) -> Result<Self, failure::Error> {
         let fault_tolerant = common.config.general().fault_tolerant();
+        let statistics = common.config().samplers().network().statistics();
 
         #[allow(unused_mut)]
         let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
+            statistics,
         };
 
         if let Err(e) = sampler.initialize_bpf() {
@@ -48,7 +51,9 @@ impl Sampler for Network {
             }
         }
 
-        sampler.register();
+        if sampler.sampler_config().enabled() {
+            sampler.register();
+        }
 
         Ok(sampler)
     }
@@ -102,7 +107,7 @@ impl Network {
     #[cfg(feature = "bpf")]
     fn bpf_enabled(&self) -> bool {
         if self.sampler_config().bpf() {
-            for statistic in self.sampler_config().statistics() {
+            for statistic in &self.statistics {
                 if statistic.bpf_table().is_some() {
                     return true;
                 }
@@ -149,12 +154,12 @@ impl Network {
         while let Some(line) = lines.next_line().await? {
             let parts: Vec<&str> = line.split_whitespace().collect();
             if !parts.is_empty() && parts[1].parse::<u64>().is_ok() {
-                for statistic in self.sampler_config().statistics() {
+                for statistic in &self.statistics {
                     if let Some(field) = statistic.field_number() {
-                        if !result.contains_key(&statistic) {
+                        if !result.contains_key(statistic) {
                             result.insert(statistic, 0);
                         }
-                        let current = result.get_mut(&statistic).unwrap();
+                        let current = result.get_mut(statistic).unwrap();
                         *current += parts
                             .get(field)
                             .map(|v| v.parse().unwrap_or(0))
@@ -165,8 +170,10 @@ impl Network {
         }
 
         let time = Instant::now();
-        for (stat, value) in result {
-            let _ = self.metrics().record_counter(&stat, time, value);
+        for statistic in &self.statistics {
+            if let Some(value) = result.get(statistic) {
+                let _ = self.metrics().record_counter(statistic, time, *value);
+            }
         }
         Ok(())
     }
@@ -179,14 +186,13 @@ impl Network {
             let time = Instant::now();
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();
-                for statistic in self.sampler_config().statistics() {
+                for statistic in &self.statistics {
                     if let Some(table) = statistic.bpf_table() {
                         let mut table = (*bpf).inner.table(table);
 
                         for (&value, &count) in &map_from_table(&mut table) {
                             if count > 0 {
-                                let _ =
-                                    self.metrics().record_bucket(&statistic, time, value, count);
+                                let _ = self.metrics().record_bucket(statistic, time, value, count);
                             }
                         }
                     }

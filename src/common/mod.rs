@@ -4,7 +4,7 @@
 
 use std::collections::HashMap;
 use std::io::BufRead;
-use std::path::Path;
+use std::io::SeekFrom;
 
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
@@ -42,25 +42,29 @@ pub fn hardware_threads() -> Result<u64, ()> {
 /// pkey1 lkey1 lkey2 ... lkeyN
 /// pkey1 value1 value2 ... valueN
 /// pkey2 ...
-pub async fn nested_map_from_file<T: AsRef<Path>>(
-    path: T,
+pub async fn nested_map_from_file(
+    file: &mut File,
 ) -> Result<HashMap<String, HashMap<String, u64>>, std::io::Error> {
+    file.seek(SeekFrom::Start(0)).await?;
     let mut ret = HashMap::<String, HashMap<String, u64>>::new();
-    let file = File::open(path).await?;
-    let reader = BufReader::new(file);
-    let mut lines = reader.lines();
-    while let Some(keys) = lines.next_line().await? {
-        if let Some(values) = lines.next_line().await? {
-            let keys: Vec<&str> = keys.trim().split_whitespace().collect();
-            let values: Vec<&str> = values.trim().split_whitespace().collect();
-            if let Some(pkey) = keys.get(0).map(|v| (*v).to_string()) {
-                if !ret.contains_key(&pkey) {
-                    ret.insert(pkey.clone(), Default::default());
+    let mut reader = BufReader::new(file);
+    let mut keys = String::new();
+    let mut values = String::new();
+    while reader.read_line(&mut keys).await? > 0 {
+        if reader.read_line(&mut values).await? > 0 {
+            let mut keys_split = keys.trim().split_whitespace();
+            let mut values_split = values.trim().split_whitespace();
+
+            if let Some(pkey) = keys_split.next() {
+                let _ = values_split.next();
+                if !ret.contains_key(pkey) {
+                    ret.insert(pkey.to_string(), Default::default());
                 }
-                let inner = ret.get_mut(&pkey).unwrap();
-                for (i, key) in keys.iter().enumerate().skip(1) {
-                    let value: u64 = values.get(i).unwrap_or(&"0").parse().unwrap_or(0);
-                    inner.insert((*key).to_string(), value);
+                let inner = ret.get_mut(pkey).unwrap();
+                for key in keys_split {
+                    if let Some(Ok(value)) = values_split.next().map(|v| v.parse()) {
+                        inner.insert(key.to_owned(), value);
+                    }
                 }
             }
         }

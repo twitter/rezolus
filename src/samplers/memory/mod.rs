@@ -26,6 +26,7 @@ use stat::MemoryStatistic as Stat;
 #[allow(dead_code)]
 pub struct Memory {
     common: Common,
+    statistics: Vec<MemoryStatistic>,
 }
 
 #[async_trait]
@@ -33,7 +34,12 @@ impl Sampler for Memory {
     type Statistic = MemoryStatistic;
 
     fn new(common: Common) -> Result<Self, failure::Error> {
-        Ok(Self { common })
+        let statistics = common.config().samplers().memory().statistics();
+        let sampler = Self { common, statistics };
+        if sampler.sampler_config().enabled() {
+            sampler.register();
+        }
+        Ok(sampler)
     }
 
     fn spawn(common: Common) {
@@ -149,11 +155,11 @@ impl Memory {
         }
 
         let time = Instant::now();
-        for stat in self.sampler_config().statistics() {
-            if let Some(value) = result.get(&stat) {
+        for stat in &self.statistics {
+            if let Some(value) = result.get(stat) {
                 let _ = self
                     .metrics()
-                    .record_gauge(&stat, time, *value * stat.multiplier());
+                    .record_gauge(stat, time, *value * stat.multiplier());
             }
         }
         Ok(())
@@ -203,16 +209,16 @@ impl Memory {
         }
 
         let time = Instant::now();
-        for stat in self.sampler_config().statistics() {
-            if let Some(value) = result.get(&stat) {
+        for stat in &self.statistics {
+            if let Some(value) = result.get(stat) {
                 if stat.source() == Source::Counter {
                     let _ = self
                         .metrics()
-                        .record_counter(&stat, time, *value * stat.multiplier());
+                        .record_counter(stat, time, *value * stat.multiplier());
                 } else {
                     let _ = self
                         .metrics()
-                        .record_gauge(&stat, time, *value * stat.multiplier());
+                        .record_gauge(stat, time, *value * stat.multiplier());
                 }
             }
         }
