@@ -50,9 +50,9 @@ checksum = "4d25d88fd6b8041580a654f9d0c581a047baee2b3efee13275f2fc392fc75034"
 
 [[package]]
 name = "ascii"
-version = "0.8.7"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97be891acc47ca214468e09425d02cef3af2c94d0d82081cd02061f996802f14"
+checksum = "bbf56136a5198c7b01a49e3afcbef6cf84597273d298f54432926024107b0109"
 
 [[package]]
 name = "async-trait"
@@ -104,9 +104,9 @@ checksum = "3441f0f7b02788e948e47f457ca01f1d7e6d92c693bc132c22b087d3141c03ff"
 
 [[package]]
 name = "bcc"
-version = "0.0.24"
+version = "0.0.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee392ef93e2eb42c0091826aebcb2fd92992922d7a901a96b5484917c7b2eb7b"
+checksum = "d554bf1e95bbfced9b2ce6de24570bf6390fe11fd2471e83e39a0ead535c6335"
 dependencies = [
  "bcc-sys",
  "byteorder 1.3.4",
@@ -117,9 +117,9 @@ dependencies = [
 
 [[package]]
 name = "bcc-sys"
-version = "0.15.1"
+version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fb6e2c034889064e9eb5f259ff994fd0a218de38f1b349d321a9a78eb1f5e17"
+checksum = "a8716fb2e35e2743151c5542a7a11700af53ea55baad8cbf6b04a8310c4b7594"
 
 [[package]]
 name = "bitflags"
@@ -159,9 +159,9 @@ checksum = "0e4cec68f03f32e44924783795810fa50a7035d8c8ebe78580ad7e6c703fba38"
 
 [[package]]
 name = "cc"
-version = "1.0.59"
+version = "1.0.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66120af515773fb005778dc07c261bd201ec8ce50bd6e7144c927753fe013381"
+checksum = "ef611cc68ff783f18535d77ddd080185275713d852c4f5cbb6122c462a7a825c"
 
 [[package]]
 name = "cfg-if"
@@ -182,9 +182,9 @@ dependencies = [
 
 [[package]]
 name = "chunked_transfer"
-version = "0.3.1"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "498d20a7aaf62625b9bf26e637cf7736417cde1d0c99f1d04d1170229a85cf87"
+checksum = "1d29eb15132782371f71da8f947dba48b3717bdb6fa771b9b434d645e40a7193"
 
 [[package]]
 name = "clap"
@@ -564,17 +564,6 @@ dependencies = [
 
 [[package]]
 name = "idna"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38f09e0f0b1fb55fdee1f17470ad800da77af5186a1a76c026b679358b7e844e"
-dependencies = [
- "matches",
- "unicode-bidi",
- "unicode-normalization",
-]
-
-[[package]]
-name = "idna"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02e2673c30ee86b5b96a9cb52ad15718aa1f966f5ab9ad54a8b95d5ca33120a9"
@@ -918,12 +907,6 @@ dependencies = [
 
 [[package]]
 name = "percent-encoding"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31010dd2e1ac33d5b46a5b413495239882813e0369f8ed8a5e266f173602f831"
-
-[[package]]
-name = "percent-encoding"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
@@ -1098,13 +1081,13 @@ dependencies = [
  "mime",
  "mime_guess",
  "native-tls",
- "percent-encoding 2.1.0",
+ "percent-encoding",
  "pin-project-lite",
  "serde",
  "serde_urlencoded",
  "tokio",
  "tokio-tls",
- "url 2.1.1",
+ "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -1132,7 +1115,6 @@ dependencies = [
  "strum",
  "strum_macros",
  "sysconf",
- "time",
  "tiny_http",
  "tokio",
  "toml",
@@ -1150,7 +1132,7 @@ checksum = "4c691c0e608126e00913e33f0ccf3727d5fc84573623b8d65b2df340b5201783"
 [[package]]
 name = "rustcommon-atomics"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#3d67fd0c26c734120803cc65b9612397d11dce47"
+source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
 dependencies = [
  "serde",
 ]
@@ -1158,7 +1140,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-heatmap"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon#3d67fd0c26c734120803cc65b9612397d11dce47"
+source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
 dependencies = [
  "rustcommon-atomics",
  "rustcommon-histogram",
@@ -1168,7 +1150,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-histogram"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#3d67fd0c26c734120803cc65b9612397d11dce47"
+source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
@@ -1177,7 +1159,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-logger"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#3d67fd0c26c734120803cc65b9612397d11dce47"
+source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
 dependencies = [
  "log 0.4.11",
  "time",
@@ -1186,7 +1168,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics"
 version = "2.0.0-alpha.0"
-source = "git+https://github.com/twitter/rustcommon#3d67fd0c26c734120803cc65b9612397d11dce47"
+source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
 dependencies = [
  "dashmap",
  "rustcommon-atomics",
@@ -1197,7 +1179,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-streamstats"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon#3d67fd0c26c734120803cc65b9612397d11dce47"
+source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
@@ -1288,7 +1270,7 @@ dependencies = [
  "dtoa",
  "itoa",
  "serde",
- "url 2.1.1",
+ "url",
 ]
 
 [[package]]
@@ -1337,15 +1319,15 @@ checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
 name = "strum"
-version = "0.17.1"
+version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "530efb820d53b712f4e347916c5e7ed20deb76a4f0457943b3182fb889b06d2c"
+checksum = "3924a58d165da3b7b2922c667ab0673c7b5fd52b5c19ea3442747bcb3cd15abe"
 
 [[package]]
 name = "strum_macros"
-version = "0.17.1"
+version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e6e163a520367c465f59e0a61a23cfae3b10b6546d78b6f672a382be79f7110"
+checksum = "2d2ab682ecdcae7f5f45ae85cd7c1e6c8e68ea42c8a612d47fedf831c037146a"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -1453,15 +1435,15 @@ dependencies = [
 
 [[package]]
 name = "tiny_http"
-version = "0.6.2"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1661fa0a44c95d01604bd05c66732a446c657efb62b5164a7a083a3b552b4951"
+checksum = "15ce4fc3c4cdea1a4399bb1819a539195fb69db4bbe0bde5b7c7f18fed412e02"
 dependencies = [
  "ascii",
  "chrono",
  "chunked_transfer",
  "log 0.4.11",
- "url 1.7.2",
+ "url",
 ]
 
 [[package]]
@@ -1626,24 +1608,13 @@ checksum = "f7fe0bb3479651439c9112f72b6c505038574c9fbb575ed1bf3b797fa39dd564"
 
 [[package]]
 name = "url"
-version = "1.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd4e7c0d531266369519a4aa4f399d748bd37043b00bde1e4ff1f60a120b355a"
-dependencies = [
- "idna 0.1.5",
- "matches",
- "percent-encoding 1.0.1",
-]
-
-[[package]]
-name = "url"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "829d4a8476c35c9bf0bbce5a3b23f4106f79728039b726d292bb93bc106787cb"
 dependencies = [
- "idna 0.2.0",
+ "idna",
  "matches",
- "percent-encoding 2.1.0",
+ "percent-encoding",
 ]
 
 [[package]]

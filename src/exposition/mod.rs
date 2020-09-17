@@ -4,6 +4,7 @@
 
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Instant;
 
 use rustcommon_metrics::*;
 
@@ -18,7 +19,7 @@ pub use self::kafka::KafkaProducer;
 pub struct MetricsSnapshot {
     metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
     snapshot: HashMap<Metric<AtomicU64, AtomicU32>, u64>,
-    refreshed: u64,
+    refreshed: Instant,
     count_label: Option<String>,
 }
 
@@ -27,14 +28,14 @@ impl MetricsSnapshot {
         Self {
             metrics,
             snapshot: HashMap::new(),
-            refreshed: 0,
+            refreshed: Instant::now(),
             count_label: count_label.map(std::string::ToString::to_string),
         }
     }
 
     pub fn refresh(&mut self) {
         self.snapshot = self.metrics.snapshot();
-        self.refreshed = time::precise_time_ns();
+        self.refreshed = Instant::now();
     }
 
     pub fn prometheus(&self) -> String {
