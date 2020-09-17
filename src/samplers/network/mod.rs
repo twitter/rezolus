@@ -186,10 +186,8 @@ impl Network {
             let time = Instant::now();
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();
-                for statistic in &self.statistics {
-                    if let Some(table) = statistic.bpf_table() {
-                        let mut table = (*bpf).inner.table(table);
-
+                for statistic in self.statistics.iter().filter(|s| s.bpf_table().is_some()) {
+                    if let Ok(mut table) = (*bpf).inner.table(statistic.bpf_table().unwrap()) {
                         for (&value, &count) in &map_from_table(&mut table) {
                             if count > 0 {
                                 let _ = self.metrics().record_bucket(statistic, time, value, count);

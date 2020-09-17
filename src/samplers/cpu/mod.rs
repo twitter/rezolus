@@ -273,9 +273,9 @@ impl Cpu {
         if let Some(ref bpf) = self.perf {
             let bpf = bpf.lock().unwrap();
             let time = Instant::now();
-            for stat in &self.statistics {
-                if let Some(table) = stat.table() {
-                    let map = crate::common::bpf::perf_table_to_map(&(*bpf).inner.table(table));
+            for stat in self.statistics.iter().filter(|s| s.table().is_some()) {
+                if let Ok(table) = &(*bpf).inner.table(stat.table().unwrap()) {
+                    let map = crate::common::bpf::perf_table_to_map(table);
                     let mut total = 0;
                     for (_cpu, count) in map.iter() {
                         total += count;
