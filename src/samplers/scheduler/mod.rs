@@ -243,10 +243,8 @@ impl Scheduler {
                 if let Some(ref bpf) = self.bpf {
                     let bpf = bpf.lock().unwrap();
                     let time = Instant::now();
-                    for statistic in &self.statistics {
-                        if let Some(table) = statistic.bpf_table() {
-                            let mut table = (*bpf).inner.table(table);
-
+                    for statistic in self.statistics.iter().filter(|s| s.bpf_table().is_some()) {
+                        if let Ok(mut table) = (*bpf).inner.table(statistic.bpf_table().unwrap()) {
                             for (&value, &count) in &map_from_table(&mut table) {
                                 if count > 0 {
                                     let _ = self.metrics().record_bucket(
@@ -272,9 +270,9 @@ impl Scheduler {
         if let Some(ref bpf) = self.perf {
             let bpf = bpf.lock().unwrap();
             let time = Instant::now();
-            for stat in &self.statistics {
-                if let Some(table) = stat.perf_table() {
-                    let map = crate::common::bpf::perf_table_to_map(&(*bpf).inner.table(table));
+            for stat in self.statistics.iter().filter(|s| s.perf_table().is_some()) {
+                if let Ok(table) = &(*bpf).inner.table(stat.perf_table().unwrap()) {
+                    let map = crate::common::bpf::perf_table_to_map(table);
                     let mut total = 0;
                     for (_cpu, count) in map.iter() {
                         total += count;
