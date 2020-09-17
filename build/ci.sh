@@ -116,6 +116,9 @@ fi
 if [[ "${BCC}" == "0.15.0" ]]; then
     git checkout e41f7a3be5c8114ef6a0990e50c2fbabea0e928e
 fi
+if [[ "${BCC}" == "0.16.0" ]]; then
+    git checkout fecd934a9c0ff581890d218ff6c5101694e9b326
+fi
 mkdir -p _build
 cd _build
 cmake .. -DCMAKE_INSTALL_PREFIX=/usr
