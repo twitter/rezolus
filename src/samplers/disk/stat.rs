@@ -56,18 +56,6 @@ pub enum DiskStatistic {
 }
 
 impl DiskStatistic {
-    pub fn diskstat_field(self) -> Option<usize> {
-        match self {
-            Self::BandwidthRead => Some(5),
-            Self::BandwidthWrite => Some(9),
-            Self::BandwidthDiscard => Some(16),
-            Self::OperationsRead => Some(3),
-            Self::OperationsWrite => Some(7),
-            Self::OperationsDiscard => Some(14),
-            _ => None,
-        }
-    }
-
     pub fn bpf_table(self) -> Option<&'static str> {
         match self {
             Self::LatencyRead => Some("latency_read"),

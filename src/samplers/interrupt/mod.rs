@@ -26,6 +26,7 @@ pub struct Interrupt {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
+    statistics: Vec<InterruptStatistic>,
 }
 
 #[async_trait]
@@ -34,18 +35,24 @@ impl Sampler for Interrupt {
 
     fn new(common: Common) -> Result<Self, failure::Error> {
         let fault_tolerant = common.config.general().fault_tolerant();
+        let statistics = common.config().samplers().interrupt().statistics();
 
         #[allow(unused_mut)]
         let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
+            statistics,
         };
 
         if let Err(e) = sampler.initialize_bpf() {
             if !fault_tolerant {
                 return Err(e);
             }
+        }
+
+        if sampler.sampler_config().enabled() {
+            sampler.register();
         }
 
         Ok(sampler)
@@ -87,7 +94,6 @@ impl Sampler for Interrupt {
         }
 
         debug!("sampling");
-        self.register();
 
         self.sample_interrupt().await?;
 
@@ -102,7 +108,7 @@ impl Interrupt {
     #[cfg(feature = "bpf")]
     fn bpf_enabled(&self) -> bool {
         if self.sampler_config().bpf() {
-            for statistic in self.sampler_config().statistics() {
+            for statistic in &self.statistics {
                 if statistic.bpf_table().is_some() {
                     return true;
                 }
@@ -261,9 +267,9 @@ impl Interrupt {
         }
 
         let time = Instant::now();
-        for stat in self.sampler_config().statistics() {
-            if let Some(value) = result.get(&stat) {
-                let _ = self.metrics().record_counter(&stat, time, *value);
+        for stat in &self.statistics {
+            if let Some(value) = result.get(stat) {
+                let _ = self.metrics().record_counter(stat, time, *value);
             }
         }
 
@@ -278,14 +284,14 @@ impl Interrupt {
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();
                 let time = Instant::now();
-                for statistic in self.sampler_config().statistics() {
+                for statistic in &self.statistics {
                     if let Some(table) = statistic.bpf_table() {
                         let mut table = (*bpf).inner.table(table);
 
                         for (&value, &count) in &map_from_table(&mut table) {
                             if count > 0 {
                                 let _ = self.metrics().record_bucket(
-                                    &statistic,
+                                    statistic,
                                     time,
                                     value * crate::MICROSECOND,
                                     count,

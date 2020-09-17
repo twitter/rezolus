@@ -5,6 +5,7 @@
 use core::convert::TryFrom;
 use core::str::FromStr;
 
+use num_derive::FromPrimitive;
 use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
@@ -18,6 +19,7 @@ use strum_macros::{EnumIter, EnumString, IntoStaticStr};
     EnumIter,
     EnumString,
     Eq,
+    FromPrimitive,
     IntoStaticStr,
     PartialEq,
     Hash,
