@@ -122,6 +122,7 @@ impl Rezolus {
                     + parts.get(16).map(|v| v.parse().unwrap_or(0)).unwrap_or(0);
                 result.insert(RezolusStatistic::CpuUser, user * self.nanos_per_tick);
                 result.insert(RezolusStatistic::CpuSystem, system * self.nanos_per_tick);
+                line.clear();
             }
 
             let time = Instant::now();
@@ -154,6 +155,7 @@ impl Rezolus {
                 let rss = parts.get(1).map(|v| v.parse().unwrap_or(0)).unwrap_or(0);
                 result_memory.insert(RezolusStatistic::MemoryVirtual, vm);
                 result_memory.insert(RezolusStatistic::MemoryResident, rss);
+                line.clear();
             }
 
             let time = Instant::now();

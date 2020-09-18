@@ -225,6 +225,7 @@ impl Cpu {
             let mut buf = String::new();
             while reader.read_line(&mut buf).await? > 0 {
                 result.extend(parse_proc_stat(&buf));
+                buf.clear();
             }
 
             let time = Instant::now();
@@ -255,6 +256,7 @@ impl Cpu {
                 if let Some(freq) = parse_frequency(&buf) {
                     result.push(freq.ceil() as u64);
                 }
+                buf.clear();
             }
 
             let time = Instant::now();

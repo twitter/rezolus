@@ -194,6 +194,7 @@ impl Disk {
                             }
                         }
                     }
+                    line.clear();
                 }
                 let time = Instant::now();
                 for stat in &self.statistics {

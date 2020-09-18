@@ -219,6 +219,7 @@ impl Scheduler {
                     let value = split.next().map(|v| v.parse().unwrap_or(0)).unwrap_or(0);
                     result.insert(stat, value);
                 }
+                line.clear();
             }
             let time = Instant::now();
             for statistic in &self.statistics {
