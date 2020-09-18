@@ -33,7 +33,7 @@ pub struct Memory {
 impl Sampler for Memory {
     type Statistic = MemoryStatistic;
 
-    fn new(common: Common) -> Result<Self, failure::Error> {
+    fn new(common: Common) -> Result<Self, anyhow::Error> {
         let statistics = common.config().samplers().memory().statistics();
         let sampler = Self { common, statistics };
         if sampler.sampler_config().enabled() {

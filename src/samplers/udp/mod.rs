@@ -28,7 +28,7 @@ pub struct Udp {
 impl Sampler for Udp {
     type Statistic = UdpStatistic;
 
-    fn new(common: Common) -> Result<Self, failure::Error> {
+    fn new(common: Common) -> Result<Self, anyhow::Error> {
         let statistics = common.config().samplers().udp().statistics();
 
         let sampler = Self {

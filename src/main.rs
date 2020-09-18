@@ -6,7 +6,7 @@
 extern crate rustcommon_logger;
 
 #[macro_use]
-extern crate failure;
+extern crate anyhow;
 
 use rustcommon_atomics::{Atomic, Ordering};
 use std::sync::Arc;

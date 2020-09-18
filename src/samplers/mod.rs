@@ -48,7 +48,7 @@ pub trait Sampler: Sized + Send {
     type Statistic: Statistic<AtomicU64, AtomicU32>;
 
     /// Create a new instance of the sampler
-    fn new(common: Common) -> Result<Self, failure::Error>;
+    fn new(common: Common) -> Result<Self, anyhow::Error>;
 
     /// Access common fields shared between samplers
     fn common(&self) -> &Common;
