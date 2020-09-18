@@ -33,7 +33,7 @@ pub struct Interrupt {
 impl Sampler for Interrupt {
     type Statistic = InterruptStatistic;
 
-    fn new(common: Common) -> Result<Self, failure::Error> {
+    fn new(common: Common) -> Result<Self, anyhow::Error> {
         let fault_tolerant = common.config.general().fault_tolerant();
         let statistics = common.config().samplers().interrupt().statistics();
 
@@ -117,7 +117,7 @@ impl Interrupt {
         false
     }
 
-    fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
+    fn initialize_bpf(&mut self) -> Result<(), anyhow::Error> {
         #[cfg(feature = "bpf")]
         {
             if self.enabled() && self.bpf_enabled() {

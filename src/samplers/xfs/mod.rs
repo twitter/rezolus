@@ -29,7 +29,7 @@ pub struct Xfs {
 #[async_trait]
 impl Sampler for Xfs {
     type Statistic = XfsStatistic;
-    fn new(common: Common) -> Result<Self, failure::Error> {
+    fn new(common: Common) -> Result<Self, anyhow::Error> {
         let fault_tolerant = common.config.general().fault_tolerant();
         let statistics = common.config().samplers().xfs().statistics();
 
@@ -113,7 +113,7 @@ impl Xfs {
         false
     }
 
-    fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
+    fn initialize_bpf(&mut self) -> Result<(), anyhow::Error> {
         #[cfg(feature = "bpf")]
         {
             if self.enabled() && self.bpf_enabled() {

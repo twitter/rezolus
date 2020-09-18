@@ -29,7 +29,7 @@ pub struct Ext4 {
 #[async_trait]
 impl Sampler for Ext4 {
     type Statistic = Ext4Statistic;
-    fn new(common: Common) -> Result<Self, failure::Error> {
+    fn new(common: Common) -> Result<Self, anyhow::Error> {
         let fault_tolerant = common.config.general().fault_tolerant();
         let statistics = common.config().samplers().ext4().statistics();
 
@@ -113,7 +113,7 @@ impl Ext4 {
         false
     }
 
-    fn initialize_bpf(&mut self) -> Result<(), failure::Error> {
+    fn initialize_bpf(&mut self) -> Result<(), anyhow::Error> {
         #[cfg(feature = "bpf")]
         {
             if self.enabled() && self.bpf_enabled() {

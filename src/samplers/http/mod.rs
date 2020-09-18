@@ -29,7 +29,7 @@ pub struct Http {
 impl Sampler for Http {
     type Statistic = HttpStatistic;
 
-    fn new(common: Common) -> Result<Self, failure::Error> {
+    fn new(common: Common) -> Result<Self, anyhow::Error> {
         let url = common.config.samplers().http().url();
         let passthrough = common.config.samplers().http().passthrough();
         if url.is_none() && common.config.samplers().http().enabled() {

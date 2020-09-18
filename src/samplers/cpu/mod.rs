@@ -53,7 +53,7 @@ pub fn nanos_per_tick() -> u64 {
 impl Sampler for Cpu {
     type Statistic = CpuStatistic;
 
-    fn new(common: Common) -> Result<Self, failure::Error> {
+    fn new(common: Common) -> Result<Self, anyhow::Error> {
         let statistics = common.config().samplers().cpu().statistics();
         #[allow(unused_mut)]
         let mut sampler = Self {

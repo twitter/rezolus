@@ -30,7 +30,7 @@ pub struct Softnet {
 #[async_trait]
 impl Sampler for Softnet {
     type Statistic = SoftnetStatistic;
-    fn new(common: Common) -> Result<Self, failure::Error> {
+    fn new(common: Common) -> Result<Self, anyhow::Error> {
         let statistics = common.config().samplers().softnet().statistics();
         let sampler = Self {
             common,

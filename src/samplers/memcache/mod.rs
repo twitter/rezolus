@@ -29,7 +29,7 @@ pub struct Memcache {
 impl Sampler for Memcache {
     type Statistic = MemcacheStatistic;
 
-    fn new(common: Common) -> Result<Self, failure::Error> {
+    fn new(common: Common) -> Result<Self, anyhow::Error> {
         if !common.config.samplers().memcache().enabled() {
             return Ok(Self {
                 address: "localhost:11211".to_socket_addrs().unwrap().next().unwrap(),
