@@ -170,7 +170,7 @@ impl Disk {
         }
 
         if let Some(file) = &mut self.proc_diskstats {
-            file.seek(SeekFrom::Start(0));
+            file.seek(SeekFrom::Start(0)).await?;
             if let Some(re) = &mut self.disk_regex {
                 let mut reader = BufReader::new(file);
                 let mut line = String::new();
