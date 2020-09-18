@@ -67,6 +67,8 @@ pub async fn nested_map_from_file(
                     }
                 }
             }
+            keys.clear();
+            values.clear();
         }
     }
     Ok(ret)

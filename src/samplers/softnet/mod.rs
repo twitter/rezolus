@@ -110,6 +110,7 @@ impl Softnet {
                         *current += u64::from_str_radix(part, 16).unwrap_or(0);
                     }
                 }
+                line.clear();
             }
 
             let time = Instant::now();
