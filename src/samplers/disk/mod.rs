@@ -3,6 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
+use std::io::SeekFrom;
 use std::sync::{Arc, Mutex};
 use std::time::*;
 
@@ -169,6 +170,7 @@ impl Disk {
         }
 
         if let Some(file) = &mut self.proc_diskstats {
+            file.seek(SeekFrom::Start(0));
             if let Some(re) = &mut self.disk_regex {
                 let mut reader = BufReader::new(file);
                 let mut line = String::new();
