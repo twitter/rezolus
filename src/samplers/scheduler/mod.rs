@@ -12,6 +12,7 @@ use async_trait::async_trait;
 use bcc::perf_event::{Event, SoftwareEvent};
 #[cfg(feature = "bpf")]
 use bcc::{PerfEvent, PerfEventArray};
+use rustcommon_metrics::{Source, Statistic};
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
@@ -210,7 +211,7 @@ impl Scheduler {
             while reader.read_line(&mut line).await? > 0 {
                 let mut split = line.split_whitespace();
                 if let Some(stat) = match split.next() {
-                    Some("ctx") => Some(SchedulerStatistic::ContextSwitches),
+                    Some("ctxt") => Some(SchedulerStatistic::ContextSwitches),
                     Some("processes") => Some(SchedulerStatistic::ProcessesCreated),
                     Some("procs_running") => Some(SchedulerStatistic::ProcessesRunning),
                     Some("procs_blocked") => Some(SchedulerStatistic::ProcessesBlocked),
@@ -224,7 +225,15 @@ impl Scheduler {
             let time = Instant::now();
             for statistic in &self.statistics {
                 if let Some(value) = result.get(statistic) {
-                    let _ = self.metrics().record_counter(statistic, time, *value);
+                    match statistic.source() {
+                        Source::Counter => {
+                            let _ = self.metrics().record_counter(statistic, time, *value);
+                        }
+                        Source::Gauge => {
+                            let _ = self.metrics().record_gauge(statistic, time, *value);
+                        }
+                        _ => {}
+                    }
                 }
             }
         }

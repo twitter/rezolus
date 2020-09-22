@@ -1,6 +1,6 @@
 [package]
 name = "rezolus"
-version = "2.7.2-alpha.3"
+version = "2.7.2-alpha.4"
 authors = ["Brian Martin <bmartin@twitter.com>"]
 license = "Apache-2.0"
 build = "build.rs"
