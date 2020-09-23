@@ -122,36 +122,58 @@ fi
 mkdir -p _build
 cd _build
 cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-make
+make -j2
 sudo make install
 find . -name "*.a" -exec sudo cp -v {} /usr/lib/ \;
 cd ../..
 
 ## Build and test
-if [ -n "${FEATURES}" ]; then
-    if [[ $STATIC == true ]]; then
-        export RUSTFLAGS="-L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-${LLVM}/lib"
+function build {
+    if [ -n "${FEATURES}" ]; then
+        cargo build --release --features "${FEATURES}"
+        cargo test --release --features "${FEATURES}"
+    else
+        cargo build --release
+        cargo test --release
     fi
+}
 
-    cargo build --release --features "${FEATURES}"
-    cargo test --release --features "${FEATURES}"
-else
-    if [[ $STATIC == true ]]; then
-        export RUSTFLAGS="-L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-${LLVM}/lib"
+function static_build {
+    export RUSTFLAGS="-L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-${LLVM}/lib"
+
+    if [ "${LLVM}" == "8" ];
+        export FLAG="bpf_static_llvm_8";
+    else 
+        export FLAG="bpf_static";
     fi
+    
+    if [ -n "${FEATURES}" ]; then
+        cargo build --release --features "${FEATURES} ${FLAG}"
+        cargo test --release --features "${FEATURES} ${FLAG}"
+    else
+        cargo build --release --features "${FLAG}"
+        cargo test --release --features "${FLAG}"
+    fi
+}
 
-    cargo build --release
-    cargo test --release
+function test {
+    sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml &
+    sleep 180
+    curl -s http://localhost:4242/vars
+    curl -s http://localhost:4242/vars.json | jq '.' > /dev/null
+    sleep 180
+
+    sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml &
+    sleep 180
+    curl -s http://localhost:4242/vars
+    curl -s http://localhost:4242/vars.json | jq '.' > /dev/null
+    sleep 180
+}
+
+build
+test
+
+if [[ $STATIC == true ]]; then
+    static_build
+    test
 fi
-
-sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/example.toml &
-sleep 180
-curl -s http://localhost:4242/vars
-curl -s http://localhost:4242/vars.json | jq '.' > /dev/null
-sleep 180
-sudo timeout --signal 15 --preserve-status 5.0m target/release/rezolus --config configs/ci.toml &
-sleep 180
-curl -s http://localhost:4242/vars
-curl -s http://localhost:4242/vars.json | jq '.' > /dev/null
-
-sleep 180
