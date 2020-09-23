@@ -141,7 +141,7 @@ function build {
 function static_build {
     export RUSTFLAGS="-L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-${LLVM}/lib"
 
-    if [ "${LLVM}" == "8" ];
+    if [ "${LLVM}" == "8" ]; then
         export FLAG="bpf_static_llvm_8";
     else 
         export FLAG="bpf_static";
