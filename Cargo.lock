@@ -475,9 +475,9 @@ dependencies = [
 
 [[package]]
 name = "hermit-abi"
-version = "0.1.15"
+version = "0.1.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3deed196b6e7f9e44a2ae8d94225d80302d81208b1bb673fd21fe634645c85a9"
+checksum = "4c30f6d0bc6b00693347368a67d41b58f2fb851215ff1da49e90fe2c5c667151"
 dependencies = [
  "libc",
 ]
@@ -510,10 +510,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd179ae861f0c2e53da70d892f5f3029f9594be0c41dc5269cd371691b1dc2f9"
 
 [[package]]
-name = "hyper"
-version = "0.13.7"
+name = "httpdate"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e68a8dd9716185d9e64ea473ea6ef63529252e3e27623295a0378a19665d5eb"
+checksum = "494b4d60369511e7dea41cf646832512a94e542f68bb9c49e54518e0f468eb47"
+
+[[package]]
+name = "hyper"
+version = "0.13.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f3afcfae8af5ad0576a31e768415edb627824129e8e5a29b8bfccb2f234e835"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -523,10 +529,10 @@ dependencies = [
  "http",
  "http-body",
  "httparse",
+ "httpdate",
  "itoa",
  "pin-project",
  "socket2",
- "time",
  "tokio",
  "tower-service",
  "tracing",
@@ -1187,7 +1193,7 @@ checksum = "4c691c0e608126e00913e33f0ccf3727d5fc84573623b8d65b2df340b5201783"
 [[package]]
 name = "rustcommon-atomics"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
+source = "git+https://github.com/twitter/rustcommon#ea503d33633d45e8a71232748ff6081b19c2ae01"
 dependencies = [
  "serde",
 ]
@@ -1195,7 +1201,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-heatmap"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
+source = "git+https://github.com/twitter/rustcommon#ea503d33633d45e8a71232748ff6081b19c2ae01"
 dependencies = [
  "rustcommon-atomics",
  "rustcommon-histogram",
@@ -1205,7 +1211,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-histogram"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
+source = "git+https://github.com/twitter/rustcommon#ea503d33633d45e8a71232748ff6081b19c2ae01"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
@@ -1214,7 +1220,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-logger"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
+source = "git+https://github.com/twitter/rustcommon#ea503d33633d45e8a71232748ff6081b19c2ae01"
 dependencies = [
  "log 0.4.11",
  "time",
@@ -1223,18 +1229,19 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics"
 version = "2.0.0-alpha.0"
-source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
+source = "git+https://github.com/twitter/rustcommon#ea503d33633d45e8a71232748ff6081b19c2ae01"
 dependencies = [
  "dashmap",
  "rustcommon-atomics",
  "rustcommon-heatmap",
  "rustcommon-streamstats",
+ "thiserror",
 ]
 
 [[package]]
 name = "rustcommon-streamstats"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon#1d2c6ac041429fd35dd0074f82d2d34037ff4e09"
+source = "git+https://github.com/twitter/rustcommon#ea503d33633d45e8a71232748ff6081b19c2ae01"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",

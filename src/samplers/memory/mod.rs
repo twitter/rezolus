@@ -155,11 +155,17 @@ impl Memory {
         }
 
         let time = Instant::now();
-        for stat in &self.statistics {
-            if let Some(value) = result.get(stat) {
-                let _ = self
-                    .metrics()
-                    .record_gauge(stat, time, *value * stat.multiplier());
+        for statistic in &self.statistics {
+            if let Some(value) = result.get(statistic) {
+                match statistic.source() {
+                    Source::Counter => {
+                        let _ = self.metrics().record_counter(statistic, time, *value);
+                    }
+                    Source::Gauge => {
+                        let _ = self.metrics().record_gauge(statistic, time, *value);
+                    }
+                    _ => {}
+                }
             }
         }
         Ok(())
