@@ -1,5 +1,17 @@
 # [Unreleased]
 
+# [2.8.0] - 2020-09-23
+## Changed
+- Metrics library has been replaced with a new version which reduces memory
+  footprint.
+- Samplers have been optimized to reduce number of system calls and temporary
+  allocations.
+- Arbitrary percentiles may now be expressed in the configuration.
+- Percentile exposition format has changed to allow arbitrary percentiles. They
+  are now expressed in a decimal format padded to 2 digits before the decimal.
+  For example, the 5th percentile is now `p05` and the 99.9th percentile is now
+  `p99.9`.
+
 # [2.7.1] - 2020-08-31
 ## Fixed
 - Fixed memcache sampler causing tokio worker to panic due to issues registering
@@ -119,7 +131,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.7.1...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.8.0...HEAD
+[2.8.0]: https://github.com/twitter/rezolus/compare/v2.7.1...v2.8.0
 [2.7.1]: https://github.com/twitter/rezolus/compare/v2.7.0...v2.7.1
 [2.7.0]: https://github.com/twitter/rezolus/compare/v2.6.0...v2.7.0
 [2.6.0]: https://github.com/twitter/rezolus/compare/v2.5.0...v2.6.0
