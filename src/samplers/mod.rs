@@ -21,6 +21,7 @@ pub mod interrupt;
 pub mod memcache;
 pub mod memory;
 pub mod network;
+pub mod page_cache;
 pub mod rezolus;
 pub mod scheduler;
 pub mod softnet;

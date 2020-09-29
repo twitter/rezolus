@@ -33,6 +33,10 @@ enabled = true
 bpf = true
 enabled = true
 
+[samplers.page_cache]
+bpf = true
+enabled = true
+
 [samplers.rezolus]
 enabled = true
 

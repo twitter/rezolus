@@ -247,6 +247,34 @@ bpf = true
 # ]
 
 
+# The page cache sampler provides telemetry about page cache hits and misses
+[samplers.page_cache]
+# Controls whether to use this sampler
+enabled = true
+
+# Enable BPF sampling - required for this sampler
+bpf = true
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"page_cache/hits",
+#   "page_cache/misses"
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
+
 # The rezolus sampler provides telemetry about the CPU and memory utilization
 # for Rezolus itself.
 [samplers.rezolus]
