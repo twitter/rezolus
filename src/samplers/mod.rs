@@ -37,6 +37,7 @@ pub use interrupt::Interrupt;
 pub use memcache::Memcache;
 pub use memory::Memory;
 pub use network::Network;
+pub use page_cache::PageCache;
 pub use rezolus::Rezolus;
 pub use scheduler::Scheduler;
 pub use softnet::Softnet;
