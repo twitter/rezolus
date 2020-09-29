@@ -63,9 +63,9 @@ impl Sampler for PageCache {
                 }
             });
         } else if !common.config.fault_tolerant() {
-            fatal!("failed to initialize interrupt sampler");
+            fatal!("failed to initialize page_cache sampler");
         } else {
-            error!("failed to initialize interrupt sampler");
+            error!("failed to initialize page_cache sampler");
         }
     }
 
@@ -122,22 +122,20 @@ impl PageCache {
                 let mut bpf = bcc::BPF::new(code)?;
 
                 bcc::Kprobe::new()
-                    .handler("hardirq_entry")
-                    .function("handle_irq_event_percpu")
+                    .handler("trace_mark_page_accessed")
+                    .function("mark_page_accessed")
                     .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("hardirq_exit")
-                    .function("handle_irq_event_percpu")
+                bcc::Kprobe::new()
+                    .handler("trace_mark_buffer_dirty")
+                    .function("mark_buffer_dirty")
                     .attach(&mut bpf)?;
-                bcc::Tracepoint::new()
-                    .handler("softirq_entry")
-                    .subsystem("irq")
-                    .tracepoint("softirq_entry")
+                bcc::Kprobe::new()
+                    .handler("trace_add_to_page_cache_lru")
+                    .function("add_to_page_cache_lru")
                     .attach(&mut bpf)?;
-                bcc::Tracepoint::new()
-                    .handler("softirq_exit")
-                    .subsystem("irq")
-                    .tracepoint("softirq_exit")
+                bcc::Kprobe::new()
+                    .handler("trace_account_page_dirtied")
+                    .function("account_page_dirtied")
                     .attach(&mut bpf)?;
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
