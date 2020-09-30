@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -104,7 +105,15 @@ pub trait Sampler: Sized + Send {
                         Summary::heatmap(
                             1_000_000_000,
                             2,
-                            self.common().config().general().window(),
+                            Duration::new(
+                                self.common()
+                                    .config()
+                                    .general()
+                                    .window()
+                                    .try_into()
+                                    .unwrap(),
+                                0,
+                            ),
                             Duration::new(1, 0),
                         ),
                     );
