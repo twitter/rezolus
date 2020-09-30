@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::*;
 
 use async_trait::async_trait;
 
@@ -21,9 +21,9 @@ pub use stat::*;
 #[allow(dead_code)]
 pub struct PageCache {
     bpf: Option<Arc<Mutex<BPF>>>,
-    bpf_last: Arc<Mutex<Instant>>,
     common: Common,
     statistics: Vec<PageCacheStatistic>,
+    counters: HashMap<PageCacheStatistic, u64>,
 }
 
 #[async_trait]
@@ -37,9 +37,9 @@ impl Sampler for PageCache {
         #[allow(unused_mut)]
         let mut sampler = Self {
             bpf: None,
-            bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
             statistics,
+            counters: HashMap::new(),
         };
 
         if let Err(e) = sampler.initialize_bpf() {
@@ -93,7 +93,10 @@ impl Sampler for PageCache {
         debug!("sampling");
 
         #[cfg(feature = "bpf")]
-        self.map_result(self.sample_bpf())?;
+        {
+            let result = self.sample_bpf_counters();
+            self.map_result(result)?;
+        }
 
         Ok(())
     }
@@ -146,44 +149,66 @@ impl PageCache {
     }
 
     #[cfg(feature = "bpf")]
-    fn sample_bpf(&self) -> Result<(), std::io::Error> {
-        if self.bpf_last.lock().unwrap().elapsed()
-            >= Duration::new(self.general_config().window() as u64, 0)
-        {
-            if let Some(ref bpf) = self.bpf {
-                let bpf = bpf.lock().unwrap();
-                let time = Instant::now();
-                let mut page_accessed = 0;
-                let mut buffer_dirty = 0;
-                let mut add_to_page_cache_lru = 0;
-                let mut page_dirtied = 0;
-                if let Ok(table) = (*bpf).inner.table("page_accessed") {
-                    page_accessed =
-                        crate::common::bpf::parse_u64(table.iter().next().unwrap().value);
-                }
-                if let Ok(table) = (*bpf).inner.table("buffer_dirty") {
-                    buffer_dirty =
-                        crate::common::bpf::parse_u64(table.iter().next().unwrap().value);
-                }
-                if let Ok(table) = (*bpf).inner.table("add_to_page_cache_lru") {
-                    add_to_page_cache_lru =
-                        crate::common::bpf::parse_u64(table.iter().next().unwrap().value);
-                }
-                if let Ok(table) = (*bpf).inner.table("page_dirtied") {
-                    page_dirtied =
-                        crate::common::bpf::parse_u64(table.iter().next().unwrap().value);
-                }
-                let total = page_accessed.wrapping_sub(buffer_dirty);
-                let misses = add_to_page_cache_lru.wrapping_sub(page_dirtied);
-                let hits = total.wrapping_sub(misses);
-                let _ = self
-                    .metrics()
-                    .record_counter(&PageCacheStatistic::Hit, time, hits);
-                let _ = self
-                    .metrics()
-                    .record_counter(&PageCacheStatistic::Miss, time, misses);
+    fn sample_bpf_counters(&mut self) -> Result<(), std::io::Error> {
+        if let Some(ref bpf) = self.bpf {
+            let bpf = bpf.lock().unwrap();
+            let time = std::time::Instant::now();
+            let mut page_accessed = 0;
+            let mut buffer_dirty = 0;
+            let mut add_to_page_cache_lru = 0;
+            let mut page_dirtied = 0;
+
+            // to make things simple for wraparound behavior, clear each BPF
+            // counter after reading it.
+            if let Ok(mut table) = (*bpf).inner.table("page_accessed") {
+                page_accessed = crate::common::bpf::parse_u64(table.iter().next().unwrap().value);
+                let _ = table.set(&mut [0, 0, 0, 0], &mut [0, 0, 0, 0, 0, 0, 0, 0]);
             }
-            *self.bpf_last.lock().unwrap() = Instant::now();
+            if let Ok(mut table) = (*bpf).inner.table("buffer_dirty") {
+                buffer_dirty = crate::common::bpf::parse_u64(table.iter().next().unwrap().value);
+                let _ = table.set(&mut [0, 0, 0, 0], &mut [0, 0, 0, 0, 0, 0, 0, 0]);
+            }
+            if let Ok(mut table) = (*bpf).inner.table("add_to_page_cache_lru") {
+                add_to_page_cache_lru =
+                    crate::common::bpf::parse_u64(table.iter().next().unwrap().value);
+                let _ = table.set(&mut [0, 0, 0, 0], &mut [0, 0, 0, 0, 0, 0, 0, 0]);
+            }
+            if let Ok(mut table) = (*bpf).inner.table("page_dirtied") {
+                page_dirtied = crate::common::bpf::parse_u64(table.iter().next().unwrap().value);
+                let _ = table.set(&mut [0, 0, 0, 0], &mut [0, 0, 0, 0, 0, 0, 0, 0]);
+            }
+
+            // the logic here is taken from https://github.com/iovisor/bcc/blob/master/tools/cachestat.py
+            let total = page_accessed.saturating_sub(buffer_dirty);
+            let misses = add_to_page_cache_lru.saturating_sub(page_dirtied);
+
+            // misses may be overestimated due to readahead adding more pages
+            // than needed. If this is the case, assume misses = total,
+            let misses = if misses > total { total } else { misses };
+            let hits = total.saturating_sub(misses);
+
+            if let Some(count) = self.counters.get_mut(&PageCacheStatistic::Hit) {
+                *count += hits;
+            } else {
+                self.counters.insert(PageCacheStatistic::Hit, hits);
+            }
+
+            if let Some(count) = self.counters.get_mut(&PageCacheStatistic::Miss) {
+                *count += misses;
+            } else {
+                self.counters.insert(PageCacheStatistic::Miss, misses);
+            }
+
+            let _ = self.metrics().record_counter(
+                &PageCacheStatistic::Hit,
+                time,
+                *self.counters.get(&PageCacheStatistic::Hit).unwrap_or(&0),
+            );
+            let _ = self.metrics().record_counter(
+                &PageCacheStatistic::Miss,
+                time,
+                *self.counters.get(&PageCacheStatistic::Miss).unwrap_or(&0),
+            );
         }
         Ok(())
     }
