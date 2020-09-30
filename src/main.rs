@@ -81,6 +81,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Interrupt::spawn(common.clone());
     Memcache::spawn(common.clone());
     Memory::spawn(common.clone());
+    PageCache::spawn(common.clone());
     Network::spawn(common.clone());
     Rezolus::spawn(common.clone());
     Scheduler::spawn(common.clone());

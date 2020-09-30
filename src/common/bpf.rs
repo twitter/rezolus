@@ -112,7 +112,7 @@ pub fn perf_table_to_map(table: &bcc::table::Table) -> std::collections::HashMap
 }
 
 #[cfg(feature = "bpf")]
-fn parse_u32(x: Vec<u8>) -> u32 {
+pub fn parse_u32(x: Vec<u8>) -> u32 {
     let mut v = [0_u8; 4];
     for (i, byte) in v.iter_mut().enumerate() {
         *byte = *x.get(i).unwrap_or(&0);
@@ -122,7 +122,7 @@ fn parse_u32(x: Vec<u8>) -> u32 {
 }
 
 #[cfg(feature = "bpf")]
-fn parse_u64(x: Vec<u8>) -> u64 {
+pub fn parse_u64(x: Vec<u8>) -> u64 {
     let mut v = [0_u8; 8];
     for (i, byte) in v.iter_mut().enumerate() {
         *byte = *x.get(i).unwrap_or(&0);
