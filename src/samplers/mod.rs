@@ -105,7 +105,15 @@ pub trait Sampler: Sized + Send {
                         Summary::heatmap(
                             1_000_000_000,
                             2,
-                            Duration::new(self.common().config().general().window().try_into().unwrap(), 0),
+                            Duration::new(
+                                self.common()
+                                    .config()
+                                    .general()
+                                    .window()
+                                    .try_into()
+                                    .unwrap(),
+                                0,
+                            ),
                             Duration::new(1, 0),
                         ),
                     );
