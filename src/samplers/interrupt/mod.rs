@@ -170,15 +170,16 @@ impl Interrupt {
             let mut node0 = 0;
             let mut node1 = 0;
             let cores = cores.unwrap();
+
             for i in 0..cores {
                 let count = parts.get(i + 1).unwrap_or(&"0").parse().unwrap_or(0);
                 sum += count;
-                // Assumes the system is split into 2 NUMA nodes with
-                // hyperthreading enabled and that cores are arranged as follows
-                if i < (cores / 4) || (i >= (cores / 2) && i < (3 * cores / 4)) {
-                    node0 += count;
-                } else {
-                    node1 += count;
+
+                let node = self.common().hardware_info().get_numa(i as u64).unwrap_or(0);
+                match node {
+                    0 => node0 += count,
+                    1 => node1 += count,
+                    _ => {},
                 }
             }
             let stat = match parts.get(0) {
