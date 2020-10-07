@@ -59,16 +59,18 @@ impl Sampler for Interrupt {
     }
 
     fn spawn(common: Common) {
-        if let Ok(mut interrupt) = Interrupt::new(common.clone()) {
-            common.handle.spawn(async move {
-                loop {
-                    let _ = interrupt.sample().await;
-                }
-            });
-        } else if !common.config.fault_tolerant() {
-            fatal!("failed to initialize interrupt sampler");
-        } else {
-            error!("failed to initialize interrupt sampler");
+        if common.config().samplers().interrupt().enabled() {
+            if let Ok(mut interrupt) = Interrupt::new(common.clone()) {
+                common.handle.spawn(async move {
+                    loop {
+                        let _ = interrupt.sample().await;
+                    }
+                });
+            } else if !common.config.fault_tolerant() {
+                fatal!("failed to initialize interrupt sampler");
+            } else {
+                error!("failed to initialize interrupt sampler");
+            }
         }
     }
 

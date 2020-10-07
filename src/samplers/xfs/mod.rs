@@ -55,16 +55,18 @@ impl Sampler for Xfs {
     }
 
     fn spawn(common: Common) {
-        if let Ok(mut sampler) = Self::new(common.clone()) {
-            common.handle.spawn(async move {
-                loop {
-                    let _ = sampler.sample().await;
-                }
-            });
-        } else if !common.config.fault_tolerant() {
-            fatal!("failed to initialize xfs sampler");
-        } else {
-            error!("failed to initialize xfs sampler");
+        if common.config().samplers().xfs().enabled() {
+            if let Ok(mut sampler) = Self::new(common.clone()) {
+                common.handle.spawn(async move {
+                    loop {
+                        let _ = sampler.sample().await;
+                    }
+                });
+            } else if !common.config.fault_tolerant() {
+                fatal!("failed to initialize xfs sampler");
+            } else {
+                error!("failed to initialize xfs sampler");
+            }
         }
     }
 

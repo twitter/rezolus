@@ -94,16 +94,18 @@ impl Sampler for Cpu {
     }
 
     fn spawn(common: Common) {
-        if let Ok(mut cpu) = Cpu::new(common.clone()) {
-            common.handle.spawn(async move {
-                loop {
-                    let _ = cpu.sample().await;
-                }
-            });
-        } else if !common.config.fault_tolerant() {
-            fatal!("failed to initialize cpu sampler");
-        } else {
-            error!("failed to initialize cpu sampler");
+        if common.config().samplers().cpu().enabled() {
+            if let Ok(mut cpu) = Cpu::new(common.clone()) {
+                common.handle.spawn(async move {
+                    loop {
+                        let _ = cpu.sample().await;
+                    }
+                });
+            } else if !common.config.fault_tolerant() {
+                fatal!("failed to initialize cpu sampler");
+            } else {
+                error!("failed to initialize cpu sampler");
+            }
         }
     }
 
