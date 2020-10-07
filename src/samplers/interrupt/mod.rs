@@ -175,11 +175,15 @@ impl Interrupt {
                 let count = parts.get(i + 1).unwrap_or(&"0").parse().unwrap_or(0);
                 sum += count;
 
-                let node = self.common().hardware_info().get_numa(i as u64).unwrap_or(0);
+                let node = self
+                    .common()
+                    .hardware_info()
+                    .get_numa(i as u64)
+                    .unwrap_or(0);
                 match node {
                     0 => node0 += count,
                     1 => node1 += count,
-                    _ => {},
+                    _ => {}
                 }
             }
             let stat = match parts.get(0) {

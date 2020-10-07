@@ -59,7 +59,7 @@ impl HardwareInfo {
                 break;
             }
             node += 1;
-        } 
+        }
         Self {
             hardware_threads: AtomicU64::new(hardware_threads),
             numa_mapping,
