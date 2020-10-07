@@ -58,9 +58,7 @@ impl HardwareInfo {
             }
             node += 1;
         }
-        Self {
-            numa_mapping,
-        }
+        Self { numa_mapping }
     }
 
     pub fn get_numa(&self, core: u64) -> Option<u64> {
