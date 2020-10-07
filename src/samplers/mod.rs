@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use crate::HardwareInfo;
 use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::Duration;
@@ -160,6 +161,7 @@ pub trait Sampler: Sized + Send {
 pub struct Common {
     config: Arc<Config>,
     handle: Handle,
+    hardware_info: Arc<HardwareInfo>,
     interval: Option<Interval>,
     metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
 }
@@ -169,6 +171,7 @@ impl Clone for Common {
         Self {
             config: self.config.clone(),
             handle: self.handle.clone(),
+            hardware_info: self.hardware_info.clone(),
             interval: None,
             metrics: self.metrics.clone(),
         }
@@ -184,6 +187,7 @@ impl Common {
         Self {
             config,
             handle,
+            hardware_info: Arc::new(HardwareInfo::new()),
             interval: None,
             metrics,
         }
@@ -191,6 +195,10 @@ impl Common {
 
     pub fn config(&self) -> &Config {
         &self.config
+    }
+
+    pub fn hardware_info(&self) -> &HardwareInfo {
+        &self.hardware_info
     }
 
     pub fn interval(&mut self) -> &mut Option<Interval> {

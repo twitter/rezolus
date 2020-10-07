@@ -6,6 +6,8 @@ use std::collections::HashMap;
 use std::io::BufRead;
 use std::io::SeekFrom;
 
+use dashmap::DashMap;
+use rustcommon_atomics::AtomicU64;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
@@ -18,6 +20,56 @@ pub const SECOND: u64 = 1_000 * MILLISECOND;
 pub const MILLISECOND: u64 = 1_000 * MICROSECOND;
 pub const MICROSECOND: u64 = 1_000 * NANOSECOND;
 pub const NANOSECOND: u64 = 1;
+
+pub struct HardwareInfo {
+    hardware_threads: AtomicU64,
+    numa_mapping: DashMap<u64, u64>,
+}
+
+impl HardwareInfo {
+    pub fn new() -> Self {
+        let hardware_threads = hardware_threads().unwrap_or(1);
+        let numa_mapping = DashMap::new();
+        let mut node = 0;
+        loop {
+            let path = format!("/sys/devices/system/node/node{}/cpulist", node);
+            if let Ok(f) = std::fs::File::open(path) {
+                let mut reader = std::io::BufReader::new(f);
+                let mut line = String::new();
+                if reader.read_line(&mut line).is_ok() {
+                    let ranges: Vec<&str> = line.trim().split(',').collect();
+                    for range in ranges {
+                        let parts: Vec<&str> = range.split('-').collect();
+                        if parts.len() == 1 {
+                            if let Ok(id) = parts[0].parse() {
+                                numa_mapping.insert(id, node);
+                            }
+                        } else if parts.len() == 2 {
+                            if let Ok(start) = parts[0].parse() {
+                                if let Ok(stop) = parts[1].parse() {
+                                    for id in start..=stop {
+                                        numa_mapping.insert(id, node);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                break;
+            }
+            node += 1;
+        }
+        Self {
+            hardware_threads: AtomicU64::new(hardware_threads),
+            numa_mapping,
+        }
+    }
+
+    pub fn get_numa(&self, core: u64) -> Option<u64> {
+        self.numa_mapping.get(&core).map(|v| *v.value())
+    }
+}
 
 /// helper function to discover the number of hardware threads
 pub fn hardware_threads() -> Result<u64, ()> {
