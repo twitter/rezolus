@@ -4,15 +4,22 @@ Below you will find a list of possible metrics which Rezolus can export as well
 as details on their source and meaning. Metrics below may typically be followed
 by:
 * `/count` - the value of the counter
-* `/histogram/(percentile)` - a percentile of a counter's secondly rate or the
-  percentile taken from a distribution
-* `/maximum/value` - the maximum of a counter's secondly rate or the maximum
-  value taken from a distribution
-* `/maximum/offset_ms` - the offset into the minute at which the maximum
-  occurred
+* `/histogram/(percentile)` - a percentile of a counter's secondly rate, a
+  gauge's instantaneous readings, or the percentile taken from a distribution
 
 Sampler configurations will refer to the metrics according to their basenames as
 used in the descriptions below.
+
+**Note:** summary metrics taken from underlying distributions use a significant
+figure preserving histogram binning. This means that the reported values will be
+rounded up to the highest value that still preserves that number of leading
+digits. Currently, this is fixed at 2 significant figures to help maintain a low
+memory footprint. This means, you may see a percentile like 10999, which implies
+the true value is somewhere between 10000 and 10999 (inclusive).
+
+Summary metrics for counters and gauges use a different strategy for percentile
+calculation, as we can hold the number of samples to calculate an exact
+percentile in memory.
 
 ## CPU
 
