@@ -22,13 +22,11 @@ pub const MICROSECOND: u64 = 1_000 * NANOSECOND;
 pub const NANOSECOND: u64 = 1;
 
 pub struct HardwareInfo {
-    hardware_threads: AtomicU64,
     numa_mapping: DashMap<u64, u64>,
 }
 
 impl HardwareInfo {
     pub fn new() -> Self {
-        let hardware_threads = hardware_threads().unwrap_or(1);
         let numa_mapping = DashMap::new();
         let mut node = 0;
         loop {
@@ -60,10 +58,7 @@ impl HardwareInfo {
             }
             node += 1;
         }
-        Self {
-            hardware_threads: AtomicU64::new(hardware_threads),
-            numa_mapping,
-        }
+        Self { numa_mapping }
     }
 
     pub fn get_numa(&self, core: u64) -> Option<u64> {
