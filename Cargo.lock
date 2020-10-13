@@ -1288,7 +1288,7 @@ checksum = "4c691c0e608126e00913e33f0ccf3727d5fc84573623b8d65b2df340b5201783"
 [[package]]
 name = "rustcommon-atomics"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#91125081c171d643efd8f2874d79f8aa9c60df29"
+source = "git+https://github.com/twitter/rustcommon#b52ffc7dea6ed0ea8401e5dc2ba69319dd09e74a"
 dependencies = [
  "serde",
 ]
@@ -1296,8 +1296,9 @@ dependencies = [
 [[package]]
 name = "rustcommon-heatmap"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon#91125081c171d643efd8f2874d79f8aa9c60df29"
+source = "git+https://github.com/twitter/rustcommon#b52ffc7dea6ed0ea8401e5dc2ba69319dd09e74a"
 dependencies = [
+ "crossbeam",
  "rustcommon-atomics",
  "rustcommon-histogram",
  "thiserror",
@@ -1306,7 +1307,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-histogram"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#91125081c171d643efd8f2874d79f8aa9c60df29"
+source = "git+https://github.com/twitter/rustcommon#b52ffc7dea6ed0ea8401e5dc2ba69319dd09e74a"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
@@ -1315,7 +1316,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-logger"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon#91125081c171d643efd8f2874d79f8aa9c60df29"
+source = "git+https://github.com/twitter/rustcommon#b52ffc7dea6ed0ea8401e5dc2ba69319dd09e74a"
 dependencies = [
  "log 0.4.11",
  "time",
@@ -1324,7 +1325,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics"
 version = "2.0.0-alpha.0"
-source = "git+https://github.com/twitter/rustcommon#91125081c171d643efd8f2874d79f8aa9c60df29"
+source = "git+https://github.com/twitter/rustcommon#b52ffc7dea6ed0ea8401e5dc2ba69319dd09e74a"
 dependencies = [
  "crossbeam",
  "dashmap",
@@ -1337,7 +1338,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-streamstats"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon#91125081c171d643efd8f2874d79f8aa9c60df29"
+source = "git+https://github.com/twitter/rustcommon#b52ffc7dea6ed0ea8401e5dc2ba69319dd09e74a"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
