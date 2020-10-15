@@ -1,5 +1,17 @@
 # [Unreleased]
 
+# [2.9.0] - 2020-10-15
+## Added
+- Page Cache sampler which uses BPF to instrument Page Cache hit/miss.
+
+## Fixed
+- Updated rustcommon dependencies to get some runtime performance benefits.
+- Added proper core -> NUMA node mapping to address issues with per-node metrics
+  for interrupt sampler.
+- Reduce the cost of disabled samplers by skipping all initialization of
+  samplers which are not enabled in the config.
+- Documentation updates.
+
 # [2.8.0] - 2020-09-23
 ## Changed
 - Metrics library has been replaced with a new version which reduces memory
