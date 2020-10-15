@@ -23,9 +23,10 @@ percentile in memory.
 
 ## CPU
 
-Provides system-wide CPU telemetry.
+Provides telemetry around CPU usage and performance.
 
 ### Basic
+
 * `cpu/cstate/c0/time` - nanoseconds spent in c0 state, Active Mode
 * `cpu/cstate/c1/time` - nanoseconds spent in c1 state, Auto Halt
 * `cpu/cstate/c1e/time` - nanoseconds spent in c1e state, Auto Halt + low
@@ -48,7 +49,8 @@ Provides system-wide CPU telemetry.
 * `cpu/usage/system` - nanoseconds spent in kernel-space
 * `cpu/usage/user` - nanoseconds spent in user-space
 
-### perf_events
+### Perf Events
+
 * `cpu/bpu/branch` - total branch instructions
 * `cpu/bpu/miss` - branch predictions resulting in miss
 * `cpu/cache/access` - total cache accesses
@@ -68,7 +70,6 @@ Provides system-wide CPU telemetry.
 * `cpu/stalled_cycles/frontend` - cycles stalled waiting on frontend, eg
   instructions
 
-
 ## Disk
 
 Provides system-wide telemetry for disk devices
@@ -82,7 +83,7 @@ Provides system-wide telemetry for disk devices
 * `disk/write/bytes` - bytes written to disk devices
 * `disk/write/operations` - total number of writes completed
 
-### eBPF
+### BPF
 
 * `disk/read/device_latency` - latency distribution, in nanoseconds, waiting for
   disk to complete a read operation
@@ -103,7 +104,7 @@ Provides system-wide telemetry for disk devices
 
 Provides system-wide telemetry for EXT4 filesystems
 
-### eBPF
+### BPF
 
 * `ext4/fsync/latency` - latency distribution, in nanoseconds, for `fsync()` on
   ext4 filesystems
@@ -151,6 +152,9 @@ Provides system-wide telemetry for IRQs
 * `interrupt/total` - total interrupts
 
 ## Memory
+
+Provides telemetry around memory usage, transparent huge-pages, huge-pages,
+compaction, NUMA access, etc.
 
 ### Basic
 
@@ -318,14 +322,27 @@ Provides system-wide network telemetry
 * `network/transmit/fifo` - number of FIFO buffer errors on transmit
 * `network/transmit/packets` - total number of packets transmitted
 
-### eBPF
+### BPF
 
 * `network/receive/size` - size distribution, in bytes, of received packets
 * `network/transmit/size` - size distribution, in bytes, of transmitted packets
 
+## Page Cache
+
+The page cache is a transparent cache for pages originating from a secondary
+storage. Telemetry about page cache performance can be useful for when tuning
+applications which rely on the page cache.
+
+### BPF
+* `page_cache/hit` - the number of times a read request was served from the page
+  cache
+* `page_cache/miss` - the number of times a read request resulted in a page
+  cache miss 
+
 ## Rezolus
 
-Provides telemetry about Rezolus itself
+Provides telemetry about Rezolus itself. This can be used to understand the
+runtime characteristics of Rezolus for various configurations.
 
 ### Basic
 * `rezolus/cpu/user` - nanoseconds spent in user mode running Rezolus
@@ -336,7 +353,9 @@ Provides telemetry about Rezolus itself
 
 ## Scheduler
 
-Provides telemetry about the Linux Scheduler
+Provides telemetry about the Linux scheduler. Provides insights into
+thread/process characteristics. The runqueue latency is useful when performing
+scheduler tuning or investigating potential interference between workloads.
 
 ### Basic
 
@@ -345,17 +364,19 @@ Provides telemetry about the Linux Scheduler
 * `scheduler/processes/running` - number of processes currently running
 * `scheduler/processes/blocked` - number of processes currently blocked
 
-### perf_events
+### Perf Events
 
 * `scheduler/cpu_migrations` - number of times processes have been migrated
   across CPUs
 
-### eBPF
+### BPF
 
 * `scheduler/runqueue/latency` - the distribution of time that runnable tasks
   were waiting on the runqueue
 
 ## Softnet
+
+Softnet telemetry provides a view into kernel packet processing.
 
 ### Basic
 
@@ -370,6 +391,8 @@ Provides telemetry about the Linux Scheduler
 * `softnet/flow_limit_count` - number of times the flow limit count was reached
 
 ## TCP
+
+This sampler provides telemetry about TCP traffic and connections.
 
 ## Basic
 
@@ -400,10 +423,10 @@ Provides telemetry about the Linux Scheduler
 * `tcp/transmit/retransmit` - number of segments retransmitted
 * `tcp/transmit/segment` - number of segments transmitted
 
-### eBPF
+### BPF
 
 * `tcp/connect/latency` - end-to-end latency, in nanoseconds, from an active
-  outbount `connect()` until the socket is established
+  outbound `connect()` until the socket is established
 
 ## UDP
 
@@ -411,9 +434,11 @@ Provides telemetry about the Linux Scheduler
 * `udp/receive/errors` - number of errors on receive
 * `udp/transmit/datagrams` - number of datagrams transmitted
 
-
 ## XFS
 
+Provides telemetry about XFS filesystem performance.
+
+### BPF
 * `xfs/fsync/latency` - latency distribution, in nanoseconds, for `fsync()` on
   xfs filesystems
 * `xfs/open/latency` - latency distribution, in nanoseconds, for `open()` on

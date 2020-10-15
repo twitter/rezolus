@@ -38,7 +38,7 @@ samplers within this repository to get a sense of how they can be implemented.
 
 ## Metrics
 
-We are using the metrics library provided in the [rpc-perf][1] project. This
+We are using the metrics library provided in the [rustcommon][1] project. This
 metrics library is focused on performance and precision.
 
 The metrics library provides all of the core functionalities related to
@@ -46,7 +46,7 @@ tracking values and producing the types of telemetry we get from oversampling.
 We can simply write consecutive readings of a counter into the metrics library,
 and it can generate percentiles across a time interval in addition to tracking
 the counters value. We can also directly insert bucketized readings like we get
-from eBPF samplers to transfer the kernel-space aggregate over to user-space.
+from BPF samplers to transfer the kernel-space aggregate over to user-space.
 
 Perhaps the most critical aspect of this library to understand in the context
 of its usage in Rezolus is how it handles counter measurements with regard to
@@ -67,12 +67,7 @@ the configured time interval.
 For instance, we typically would use a one-minute window, and the p50 value
 would tell us the secondly rate for which half of the samples would be at or
 below this value and the other half would be at or above this value.
-Additionally, the max value would represent the highest rate seen between two
+Additionally, the p100 value would represent the highest rate seen between two
 consecutive samplings of the counter.
 
-In addition to tracking the value of the maximum rate, we may also track the
-offset into a minute at which the peak occurred. This can help us to determine
-if bursts are occurring at regular intervals, and if so having the offset into a
-minute can help us correlate with logs or other traces.
-
-[1]: https://github.com/twitter/rpc-perf
+[1]: https://github.com/twitter/rustcommon
