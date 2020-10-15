@@ -57,7 +57,7 @@ impl Sampler for Xfs {
     fn spawn(common: Common) {
         if common.config().samplers().xfs().enabled() {
             if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.handle.spawn(async move {
+                common.runtime().spawn(async move {
                     loop {
                         let _ = sampler.sample().await;
                     }

@@ -7,7 +7,7 @@ use std::io::SeekFrom;
 
 use async_trait::async_trait;
 use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
 
 use crate::common::*;
 use crate::config::SamplerConfig;
@@ -57,7 +57,7 @@ impl Sampler for Rezolus {
     fn spawn(common: Common) {
         if common.config().samplers().rezolus().enabled() {
             if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.handle.spawn(async move {
+                common.runtime().spawn(async move {
                     loop {
                         let _ = sampler.sample().await;
                     }

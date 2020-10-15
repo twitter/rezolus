@@ -15,7 +15,7 @@ use bcc::perf_event::{Event, SoftwareEvent};
 use bcc::{PerfEvent, PerfEventArray};
 use regex::Regex;
 use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
 use tokio::prelude::*;
 
 use crate::common::bpf::BPF;
@@ -96,7 +96,7 @@ impl Sampler for Cpu {
     fn spawn(common: Common) {
         if common.config().samplers().cpu().enabled() {
             if let Ok(mut cpu) = Cpu::new(common.clone()) {
-                common.handle.spawn(async move {
+                common.runtime().spawn(async move {
                     loop {
                         let _ = cpu.sample().await;
                     }

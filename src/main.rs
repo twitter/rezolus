@@ -62,33 +62,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // initialize async runtime
     debug!("initializing async runtime");
-    let runtime = Builder::new()
-        .threaded_scheduler()
-        .enable_time()
-        .core_threads(config.general().threads())
+    let runtime = Arc::new(Builder::new_multi_thread()
+        .enable_all()
+        .worker_threads(config.general().threads())
         .max_threads(config.general().threads() * 2) // extra threads for block_on
         .thread_name("rezolus-worker")
         .build()
-        .unwrap();
+        .unwrap());
 
     // spawn samplers
     debug!("spawning samplers");
-    let common = Common::new(config.clone(), metrics.clone(), runtime.handle().clone());
+    let common = Common::new(config.clone(), metrics.clone(), runtime.clone());
     Cpu::spawn(common.clone());
-    Disk::spawn(common.clone());
-    Ext4::spawn(common.clone());
-    Http::spawn(common.clone());
-    Interrupt::spawn(common.clone());
-    Memcache::spawn(common.clone());
-    Memory::spawn(common.clone());
-    PageCache::spawn(common.clone());
-    Network::spawn(common.clone());
-    Rezolus::spawn(common.clone());
-    Scheduler::spawn(common.clone());
-    Softnet::spawn(common.clone());
-    Tcp::spawn(common.clone());
-    Udp::spawn(common.clone());
-    Xfs::spawn(common);
+    // Disk::spawn(common.clone());
+    // Ext4::spawn(common.clone());
+    // Http::spawn(common.clone());
+    // Interrupt::spawn(common.clone());
+    // Memcache::spawn(common.clone());
+    // Memory::spawn(common.clone());
+    // PageCache::spawn(common.clone());
+    // Network::spawn(common.clone());
+    // Rezolus::spawn(common.clone());
+    // Scheduler::spawn(common.clone());
+    // Softnet::spawn(common.clone());
+    // Tcp::spawn(common.clone());
+    // Udp::spawn(common.clone());
+    // Xfs::spawn(common);
 
     #[cfg(feature = "push_kafka")]
     {

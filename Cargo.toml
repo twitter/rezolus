@@ -31,7 +31,7 @@ strum = "0.19.2"
 strum_macros = "0.19.2"
 sysconf = "0.3.4"
 tiny_http = "0.7.0"
-tokio = { version = "0.2.22", features = ["full"] }
+tokio = { version = "0.3.0", features = ["full"] }
 toml = "0.5.6"
 uuid = "0.8.1"
 walkdir = "2.3.1"
