@@ -2,19 +2,18 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-
-use tokio::runtime::Runtime;
-use crate::HardwareInfo;
 use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
 use rustcommon_metrics::*;
+use tokio::runtime::Runtime;
 use tokio::time::{interval, Interval};
 
 use crate::config::General as GeneralConfig;
 use crate::config::{Config, SamplerConfig};
+use crate::HardwareInfo;
 
 pub mod cpu;
 pub mod disk;
