@@ -7,7 +7,6 @@ use std::io::BufRead;
 use std::io::SeekFrom;
 
 use dashmap::DashMap;
-use rustcommon_atomics::AtomicU64;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
 
