@@ -76,20 +76,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     debug!("spawning samplers");
     let common = Common::new(config.clone(), metrics.clone(), runtime.clone());
     Cpu::spawn(common.clone());
-    // Disk::spawn(common.clone());
-    // Ext4::spawn(common.clone());
-    // Http::spawn(common.clone());
-    // Interrupt::spawn(common.clone());
-    // Memcache::spawn(common.clone());
-    // Memory::spawn(common.clone());
-    // PageCache::spawn(common.clone());
-    // Network::spawn(common.clone());
-    // Rezolus::spawn(common.clone());
-    // Scheduler::spawn(common.clone());
-    // Softnet::spawn(common.clone());
-    // Tcp::spawn(common.clone());
-    // Udp::spawn(common.clone());
-    // Xfs::spawn(common);
+    Disk::spawn(common.clone());
+    Ext4::spawn(common.clone());
+    Http::spawn(common.clone());
+    Interrupt::spawn(common.clone());
+    Memcache::spawn(common.clone());
+    Memory::spawn(common.clone());
+    PageCache::spawn(common.clone());
+    Network::spawn(common.clone());
+    Rezolus::spawn(common.clone());
+    Scheduler::spawn(common.clone());
+    Softnet::spawn(common.clone());
+    Tcp::spawn(common.clone());
+    Udp::spawn(common.clone());
+    Xfs::spawn(common);
 
     #[cfg(feature = "push_kafka")]
     {
