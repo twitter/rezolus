@@ -62,18 +62,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // initialize async runtime
     debug!("initializing async runtime");
-    let runtime = Builder::new()
-        .threaded_scheduler()
-        .enable_time()
-        .core_threads(config.general().threads())
-        .max_threads(config.general().threads() * 2) // extra threads for block_on
-        .thread_name("rezolus-worker")
-        .build()
-        .unwrap();
+    let runtime = Arc::new(
+        Builder::new_multi_thread()
+            .enable_all()
+            .worker_threads(config.general().threads())
+            .max_threads(config.general().threads() * 2) // extra threads for block_on
+            .thread_name("rezolus-worker")
+            .build()
+            .unwrap(),
+    );
 
     // spawn samplers
     debug!("spawning samplers");
-    let common = Common::new(config.clone(), metrics.clone(), runtime.handle().clone());
+    let common = Common::new(config.clone(), metrics.clone(), runtime.clone());
     Cpu::spawn(common.clone());
     Disk::spawn(common.clone());
     Ext4::spawn(common.clone());

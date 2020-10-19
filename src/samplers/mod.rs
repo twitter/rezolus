@@ -2,18 +2,18 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use crate::HardwareInfo;
 use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
 use rustcommon_metrics::*;
-use tokio::runtime::Handle;
+use tokio::runtime::Runtime;
 use tokio::time::{interval, Interval};
 
 use crate::config::General as GeneralConfig;
 use crate::config::{Config, SamplerConfig};
+use crate::HardwareInfo;
 
 pub mod cpu;
 pub mod disk;
@@ -160,7 +160,7 @@ pub trait Sampler: Sized + Send {
 
 pub struct Common {
     config: Arc<Config>,
-    handle: Handle,
+    runtime: Arc<Runtime>,
     hardware_info: Arc<HardwareInfo>,
     interval: Option<Interval>,
     metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
@@ -170,7 +170,7 @@ impl Clone for Common {
     fn clone(&self) -> Self {
         Self {
             config: self.config.clone(),
-            handle: self.handle.clone(),
+            runtime: self.runtime.clone(),
             hardware_info: self.hardware_info.clone(),
             interval: None,
             metrics: self.metrics.clone(),
@@ -182,15 +182,19 @@ impl Common {
     pub fn new(
         config: Arc<Config>,
         metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
-        handle: Handle,
+        runtime: Arc<Runtime>,
     ) -> Self {
         Self {
             config,
-            handle,
             hardware_info: Arc::new(HardwareInfo::new()),
             interval: None,
             metrics,
+            runtime,
         }
+    }
+
+    pub fn runtime(&self) -> &Runtime {
+        &self.runtime
     }
 
     pub fn config(&self) -> &Config {

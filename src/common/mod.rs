@@ -8,7 +8,7 @@ use std::io::SeekFrom;
 
 use dashmap::DashMap;
 use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
 
 pub mod bpf;
 

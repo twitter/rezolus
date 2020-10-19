@@ -58,7 +58,7 @@ impl Sampler for PageCache {
     fn spawn(common: Common) {
         if common.config().samplers().page_cache().enabled() {
             if let Ok(mut interrupt) = PageCache::new(common.clone()) {
-                common.handle.spawn(async move {
+                common.runtime().spawn(async move {
                     loop {
                         let _ = interrupt.sample().await;
                     }

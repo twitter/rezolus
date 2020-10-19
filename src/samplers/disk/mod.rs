@@ -10,7 +10,7 @@ use std::time::*;
 use async_trait::async_trait;
 use regex::Regex;
 use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
 
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;
@@ -67,7 +67,7 @@ impl Sampler for Disk {
     fn spawn(common: Common) {
         if common.config().samplers().disk().enabled() {
             if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.handle.spawn(async move {
+                common.runtime().spawn(async move {
                     loop {
                         let _ = sampler.sample().await;
                     }

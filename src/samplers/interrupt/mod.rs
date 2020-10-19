@@ -61,7 +61,7 @@ impl Sampler for Interrupt {
     fn spawn(common: Common) {
         if common.config().samplers().interrupt().enabled() {
             if let Ok(mut interrupt) = Interrupt::new(common.clone()) {
-                common.handle.spawn(async move {
+                common.runtime().spawn(async move {
                     loop {
                         let _ = interrupt.sample().await;
                     }

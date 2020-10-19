@@ -14,7 +14,7 @@ use bcc::perf_event::{Event, SoftwareEvent};
 use bcc::{PerfEvent, PerfEventArray};
 use rustcommon_metrics::{Source, Statistic};
 use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
 
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;
@@ -88,7 +88,7 @@ impl Sampler for Scheduler {
     fn spawn(common: Common) {
         if common.config().samplers().scheduler().enabled() {
             if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.handle.spawn(async move {
+                common.runtime().spawn(async move {
                     loop {
                         let _ = sampler.sample().await;
                     }
