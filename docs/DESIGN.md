@@ -7,6 +7,28 @@ we will be able to capture data about runtime performance problems, profile
 systems performance to identify tuning and optimization opportunities, and
 measure how we are using our infrastructure.
 
+## Goals
+
+* Rich telemetry for performance visibility.
+* High-resolution local sampling to capture bursts and brief anomalies.
+* Low runtime overhead to enable wide deployment.
+
+## Background
+
+Rezolus helps address the issues around sampling rate and metrics collection. It
+can be very expensive to collect secondly metrics across large infrastructure,
+but often we care about performance changes that are on the timescale of an a
+typical request, which is typically well below one second. To address this
+issue, we built Rezolus to do local high-resolution sampling and produce summary
+metrics across a moving window. By exporting percentiles across the past minute,
+we provide insight into sub-minutely behaviors without the expense of collecting
+telemetry at high resolution. For instance, if we collect six percentile metrics
+every minute, that's one tenth the number of metrics to collect and aggregate
+than if we collected secondly. The savings improves further as sample rate
+increases.
+
+## Resource utilization
+
 To ensure it can be deployed broadly, we are deeply focused on making sure that
 the resource footprint is kept to a reasonable level. It can be difficult to
 quantify exact utilization, because Rezolus is able to be configured to collect
