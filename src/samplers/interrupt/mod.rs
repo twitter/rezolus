@@ -5,10 +5,11 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::*;
+use tokio::io::SeekFrom;
 
 use async_trait::async_trait;
 use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
 
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;
@@ -26,6 +27,7 @@ pub struct Interrupt {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
+    proc_interrupts: Option<File>,
     statistics: Vec<InterruptStatistic>,
 }
 
@@ -42,6 +44,7 @@ impl Sampler for Interrupt {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
+            proc_interrupts: None,
             statistics,
         };
 
@@ -154,83 +157,55 @@ impl Interrupt {
         Ok(())
     }
 
-    async fn sample_interrupt(&self) -> Result<(), std::io::Error> {
-        let file = File::open("/proc/interrupts").await?;
-        let reader = BufReader::new(file);
-        let mut lines = reader.lines();
+    async fn sample_interrupt(&mut self) -> Result<(), std::io::Error> {
+        if self.proc_interrupts.is_none() {
+            let file = File::open("/proc/interrupts").await?;
+            self.proc_interrupts = Some(file);
+        }
 
-        let mut result = HashMap::new();
-
+        let mut result = HashMap::<InterruptStatistic, u64>::new();
         let mut cores: Option<usize> = None;
-        while let Some(line) = lines.next_line().await? {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if cores.is_none() {
-                cores = Some(parts.len());
-                continue;
-            }
-            let mut sum = 0;
-            let mut node0 = 0;
-            let mut node1 = 0;
-            let cores = cores.unwrap();
 
-            for i in 0..cores {
-                let count = parts.get(i + 1).unwrap_or(&"0").parse().unwrap_or(0);
-                sum += count;
+        if let Some(file) = &mut self.proc_interrupts {
+            file.seek(SeekFrom::Start(0)).await?;
+            let mut reader = BufReader::new(file);
+            let mut line = String::new();
 
-                let node = self
-                    .common()
-                    .hardware_info()
-                    .get_numa(i as u64)
-                    .unwrap_or(0);
-                match node {
-                    0 => node0 += count,
-                    1 => node1 += count,
-                    _ => {}
+            while reader.read_line(&mut line).await? > 0 {
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                if cores.is_none() {
+                    cores = Some(parts.len());
+                    continue;
                 }
-            }
-            let stat = match parts.get(0) {
-                Some(&"NMI:") => InterruptStatistic::NonMaskable,
-                Some(&"LOC:") => InterruptStatistic::LocalTimer,
-                Some(&"SPU:") => InterruptStatistic::Spurious,
-                Some(&"PMI:") => InterruptStatistic::PerformanceMonitoring,
-                Some(&"RES:") => InterruptStatistic::Rescheduling,
-                Some(&"TLB:") => InterruptStatistic::TlbShootdowns,
-                Some(&"TRM:") => InterruptStatistic::ThermalEvent,
-                Some(&"MCE:") => InterruptStatistic::MachineCheckException,
-                _ => match parts.last() {
-                    Some(&"timer") => InterruptStatistic::Timer,
-                    Some(&"rtc0") => InterruptStatistic::RealTimeClock,
-                    Some(&"vmd") => {
-                        if let Some(previous) = result.get_mut(&InterruptStatistic::Node0Nvme) {
-                            *previous += node0;
-                        } else {
-                            result.insert(InterruptStatistic::Node0Nvme, sum);
-                        }
-                        if let Some(previous) = result.get_mut(&InterruptStatistic::Node1Nvme) {
-                            *previous += node1;
-                        } else {
-                            result.insert(InterruptStatistic::Node1Nvme, sum);
-                        }
-                        InterruptStatistic::Nvme
+                let mut sum = 0;
+                let mut node0 = 0;
+                let mut node1 = 0;
+                let cores = cores.unwrap();
+
+                for i in 0..cores {
+                    let count = parts.get(i + 1).unwrap_or(&"0").parse().unwrap_or(0);
+                    sum += count;
+
+                    let node = self.common.hardware_info().get_numa(i as u64).unwrap_or(0);
+                    match node {
+                        0 => node0 += count,
+                        1 => node1 += count,
+                        _ => {}
                     }
-                    Some(label) => {
-                        if label.starts_with("mlx") || label.starts_with("eth") {
-                            if let Some(previous) =
-                                result.get_mut(&InterruptStatistic::Node0Network)
-                            {
-                                *previous += node0;
-                            } else {
-                                result.insert(InterruptStatistic::Node0Network, sum);
-                            }
-                            if let Some(previous) =
-                                result.get_mut(&InterruptStatistic::Node1Network)
-                            {
-                                *previous += node1;
-                            } else {
-                                result.insert(InterruptStatistic::Node1Network, sum);
-                            }
-                            InterruptStatistic::Network
-                        } else if label.starts_with("nvme") {
+                }
+                let stat = match parts.get(0) {
+                    Some(&"NMI:") => InterruptStatistic::NonMaskable,
+                    Some(&"LOC:") => InterruptStatistic::LocalTimer,
+                    Some(&"SPU:") => InterruptStatistic::Spurious,
+                    Some(&"PMI:") => InterruptStatistic::PerformanceMonitoring,
+                    Some(&"RES:") => InterruptStatistic::Rescheduling,
+                    Some(&"TLB:") => InterruptStatistic::TlbShootdowns,
+                    Some(&"TRM:") => InterruptStatistic::ThermalEvent,
+                    Some(&"MCE:") => InterruptStatistic::MachineCheckException,
+                    _ => match parts.last() {
+                        Some(&"timer") => InterruptStatistic::Timer,
+                        Some(&"rtc0") => InterruptStatistic::RealTimeClock,
+                        Some(&"vmd") => {
                             if let Some(previous) = result.get_mut(&InterruptStatistic::Node0Nvme) {
                                 *previous += node0;
                             } else {
@@ -242,34 +217,70 @@ impl Interrupt {
                                 result.insert(InterruptStatistic::Node1Nvme, sum);
                             }
                             InterruptStatistic::Nvme
-                        } else {
+                        }
+                        Some(label) => {
+                            if label.starts_with("mlx") || label.starts_with("eth") {
+                                if let Some(previous) =
+                                    result.get_mut(&InterruptStatistic::Node0Network)
+                                {
+                                    *previous += node0;
+                                } else {
+                                    result.insert(InterruptStatistic::Node0Network, sum);
+                                }
+                                if let Some(previous) =
+                                    result.get_mut(&InterruptStatistic::Node1Network)
+                                {
+                                    *previous += node1;
+                                } else {
+                                    result.insert(InterruptStatistic::Node1Network, sum);
+                                }
+                                InterruptStatistic::Network
+                            } else if label.starts_with("nvme") {
+                                if let Some(previous) =
+                                    result.get_mut(&InterruptStatistic::Node0Nvme)
+                                {
+                                    *previous += node0;
+                                } else {
+                                    result.insert(InterruptStatistic::Node0Nvme, sum);
+                                }
+                                if let Some(previous) =
+                                    result.get_mut(&InterruptStatistic::Node1Nvme)
+                                {
+                                    *previous += node1;
+                                } else {
+                                    result.insert(InterruptStatistic::Node1Nvme, sum);
+                                }
+                                InterruptStatistic::Nvme
+                            } else {
+                                continue;
+                            }
+                        }
+                        None => {
                             continue;
                         }
-                    }
-                    None => {
-                        continue;
-                    }
-                },
-            };
-            if let Some(previous) = result.get_mut(&stat) {
-                *previous += sum;
-            } else {
-                result.insert(stat, sum);
-            }
-            if let Some(previous) = result.get_mut(&InterruptStatistic::Total) {
-                *previous += sum;
-            } else {
-                result.insert(InterruptStatistic::Total, sum);
-            }
-            if let Some(previous) = result.get_mut(&InterruptStatistic::Node0Total) {
-                *previous += node0;
-            } else {
-                result.insert(InterruptStatistic::Node0Total, node0);
-            }
-            if let Some(previous) = result.get_mut(&InterruptStatistic::Node1Total) {
-                *previous += node1;
-            } else {
-                result.insert(InterruptStatistic::Node1Total, node1);
+                    },
+                };
+                if let Some(previous) = result.get_mut(&stat) {
+                    *previous += sum;
+                } else {
+                    result.insert(stat, sum);
+                }
+                if let Some(previous) = result.get_mut(&InterruptStatistic::Total) {
+                    *previous += sum;
+                } else {
+                    result.insert(InterruptStatistic::Total, sum);
+                }
+                if let Some(previous) = result.get_mut(&InterruptStatistic::Node0Total) {
+                    *previous += node0;
+                } else {
+                    result.insert(InterruptStatistic::Node0Total, node0);
+                }
+                if let Some(previous) = result.get_mut(&InterruptStatistic::Node1Total) {
+                    *previous += node1;
+                } else {
+                    result.insert(InterruptStatistic::Node1Total, node1);
+                }
+                line.clear();
             }
         }
 

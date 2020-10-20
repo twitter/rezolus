@@ -5,10 +5,11 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::*;
+use tokio::io::SeekFrom;
 
 use async_trait::async_trait;
 use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
 
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;
@@ -26,6 +27,7 @@ pub struct Network {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
+    proc_net_dev: Option<File>,
     statistics: Vec<NetworkStatistic>,
 }
 
@@ -42,6 +44,7 @@ impl Sampler for Network {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
+            proc_net_dev: None,
             statistics,
         };
 
@@ -96,7 +99,10 @@ impl Sampler for Network {
         }
 
         debug!("sampling");
-        self.map_result(self.sample_proc_net_dev().await)?;
+
+        let result = self.sample_proc_net_dev().await;
+        self.map_result(result)?;
+
         #[cfg(feature = "bpf")]
         self.map_result(self.sample_bpf())?;
 
@@ -145,29 +151,37 @@ impl Network {
         Ok(())
     }
 
-    async fn sample_proc_net_dev(&self) -> Result<(), std::io::Error> {
+    async fn sample_proc_net_dev(&mut self) -> Result<(), std::io::Error> {
         // sample /proc/net/dev
-        let file = File::open("/proc/net/dev").await?;
-        let reader = BufReader::new(file);
-        let mut lines = reader.lines();
+        if self.proc_net_dev.is_none() {
+            let file = File::open("/proc/net/dev").await?;
+            self.proc_net_dev = Some(file);
+        }
 
         let mut result = HashMap::new();
 
-        while let Some(line) = lines.next_line().await? {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if !parts.is_empty() && parts[1].parse::<u64>().is_ok() {
-                for statistic in &self.statistics {
-                    if let Some(field) = statistic.field_number() {
-                        if !result.contains_key(statistic) {
-                            result.insert(statistic, 0);
+        if let Some(file) = &mut self.proc_net_dev {
+            file.seek(SeekFrom::Start(0)).await?;
+            let mut reader = BufReader::new(file);
+            let mut line = String::new();
+
+            while reader.read_line(&mut line).await? > 0 {
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                if !parts.is_empty() && parts[1].parse::<u64>().is_ok() {
+                    for statistic in &self.statistics {
+                        if let Some(field) = statistic.field_number() {
+                            if !result.contains_key(statistic) {
+                                result.insert(statistic, 0);
+                            }
+                            let current = result.get_mut(statistic).unwrap();
+                            *current += parts
+                                .get(field)
+                                .map(|v| v.parse().unwrap_or(0))
+                                .unwrap_or(0);
                         }
-                        let current = result.get_mut(statistic).unwrap();
-                        *current += parts
-                            .get(field)
-                            .map(|v| v.parse().unwrap_or(0))
-                            .unwrap_or(0);
                     }
                 }
+                line.clear();
             }
         }
 
