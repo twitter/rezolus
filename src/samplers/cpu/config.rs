@@ -64,10 +64,10 @@ impl SamplerConfig for CpuConfig {
         for statistic in self.statistics.iter() {
             if statistic.table().is_some() {
                 if self.perf_events() {
-                    enabled.push(statistic.clone());
+                    enabled.push(*statistic);
                 }
             } else {
-                enabled.push(statistic.clone());
+                enabled.push(*statistic);
             }
         }
         enabled

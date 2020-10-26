@@ -190,9 +190,7 @@ impl Disk {
                                 16 => Some(DiskStatistic::BandwidthDiscard),
                                 _ => None,
                             } {
-                                if !result.contains_key(&statistic) {
-                                    result.insert(statistic, 0);
-                                }
+                                result.entry(statistic).or_insert(0);
                                 let current = result.get_mut(&statistic).unwrap();
                                 *current += part.parse().unwrap_or(0);
                             }

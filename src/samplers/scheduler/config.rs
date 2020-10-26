@@ -72,14 +72,14 @@ impl SamplerConfig for SchedulerConfig {
         for statistic in self.statistics.iter() {
             if statistic.perf_table().is_some() {
                 if self.perf_events() {
-                    enabled.push(statistic.clone());
+                    enabled.push(*statistic);
                 }
             } else if statistic.bpf_table().is_some() {
                 if self.bpf() {
-                    enabled.push(statistic.clone());
+                    enabled.push(*statistic);
                 }
             } else {
-                enabled.push(statistic.clone());
+                enabled.push(*statistic);
             }
         }
         enabled

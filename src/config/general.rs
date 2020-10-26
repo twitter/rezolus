@@ -57,7 +57,7 @@ impl General {
     }
 
     pub fn reading_suffix(&self) -> Option<&str> {
-        if self.reading_suffix.len() == 0 {
+        if self.reading_suffix.is_empty() {
             None
         } else {
             Some(&self.reading_suffix)

@@ -105,9 +105,7 @@ impl Softnet {
             while reader.read_line(&mut line).await? > 0 {
                 for (id, part) in line.split_whitespace().enumerate() {
                     if let Some(statistic) = num::FromPrimitive::from_usize(id) {
-                        if !result.contains_key(&statistic) {
-                            result.insert(statistic, 0);
-                        }
+                        result.entry(statistic).or_insert(0);
                         let current = result.get_mut(&statistic).unwrap();
                         *current += u64::from_str_radix(part, 16).unwrap_or(0);
                     }
