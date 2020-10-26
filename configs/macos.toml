@@ -1,0 +1,11 @@
+# This configuration is intended for use on CI environments and testing on macOS
+
+# NOTE: Not all samplers are supported on macOS.
+
+[general]
+fault_tolerant = false
+listen = "0.0.0.0:4242"
+
+[samplers]
+[samplers.ntp]
+enabled = true

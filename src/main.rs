@@ -84,6 +84,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Memory::spawn(common.clone());
     PageCache::spawn(common.clone());
     Network::spawn(common.clone());
+    Ntp::spawn(common.clone());
     Rezolus::spawn(common.clone());
     Scheduler::spawn(common.clone());
     Softnet::spawn(common.clone());
