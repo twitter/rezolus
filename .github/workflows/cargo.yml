@@ -198,6 +198,15 @@ jobs:
         run: bash build/ci.sh
       - name: Smoketest
         run: target/release/rezolus --config configs/memcache.toml & sleep 180; curl -s http://localhost:4242/vars
+  macos:
+    name: macos
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --release
+      - name: Smoketest
+        run: target/release/rezolus --config configs/macos.toml & sleep 180; curl -s http://localhost:4242/vars
   rustfmt:
     runs-on: ubuntu-latest
     steps:

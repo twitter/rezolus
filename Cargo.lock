@@ -1348,6 +1348,7 @@ dependencies = [
  "dashmap",
  "json",
  "kafka",
+ "libc",
  "num",
  "num-derive",
  "num-traits",

@@ -12,6 +12,7 @@ use samplers::interrupt::InterruptConfig;
 use samplers::memcache::MemcacheConfig;
 use samplers::memory::MemoryConfig;
 use samplers::network::NetworkConfig;
+use samplers::ntp::NtpConfig;
 use samplers::page_cache::PageCacheConfig;
 use samplers::rezolus::RezolusConfig;
 use samplers::scheduler::SchedulerConfig;
@@ -39,6 +40,8 @@ pub struct Samplers {
     memory: MemoryConfig,
     #[serde(default)]
     network: NetworkConfig,
+    #[serde(default)]
+    ntp: NtpConfig,
     #[serde(default)]
     page_cache: PageCacheConfig,
     #[serde(default)]
@@ -86,6 +89,10 @@ impl Samplers {
 
     pub fn network(&self) -> &NetworkConfig {
         &self.network
+    }
+
+    pub fn ntp(&self) -> &NtpConfig {
+        &self.ntp
     }
 
     pub fn page_cache(&self) -> &PageCacheConfig {
