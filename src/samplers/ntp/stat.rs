@@ -45,8 +45,6 @@ impl Statistic<AtomicU64, AtomicU32> for NtpStatistic {
     }
 
     fn source(&self) -> Source {
-        match self {
-            _ => Source::Gauge,
-        }
+        Source::Gauge
     }
 }

@@ -55,7 +55,7 @@ impl SamplerConfig for NtpConfig {
     fn statistics(&self) -> Vec<<Self as SamplerConfig>::Statistic> {
         let mut enabled = Vec::new();
         for statistic in self.statistics.iter() {
-            enabled.push(statistic.clone());
+            enabled.push(*statistic);
         }
         enabled
     }
