@@ -1,5 +1,11 @@
 # [Unreleased]
 
+# [2.10.0] - 2020-10-26
+## Changed
+- Updates tokio to 0.3.1 from 0.2.x
+- Reduces syscall load by reusing filehandles in memory, interupt, and network
+  samplers.
+
 # [2.9.0] - 2020-10-15
 ## Added
 - Page Cache sampler which uses BPF to instrument Page Cache hit/miss.
@@ -143,7 +149,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.9.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.10.0...HEAD
+[2.10.0]: https://github.com/twitter/rezolus/compare/v2.9.0...v2.10.0
 [2.9.0]: https://github.com/twitter/rezolus/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/twitter/rezolus/compare/v2.7.1...v2.8.0
 [2.7.1]: https://github.com/twitter/rezolus/compare/v2.7.0...v2.7.1
