@@ -65,10 +65,10 @@ impl SamplerConfig for PageCacheConfig {
         for statistic in self.statistics.iter() {
             if statistic.is_bpf() {
                 if self.bpf() {
-                    enabled.push(statistic.clone());
+                    enabled.push(*statistic);
                 }
             } else {
-                enabled.push(statistic.clone());
+                enabled.push(*statistic);
             }
         }
         enabled

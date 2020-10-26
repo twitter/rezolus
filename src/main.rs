@@ -74,7 +74,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // spawn samplers
     debug!("spawning samplers");
-    let common = Common::new(config.clone(), metrics.clone(), runtime.clone());
+    let common = Common::new(config.clone(), metrics.clone(), runtime);
     Cpu::spawn(common.clone());
     Disk::spawn(common.clone());
     Ext4::spawn(common.clone());

@@ -65,10 +65,10 @@ impl SamplerConfig for Ext4Config {
         for statistic in self.statistics.iter() {
             if statistic.bpf_table().is_some() {
                 if self.bpf() {
-                    enabled.push(statistic.clone());
+                    enabled.push(*statistic);
                 }
             } else {
-                enabled.push(statistic.clone());
+                enabled.push(*statistic);
             }
         }
         enabled

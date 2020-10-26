@@ -171,13 +171,11 @@ impl Sampler for Memcache {
                     }
                 }
             }
+        } else if let Ok(stream) = TcpStream::connect(self.address) {
+            let _ = stream.set_nonblocking(true);
+            self.stream = Some(stream);
         } else {
-            if let Ok(stream) = TcpStream::connect(self.address) {
-                let _ = stream.set_nonblocking(true);
-                self.stream = Some(stream);
-            } else {
-                error!("error connecting to memcache");
-            }
+            error!("error connecting to memcache");
         }
 
         Ok(())
