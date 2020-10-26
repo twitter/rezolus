@@ -30,10 +30,7 @@ impl Sampler for Ntp {
     fn new(common: Common) -> Result<Self, anyhow::Error> {
         let statistics = common.config().samplers().ntp().statistics();
         #[allow(unused_mut)]
-        let mut sampler = Self {
-            common,
-            statistics,
-        };
+        let mut sampler = Self { common, statistics };
 
         if sampler.sampler_config().enabled() {
             sampler.register();
@@ -96,10 +93,18 @@ impl Ntp {
         let time = Instant::now();
         let status = unsafe { libc::ntp_gettime(&mut timeval) };
         if status == 0 {
-            let _ = self.metrics().record_gauge(&NtpStatistic::MaximumError, time, timeval.maxerror as u64 * MICROSECOND);
+            let _ = self.metrics().record_gauge(
+                &NtpStatistic::MaximumError,
+                time,
+                timeval.maxerror as u64 * MICROSECOND,
+            );
 
             #[cfg(all(not(target_os = "macos"), not(target_os = "ios"), unix))]
-            let _ = self.metrics().record_gauge(&NtpStatistic::EstimatedError, time, timeval.esterror as u64 * MICROSECOND);
+            let _ = self.metrics().record_gauge(
+                &NtpStatistic::EstimatedError,
+                time,
+                timeval.esterror as u64 * MICROSECOND,
+            );
         }
         Ok(())
     }
@@ -108,7 +113,10 @@ impl Ntp {
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 fn default_ntptimeval() -> libc::ntptimeval {
     libc::ntptimeval {
-        time: libc::timespec { tv_sec: 0, tv_nsec: 0 },
+        time: libc::timespec {
+            tv_sec: 0,
+            tv_nsec: 0,
+        },
         maxerror: 0,
         esterror: 0,
         tai: 0,
@@ -119,7 +127,10 @@ fn default_ntptimeval() -> libc::ntptimeval {
 #[cfg(all(not(target_os = "macos"), not(target_os = "ios"), unix))]
 fn default_ntptimeval() -> libc::ntptimeval {
     libc::ntptimeval {
-        time: libc::timeval { tv_sec: 0, tv_usec: 0 },
+        time: libc::timeval {
+            tv_sec: 0,
+            tv_usec: 0,
+        },
         maxerror: 0,
         esterror: 0,
         tai: 0,
