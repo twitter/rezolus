@@ -49,6 +49,7 @@ impl Sampler for Interrupt {
         };
 
         if let Err(e) = sampler.initialize_bpf() {
+            error!("{}", e);
             if !fault_tolerant {
                 return Err(e);
             }

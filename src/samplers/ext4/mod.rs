@@ -42,6 +42,7 @@ impl Sampler for Ext4 {
         };
 
         if let Err(e) = sampler.initialize_bpf() {
+            error!("{}", e);
             if !fault_tolerant {
                 return Err(e);
             }
