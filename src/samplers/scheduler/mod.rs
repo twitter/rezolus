@@ -59,6 +59,7 @@ impl Sampler for Scheduler {
         }
 
         if let Err(e) = sampler.initialize_bpf() {
+            error!("{}", e);
             if !fault_tolerant {
                 return Err(e);
             }
@@ -69,6 +70,7 @@ impl Sampler for Scheduler {
             #[cfg(feature = "bpf")]
             {
                 if let Err(e) = sampler.initialize_bpf_perf() {
+                    error!("{}", e);
                     if !fault_tolerant {
                         return Err(format_err!("bpf perf init failure: {}", e));
                     }

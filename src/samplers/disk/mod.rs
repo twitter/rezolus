@@ -52,6 +52,7 @@ impl Sampler for Disk {
         };
 
         if let Err(e) = sampler.initialize_bpf() {
+            error!("{}", e);
             if !fault_tolerant {
                 return Err(e);
             }
@@ -139,19 +140,31 @@ impl Disk {
                     .handler("trace_pid_start")
                     .function("blk_account_io_start")
                     .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_req_start")
-                    .function("blk_start_request")
-                    .attach(&mut bpf)?;
+                if let Ok(results) = bpf.get_kprobe_functions("blk_start_request") {
+                    if !results.is_empty() {
+                        bcc::Kprobe::new()
+                            .handler("trace_req_start")
+                            .function("blk_start_request")
+                            .attach(&mut bpf)?;
+                    }
+                }
                 bcc::Kprobe::new()
                     .handler("trace_req_start")
                     .function("blk_mq_start_request")
                     .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("do_count")
-                    .function("blk_account_io_completion")
-                    .attach(&mut bpf)?;
-
+                if let Ok(results) = bpf.get_kprobe_functions("blk_account_io_completion") {
+                    if !results.is_empty() {
+                        bcc::Kprobe::new()
+                            .handler("do_count")
+                            .function("blk_account_io_completion")
+                            .attach(&mut bpf)?;
+                    } else {
+                        bcc::Kprobe::new()
+                            .handler("do_count")
+                            .function("blk_account_io_done")
+                            .attach(&mut bpf)?;
+                    }
+                }
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }

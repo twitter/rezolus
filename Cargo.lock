@@ -1383,7 +1383,7 @@ checksum = "6e3bad0ee36814ca07d7968269dd4b7ec89ec2da10c4bb613928d3077083c232"
 [[package]]
 name = "rustcommon-atomics"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
+source = "git+https://github.com/twitter/rustcommon#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
 dependencies = [
  "serde",
 ]
@@ -1391,7 +1391,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-heatmap"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
+source = "git+https://github.com/twitter/rustcommon#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
 dependencies = [
  "crossbeam",
  "rustcommon-atomics",
@@ -1402,7 +1402,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-histogram"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
+source = "git+https://github.com/twitter/rustcommon#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
@@ -1411,7 +1411,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-logger"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
+source = "git+https://github.com/twitter/rustcommon#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
 dependencies = [
  "log 0.4.11",
  "time",
@@ -1420,7 +1420,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics"
 version = "2.0.0-alpha.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
+source = "git+https://github.com/twitter/rustcommon#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
 dependencies = [
  "crossbeam",
  "dashmap",
@@ -1433,7 +1433,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-streamstats"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
+source = "git+https://github.com/twitter/rustcommon#1fa5045c2ebc83afa8705bb5f09c95e7f4e62c73"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
