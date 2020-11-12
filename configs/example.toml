@@ -249,6 +249,31 @@ bpf = true
 # 	"p99",
 # ]
 
+# The NTP sampler provides basic telemetry for the running network time protocol
+# daemon.
+[samplers.ntp]
+# Controls wherther to use this sampler
+enabled = true
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# statistics = [
+# 	"network/receive/bytes",
+#   "network/transmit/bytes"
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
+
 
 # The page cache sampler provides telemetry about page cache hits and misses
 [samplers.page_cache]
