@@ -33,6 +33,9 @@ enabled = true
 bpf = true
 enabled = true
 
+[samplers.ntp]
+enabled = true
+
 [samplers.page_cache]
 bpf = true
 enabled = true
