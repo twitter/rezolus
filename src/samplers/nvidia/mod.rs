@@ -6,8 +6,8 @@ use std::convert::TryInto;
 use std::time::*;
 
 use async_trait::async_trait;
-use nvml_wrapper::NVML;
 use nvml_wrapper::enum_wrappers::device::*;
+use nvml_wrapper::NVML;
 
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
@@ -35,7 +35,11 @@ impl Sampler for Nvidia {
         match NVML::builder().init() {
             Ok(nvml) => {
                 #[allow(unused_mut)]
-                let mut sampler = Self { common, nvml, statistics };
+                let mut sampler = Self {
+                    common,
+                    nvml,
+                    statistics,
+                };
 
                 if sampler.sampler_config().enabled() {
                     sampler.register();
@@ -43,7 +47,7 @@ impl Sampler for Nvidia {
 
                 Ok(sampler)
             }
-            Err(e) => Err(anyhow!("failed to initialize NVML: {}", e))
+            Err(e) => Err(anyhow!("failed to initialize NVML: {}", e)),
         }
     }
 
@@ -114,7 +118,13 @@ impl Nvidia {
                             }
                         }
                         NvidiaConfigStatistic::MemoryEccEnabled => {
-                            if let Ok(value) = device.is_ecc_enabled().map(|v| if v.currently_enabled { 1_u32 } else { 0_u32 }) {
+                            if let Ok(value) = device.is_ecc_enabled().map(|v| {
+                                if v.currently_enabled {
+                                    1_u32
+                                } else {
+                                    0_u32
+                                }
+                            }) {
                                 let _ = self.metrics().record_counter(
                                     &NvidiaStatistic::MemoryEccEnabled(id),
                                     time,
@@ -123,7 +133,9 @@ impl Nvidia {
                             }
                         }
                         NvidiaConfigStatistic::MemoryEccSbe => {
-                            if let Ok(value) = device.total_ecc_errors(MemoryError::Corrected, EccCounter::Aggregate) {
+                            if let Ok(value) = device
+                                .total_ecc_errors(MemoryError::Corrected, EccCounter::Aggregate)
+                            {
                                 let _ = self.metrics().record_counter(
                                     &NvidiaStatistic::MemoryEccSbe(id),
                                     time,
@@ -132,7 +144,9 @@ impl Nvidia {
                             }
                         }
                         NvidiaConfigStatistic::MemoryEccDbe => {
-                            if let Ok(value) = device.total_ecc_errors(MemoryError::Uncorrected, EccCounter::Aggregate) {
+                            if let Ok(value) = device
+                                .total_ecc_errors(MemoryError::Uncorrected, EccCounter::Aggregate)
+                            {
                                 let _ = self.metrics().record_counter(
                                     &NvidiaStatistic::MemoryEccDbe(id),
                                     time,
@@ -235,7 +249,8 @@ impl Nvidia {
                                 let _ = self.metrics().record_gauge(
                                     &NvidiaStatistic::DecoderUtilization(id),
                                     time,
-                                    value.utilization as u64 * 100_u64 / value.sampling_period as u64,
+                                    value.utilization as u64 * 100_u64
+                                        / value.sampling_period as u64,
                                 );
                             }
                         }
@@ -244,7 +259,8 @@ impl Nvidia {
                                 let _ = self.metrics().record_gauge(
                                     &NvidiaStatistic::EncoderUtilization(id),
                                     time,
-                                    value.utilization as u64 * 100_u64 / value.sampling_period as u64,
+                                    value.utilization as u64 * 100_u64
+                                        / value.sampling_period as u64,
                                 );
                             }
                         }
@@ -276,7 +292,9 @@ impl Nvidia {
                             }
                         }
                         NvidiaConfigStatistic::MemoryRetiredSbe => {
-                            if let Ok(value) = device.retired_pages(RetirementCause::MultipleSingleBitEccErrors) {
+                            if let Ok(value) =
+                                device.retired_pages(RetirementCause::MultipleSingleBitEccErrors)
+                            {
                                 let _ = self.metrics().record_gauge(
                                     &NvidiaStatistic::MemoryRetiredSbe(id),
                                     time,
@@ -285,7 +303,9 @@ impl Nvidia {
                             }
                         }
                         NvidiaConfigStatistic::MemoryRetiredDbe => {
-                            if let Ok(value) = device.retired_pages(RetirementCause::DoubleBitEccError) {
+                            if let Ok(value) =
+                                device.retired_pages(RetirementCause::DoubleBitEccError)
+                            {
                                 let _ = self.metrics().record_gauge(
                                     &NvidiaStatistic::MemoryRetiredDbe(id),
                                     time,
@@ -294,7 +314,13 @@ impl Nvidia {
                             }
                         }
                         NvidiaConfigStatistic::MemoryRetiredPending => {
-                            if let Ok(value) = device.are_pages_pending_retired().map(|v| if v { 1_u32 } else { 0_u32 }) {
+                            if let Ok(value) = device.are_pages_pending_retired().map(|v| {
+                                if v {
+                                    1_u32
+                                } else {
+                                    0_u32
+                                }
+                            }) {
                                 let _ = self.metrics().record_gauge(
                                     &NvidiaStatistic::MemoryRetiredDbe(id),
                                     time,
@@ -315,8 +341,7 @@ impl Nvidia {
                 }
             }
         }
-        
+
         Ok(())
     }
 }
-

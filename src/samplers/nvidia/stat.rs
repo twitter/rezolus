@@ -70,7 +70,7 @@ pub enum NvidiaConfigStatistic {
     #[strum(serialize = "memory/retired/pending")]
     MemoryRetiredPending,
     #[strum(serialize = "processes/compute")]
-    ProcessesCompute
+    ProcessesCompute,
 }
 
 impl TryFrom<&str> for NvidiaConfigStatistic {
@@ -81,14 +81,7 @@ impl TryFrom<&str> for NvidiaConfigStatistic {
     }
 }
 
-#[derive(
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    Hash,
-)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum NvidiaStatistic {
     GpuTemperature(u32),
     MemoryEccSbe(u32),
@@ -123,129 +116,129 @@ impl Statistic<AtomicU64, AtomicU32> for NvidiaStatistic {
                 0 => "nvidia/gpu_0/gpu/temperature",
                 1 => "nvidia/gpu_1/gpu/temperature",
                 _ => "nvidia/gpu_unknown/gpu/temperature",
-            }
+            },
             NvidiaStatistic::MemoryEccEnabled(id) => match id {
                 0 => "nvidia/gpu_0/memory/ecc/enabled",
                 1 => "nvidia/gpu_1/memory/ecc/enabled",
                 _ => "nvidia/gpu_unknown/memory/ecc/enabled",
-            }
+            },
             NvidiaStatistic::MemoryEccSbe(id) => match id {
                 0 => "nvidia/gpu_0/memory/ecc/sbe",
                 1 => "nvidia/gpu_1/memory/ecc/sbe",
                 _ => "nvidia/gpu_unknown/memory/ecc/sbe",
-            }
+            },
             NvidiaStatistic::MemoryEccDbe(id) => match id {
                 0 => "nvidia/gpu_0/memory/ecc/dbe",
                 1 => "nvidia/gpu_1/memory/ecc/dbe",
                 _ => "nvidia/gpu_unknown/memory/ecc/dbe",
-            }
+            },
             NvidiaStatistic::PowerUsage(id) => match id {
                 0 => "nvidia/gpu_0/power/usage",
                 1 => "nvidia/gpu_1/power/usage",
                 _ => "nvidia/gpu_unknown/power/usage",
-            }
+            },
             NvidiaStatistic::PowerLimit(id) => match id {
                 0 => "nvidia/gpu_0/power/limit",
                 1 => "nvidia/gpu_1/power/limit",
                 _ => "nvidia/gpu_unknown/power/limit",
-            }
+            },
             NvidiaStatistic::EnergyConsumption(id) => match id {
                 0 => "nvidia/gpu_0/energy/consumption",
                 1 => "nvidia/gpu_1/energy/consumption",
                 _ => "nvidia/gpu_unknown/energy/consumption",
-            }
+            },
             NvidiaStatistic::ClockSMCurrent(id) => match id {
                 0 => "nvidia/gpu_0/clock/sm/current",
                 1 => "nvidia/gpu_1/clock/sm/current",
                 _ => "nvidia/gpu_unknown/clock/sm/current",
-            }
+            },
             NvidiaStatistic::ClockMemoryCurrent(id) => match id {
                 0 => "nvidia/gpu_0/clock/memory/current",
                 1 => "nvidia/gpu_1/clock/memory/current",
                 _ => "nvidia/gpu_unknown/clock/memory/current",
-            }
+            },
             NvidiaStatistic::PcieReplay(id) => match id {
                 0 => "nvidia/gpu_0/pcie/replay",
                 1 => "nvidia/gpu_1/pcie/replay",
                 _ => "nvidia/gpu_unknown/pcie/replay",
-            }
+            },
             NvidiaStatistic::PcieRxThroughput(id) => match id {
                 0 => "nvidia/gpu_0/pcie/rx/throughput",
                 1 => "nvidia/gpu_1/pcie/rx/throughput",
                 _ => "nvidia/gpu_unknown/pcie/rx/throughput",
-            }
+            },
             NvidiaStatistic::PcieTxThroughput(id) => match id {
                 0 => "nvidia/gpu_0/pcie/tx/throughput",
                 1 => "nvidia/gpu_1/pcie/tx/throughput",
                 _ => "nvidia/gpu_unknown/pcie/tx/throughput",
-            }
+            },
             NvidiaStatistic::GpuUtilization(id) => match id {
                 0 => "nvidia/gpu_0/gpu/utilization",
                 1 => "nvidia/gpu_1/gpu/utilization",
                 _ => "nvidia/gpu_unknown/gpu/utilization",
-            }
+            },
             NvidiaStatistic::MemoryUtilization(id) => match id {
                 0 => "nvidia/gpu_0/memory/utilization",
                 1 => "nvidia/gpu_1/memory/utilization",
                 _ => "nvidia/gpu_unknown/memory/utilization",
-            }
+            },
             NvidiaStatistic::DecoderUtilization(id) => match id {
                 0 => "nvidia/gpu_0/decoder/utilization",
                 1 => "nvidia/gpu_1/decoder/utilization",
                 _ => "nvidia/gpu_unknown/decoder/utilization",
-            }
+            },
             NvidiaStatistic::EncoderUtilization(id) => match id {
                 0 => "nvidia/gpu_0/encoder/utilization",
                 1 => "nvidia/gpu_1/encoder/utilization",
                 _ => "nvidia/gpu_unknown/encoder/utilization",
-            }
+            },
             NvidiaStatistic::MemoryFbFree(id) => match id {
                 0 => "nvidia/gpu_0/memory/fb/free",
                 1 => "nvidia/gpu_1/memory/fb/free",
                 _ => "nvidia/gpu_unknown/memory/fb/free",
-            }
+            },
             NvidiaStatistic::MemoryFbTotal(id) => match id {
                 0 => "nvidia/gpu_0/memory/fb/total",
                 1 => "nvidia/gpu_1/memory/fb/total",
                 _ => "nvidia/gpu_unknown/memory/fb/total",
-            }
+            },
             NvidiaStatistic::MemoryFbUsed(id) => match id {
                 0 => "nvidia/gpu_0/memory/fb/used",
                 1 => "nvidia/gpu_1/memory/fb/used",
                 _ => "nvidia/gpu_unknown/memory/fb/used",
-            }
+            },
             NvidiaStatistic::MemoryRetiredSbe(id) => match id {
                 0 => "nvidia/gpu_0/memory/retired/sbe",
                 1 => "nvidia/gpu_1/memory/retired/sbe",
                 _ => "nvidia/gpu_unknown/memory/retired/sbe",
-            }
+            },
             NvidiaStatistic::MemoryRetiredDbe(id) => match id {
                 0 => "nvidia/gpu_0/memory/retired/dbe",
                 1 => "nvidia/gpu_1/memory/retired/dbe",
                 _ => "nvidia/gpu_unknown/memory/retired/dbe",
-            }
+            },
             NvidiaStatistic::MemoryRetiredPending(id) => match id {
                 0 => "nvidia/gpu_0/memory/retired/pending",
                 1 => "nvidia/gpu_1/memory/retired/pending",
                 _ => "nvidia/gpu_unknown/memory/retired/pending",
-            }
+            },
             NvidiaStatistic::ProcessesCompute(id) => match id {
                 0 => "nvidia/gpu_0/processes/compute",
                 1 => "nvidia/gpu_1/processes/compute",
                 _ => "nvidia/gpu_unknown/processes/compute",
-            }
+            },
         }
     }
 
     fn source(&self) -> Source {
         match self {
-            Self::MemoryEccSbe(_) | 
-            Self::MemoryEccDbe(_) | 
-            Self::EnergyConsumption(_) |
-            Self::MemoryRetiredDbe(_) |
-            Self::MemoryRetiredSbe(_) |
-            Self::PcieReplay(_) => Source::Counter,
-            _ => Source::Gauge
+            Self::MemoryEccSbe(_)
+            | Self::MemoryEccDbe(_)
+            | Self::EnergyConsumption(_)
+            | Self::MemoryRetiredDbe(_)
+            | Self::MemoryRetiredSbe(_)
+            | Self::PcieReplay(_) => Source::Counter,
+            _ => Source::Gauge,
         }
     }
 }
