@@ -327,6 +327,41 @@ Provides system-wide network telemetry
 * `network/receive/size` - size distribution, in bytes, of received packets
 * `network/transmit/size` - size distribution, in bytes, of transmitted packets
 
+## Nvidia
+
+Telemetry for Nvidia GPUs, collected by using the Nvidia Management Library
+(NVML). Unlike other samplers, these stats are fully scoped to specific GPUs
+within the system. Exported metrics will have the form: `nvidia/gpu_[id]/...`
+where the id is the device identifier as reported by the NVML. The set of
+metrics to collect uses the short form of the metric name, as provided below.
+
+### Basic
+
+* `clock/sm/current` - current streaming multiprocessor clock speed in MHz
+* `clock/memory/current` - current memory clock speed in MHz
+* `decoder/utilization` - video decoder utilization as a percentage
+* `encoder/utilization` - video encoder utilization as a percentage
+* `energy/consumption` - total energy consumption since boot in mJ
+* `gpu/temperature` - current GPU temperature in °C
+* `cpu/utilization` - GPU utilzation as a percentage
+* `memory/ecc/enabled` - boolean (0 or 1) indicating if ECC is enabled
+* `memory/ecc/dbe` - count of double-bit errors (uncorrectable)
+* `memory/ecc/sbe` - count of single-bit errors (correctable)
+* `memory/fb/free` - framebuffer memory free in bytes
+* `memory/fb/total` - total framebuffer memory in bytes
+* `memory/fb/used` - framebuffer memory used in bytes
+* `memory/retired/sbe` - memory pages retired due to multiple single-bit errors
+* `memory/retired/dbe` - memory pages retired due to double-bit error
+* `memory/retired/pending` - boolean (0 or 1) indicating that memory pages are
+  pending retirement
+* `memory/utilization` - memory copy utilization as a percentage
+* `pcie/replay` - count of PCIe replays. May indicate link issues.
+* `pcie/rx/throughput` - PCIe receive throughput in KB/s
+* `pcie/tx/throughput` - PCIe transmit throughput in KB/s
+* `power/limit` - enforced power limit in mW
+* `power/usage` - current power usage in mW
+* `processes/compute` - number of processes running in compute context
+
 ## Page Cache
 
 The page cache is a transparent cache for pages originating from a secondary

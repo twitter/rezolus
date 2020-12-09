@@ -24,6 +24,7 @@ pub mod memcache;
 pub mod memory;
 pub mod network;
 pub mod ntp;
+pub mod nvidia;
 pub mod page_cache;
 pub mod rezolus;
 pub mod scheduler;
@@ -41,6 +42,7 @@ pub use memcache::Memcache;
 pub use memory::Memory;
 pub use network::Network;
 pub use ntp::Ntp;
+pub use nvidia::Nvidia;
 pub use page_cache::PageCache;
 pub use rezolus::Rezolus;
 pub use scheduler::Scheduler;
@@ -135,7 +137,7 @@ pub trait Sampler: Sized + Send {
     }
 
     fn samples(&self) -> usize {
-        (1000 / self.interval()) * self.general_config().window()
+        ((1000.0 / self.interval() as f64) * self.general_config().window() as f64).ceil() as usize
     }
 
     fn metrics(&self) -> &Metrics<AtomicU64, AtomicU32> {
