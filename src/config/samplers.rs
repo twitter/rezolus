@@ -13,6 +13,7 @@ use samplers::memcache::MemcacheConfig;
 use samplers::memory::MemoryConfig;
 use samplers::network::NetworkConfig;
 use samplers::ntp::NtpConfig;
+use samplers::nvidia::NvidiaConfig;
 use samplers::page_cache::PageCacheConfig;
 use samplers::rezolus::RezolusConfig;
 use samplers::scheduler::SchedulerConfig;
@@ -42,6 +43,8 @@ pub struct Samplers {
     network: NetworkConfig,
     #[serde(default)]
     ntp: NtpConfig,
+    #[serde(default)]
+    nvidia: NvidiaConfig,
     #[serde(default)]
     page_cache: PageCacheConfig,
     #[serde(default)]
@@ -93,6 +96,10 @@ impl Samplers {
 
     pub fn ntp(&self) -> &NtpConfig {
         &self.ntp
+    }
+
+    pub fn nvidia(&self) -> &NvidiaConfig {
+        &self.nvidia
     }
 
     pub fn page_cache(&self) -> &PageCacheConfig {

@@ -274,6 +274,33 @@ enabled = true
 # 	"p99",
 # ]
 
+# The Nvidia sampler provides telemetry for Nvidia GPUs by using the NVML
+# library.
+[samplers.nvidia]
+# Controls whether to use this sampler
+enabled = true
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported statistics may be limited by specifying them, otherwise
+# the complete set of statistics will be exported.
+# NOTE: the lack of the 'nvidia' prefix. Exported stats will have the form of
+# nvidia/gpu_[id]/...
+# statistics = [
+# 	"gpu/temperature",
+#   "power/usage",
+#   "power/limit",
+# ]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"p1",
+# 	"p10",
+# 	"p50",
+# 	"p90",
+# 	"p99",
+# ]
 
 # The page cache sampler provides telemetry about page cache hits and misses
 [samplers.page_cache]
