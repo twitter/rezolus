@@ -55,79 +55,80 @@ impl SamplerConfig for NvidiaConfig {
 
     fn statistics(&self) -> Vec<<Self as SamplerConfig>::Statistic> {
         let mut enabled = Vec::new();
-        let nvml = NVML::builder().init().expect("failed to initialize nvml");
-        let devices = nvml.device_count().unwrap_or(0);
-        for statistic in self.statistics.iter() {
-            for id in 0..devices {
-                match statistic {
-                    NvidiaConfigStatistic::GpuTemperature => {
-                        enabled.push(NvidiaStatistic::GpuTemperature(id));
-                    }
-                    NvidiaConfigStatistic::GpuUtilization => {
-                        enabled.push(NvidiaStatistic::GpuUtilization(id));
-                    }
-                    NvidiaConfigStatistic::MemoryEccEnabled => {
-                        enabled.push(NvidiaStatistic::MemoryEccEnabled(id));
-                    }
-                    NvidiaConfigStatistic::MemoryEccSbe => {
-                        enabled.push(NvidiaStatistic::MemoryEccSbe(id));
-                    }
-                    NvidiaConfigStatistic::MemoryEccDbe => {
-                        enabled.push(NvidiaStatistic::MemoryEccDbe(id));
-                    }
-                    NvidiaConfigStatistic::MemoryUtilization => {
-                        enabled.push(NvidiaStatistic::MemoryUtilization(id));
-                    }
-                    NvidiaConfigStatistic::EncoderUtilization => {
-                        enabled.push(NvidiaStatistic::EncoderUtilization(id));
-                    }
-                    NvidiaConfigStatistic::DecoderUtilization => {
-                        enabled.push(NvidiaStatistic::DecoderUtilization(id));
-                    }
-                    NvidiaConfigStatistic::PowerUsage => {
-                        enabled.push(NvidiaStatistic::PowerUsage(id));
-                    }
-                    NvidiaConfigStatistic::PowerLimit => {
-                        enabled.push(NvidiaStatistic::PowerLimit(id));
-                    }
-                    NvidiaConfigStatistic::EnergyConsumption => {
-                        enabled.push(NvidiaStatistic::EnergyConsumption(id));
-                    }
-                    NvidiaConfigStatistic::ClockSMCurrent => {
-                        enabled.push(NvidiaStatistic::ClockSMCurrent(id));
-                    }
-                    NvidiaConfigStatistic::ClockMemoryCurrent => {
-                        enabled.push(NvidiaStatistic::ClockMemoryCurrent(id));
-                    }
-                    NvidiaConfigStatistic::PcieReplay => {
-                        enabled.push(NvidiaStatistic::PcieReplay(id));
-                    }
-                    NvidiaConfigStatistic::PcieRxThroughput => {
-                        enabled.push(NvidiaStatistic::PcieRxThroughput(id));
-                    }
-                    NvidiaConfigStatistic::PcieTxThroughput => {
-                        enabled.push(NvidiaStatistic::PcieTxThroughput(id));
-                    }
-                    NvidiaConfigStatistic::MemoryFbFree => {
-                        enabled.push(NvidiaStatistic::MemoryFbFree(id));
-                    }
-                    NvidiaConfigStatistic::MemoryFbTotal => {
-                        enabled.push(NvidiaStatistic::MemoryFbTotal(id));
-                    }
-                    NvidiaConfigStatistic::MemoryFbUsed => {
-                        enabled.push(NvidiaStatistic::MemoryFbUsed(id));
-                    }
-                    NvidiaConfigStatistic::MemoryRetiredSbe => {
-                        enabled.push(NvidiaStatistic::MemoryRetiredSbe(id));
-                    }
-                    NvidiaConfigStatistic::MemoryRetiredDbe => {
-                        enabled.push(NvidiaStatistic::MemoryRetiredDbe(id));
-                    }
-                    NvidiaConfigStatistic::MemoryRetiredPending => {
-                        enabled.push(NvidiaStatistic::MemoryRetiredPending(id));
-                    }
-                    NvidiaConfigStatistic::ProcessesCompute => {
-                        enabled.push(NvidiaStatistic::ProcessesCompute(id));
+        if let Ok(nvml) = NVML::builder().init() {
+            let devices = nvml.device_count().unwrap_or(0);
+            for statistic in self.statistics.iter() {
+                for id in 0..devices {
+                    match statistic {
+                        NvidiaConfigStatistic::GpuTemperature => {
+                            enabled.push(NvidiaStatistic::GpuTemperature(id));
+                        }
+                        NvidiaConfigStatistic::GpuUtilization => {
+                            enabled.push(NvidiaStatistic::GpuUtilization(id));
+                        }
+                        NvidiaConfigStatistic::MemoryEccEnabled => {
+                            enabled.push(NvidiaStatistic::MemoryEccEnabled(id));
+                        }
+                        NvidiaConfigStatistic::MemoryEccSbe => {
+                            enabled.push(NvidiaStatistic::MemoryEccSbe(id));
+                        }
+                        NvidiaConfigStatistic::MemoryEccDbe => {
+                            enabled.push(NvidiaStatistic::MemoryEccDbe(id));
+                        }
+                        NvidiaConfigStatistic::MemoryUtilization => {
+                            enabled.push(NvidiaStatistic::MemoryUtilization(id));
+                        }
+                        NvidiaConfigStatistic::EncoderUtilization => {
+                            enabled.push(NvidiaStatistic::EncoderUtilization(id));
+                        }
+                        NvidiaConfigStatistic::DecoderUtilization => {
+                            enabled.push(NvidiaStatistic::DecoderUtilization(id));
+                        }
+                        NvidiaConfigStatistic::PowerUsage => {
+                            enabled.push(NvidiaStatistic::PowerUsage(id));
+                        }
+                        NvidiaConfigStatistic::PowerLimit => {
+                            enabled.push(NvidiaStatistic::PowerLimit(id));
+                        }
+                        NvidiaConfigStatistic::EnergyConsumption => {
+                            enabled.push(NvidiaStatistic::EnergyConsumption(id));
+                        }
+                        NvidiaConfigStatistic::ClockSMCurrent => {
+                            enabled.push(NvidiaStatistic::ClockSMCurrent(id));
+                        }
+                        NvidiaConfigStatistic::ClockMemoryCurrent => {
+                            enabled.push(NvidiaStatistic::ClockMemoryCurrent(id));
+                        }
+                        NvidiaConfigStatistic::PcieReplay => {
+                            enabled.push(NvidiaStatistic::PcieReplay(id));
+                        }
+                        NvidiaConfigStatistic::PcieRxThroughput => {
+                            enabled.push(NvidiaStatistic::PcieRxThroughput(id));
+                        }
+                        NvidiaConfigStatistic::PcieTxThroughput => {
+                            enabled.push(NvidiaStatistic::PcieTxThroughput(id));
+                        }
+                        NvidiaConfigStatistic::MemoryFbFree => {
+                            enabled.push(NvidiaStatistic::MemoryFbFree(id));
+                        }
+                        NvidiaConfigStatistic::MemoryFbTotal => {
+                            enabled.push(NvidiaStatistic::MemoryFbTotal(id));
+                        }
+                        NvidiaConfigStatistic::MemoryFbUsed => {
+                            enabled.push(NvidiaStatistic::MemoryFbUsed(id));
+                        }
+                        NvidiaConfigStatistic::MemoryRetiredSbe => {
+                            enabled.push(NvidiaStatistic::MemoryRetiredSbe(id));
+                        }
+                        NvidiaConfigStatistic::MemoryRetiredDbe => {
+                            enabled.push(NvidiaStatistic::MemoryRetiredDbe(id));
+                        }
+                        NvidiaConfigStatistic::MemoryRetiredPending => {
+                            enabled.push(NvidiaStatistic::MemoryRetiredPending(id));
+                        }
+                        NvidiaConfigStatistic::ProcessesCompute => {
+                            enabled.push(NvidiaStatistic::ProcessesCompute(id));
+                        }
                     }
                 }
             }
