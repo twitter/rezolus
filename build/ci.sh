@@ -7,7 +7,7 @@ sudo apt-get update
 
 ## Install kernel headers for matching version
 sudo apt-get install linux-headers-"$(uname -r)"
-sudo apt-get remove *llvm* *clang* *gtk*
+sudo apt-get remove *llvm* *clang* *gtk* mono*
 sudo apt-get --yes install clang-"${LLVM}" libclang-"${LLVM}"-dev libelf-dev \
     libfl-dev llvm-"${LLVM}"-dev libz-dev llvm-"${LLVM}"
 
