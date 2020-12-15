@@ -156,24 +156,27 @@ impl Nvidia {
                         }
                         NvidiaConfigStatistic::PowerUsage => {
                             if let Ok(value) = device.power_usage() {
+                                let value = (value as f64 / 1000.0).round() as u64;
                                 let _ = self.metrics().record_gauge(
                                     &NvidiaStatistic::PowerUsage(id),
                                     time,
-                                    value.into(),
+                                    value,
                                 );
                             }
                         }
                         NvidiaConfigStatistic::PowerLimit => {
                             if let Ok(value) = device.enforced_power_limit() {
+                                let value = (value as f64 / 1000.0).round() as u64;
                                 let _ = self.metrics().record_gauge(
                                     &NvidiaStatistic::PowerLimit(id),
                                     time,
-                                    value.into(),
+                                    value,
                                 );
                             }
                         }
                         NvidiaConfigStatistic::EnergyConsumption => {
                             if let Ok(value) = device.total_energy_consumption() {
+                                let value = (value as f64 / 1000.0).round() as u64;
                                 let _ = self.metrics().record_gauge(
                                     &NvidiaStatistic::EnergyConsumption(id),
                                     time,
