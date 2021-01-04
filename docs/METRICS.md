@@ -341,7 +341,7 @@ metrics to collect uses the short form of the metric name, as provided below.
 * `clock/memory/current` - current memory clock speed in MHz
 * `decoder/utilization` - video decoder utilization as a percentage
 * `encoder/utilization` - video encoder utilization as a percentage
-* `energy/consumption` - total energy consumption since boot in mJ
+* `energy/consumption` - total energy consumption since boot in Joules
 * `gpu/temperature` - current GPU temperature in °C
 * `cpu/utilization` - GPU utilzation as a percentage
 * `memory/ecc/enabled` - boolean (0 or 1) indicating if ECC is enabled
@@ -358,8 +358,8 @@ metrics to collect uses the short form of the metric name, as provided below.
 * `pcie/replay` - count of PCIe replays. May indicate link issues.
 * `pcie/rx/throughput` - PCIe receive throughput in KB/s
 * `pcie/tx/throughput` - PCIe transmit throughput in KB/s
-* `power/limit` - enforced power limit in mW
-* `power/usage` - current power usage in mW
+* `power/limit` - enforced power limit in Watts
+* `power/usage` - current power usage in Watts
 * `processes/compute` - number of processes running in compute context
 
 ## Page Cache
