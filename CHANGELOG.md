@@ -1,5 +1,16 @@
 # [Unreleased]
 
+# [2.11.0] - 2021-01-11
+## Added
+- Nvidia GPU sampler which uses the Nvidia Management Library (NVML) to gather
+  telemetry for GPU utilization and health.
+- NTP sampler to gather telemetry about NTP synchronization.
+
+## Fixed
+- Disk BPF sampling now compatible with newer kernels.
+- Bug introduced in 2.8.0 caused sample rates greater than 1000ms to cause
+  errors.
+
 # [2.10.0] - 2020-10-26
 ## Changed
 - Updates tokio to 0.3.1 from 0.2.x
