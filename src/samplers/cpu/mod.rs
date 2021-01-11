@@ -15,8 +15,7 @@ use bcc::perf_event::{Event, SoftwareEvent};
 use bcc::{PerfEvent, PerfEventArray};
 use regex::Regex;
 use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
-use tokio::prelude::*;
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncSeekExt, BufReader};
 
 use crate::common::bpf::BPF;
 use crate::common::*;
