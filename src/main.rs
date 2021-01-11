@@ -66,7 +66,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Builder::new_multi_thread()
             .enable_all()
             .worker_threads(config.general().threads())
-            .max_threads(config.general().threads() * 2) // extra threads for block_on
+            .max_blocking_threads(config.general().threads())
             .thread_name("rezolus-worker")
             .build()
             .unwrap(),
