@@ -1,6 +1,6 @@
 # [Unreleased]
 
-# [2.11.0] - 2020-12-14
+# [2.11.0] - 2021-01-11
 ## Added
 - Nvidia GPU sampler which uses the Nvidia Management Library (NVML) to gather
   telemetry for GPU utilization and health.
