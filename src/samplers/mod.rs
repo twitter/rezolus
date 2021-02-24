@@ -105,7 +105,7 @@ pub trait Sampler: Sized + Send {
             let percentiles = self.sampler_config().percentiles();
             if !percentiles.is_empty() {
                 if statistic.source() == Source::Distribution {
-                    self.common().metrics().set_summary(
+                    self.common().metrics().add_summary(
                         &statistic,
                         Summary::heatmap(
                             1_000_000_000,
