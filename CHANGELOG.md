@@ -1,5 +1,9 @@
 # [Unreleased]
 
+# [2.11.1] - 2021-02-24
+## Fixed
+- HTTP and Memcache samplers reporting incorrect percentiles.
+
 # [2.11.0] - 2021-01-11
 ## Added
 - Nvidia GPU sampler which uses the Nvidia Management Library (NVML) to gather
@@ -160,7 +164,9 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.10.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.11.1...HEAD
+[2.11.1]: https://github.com/twitter/rezolus/compare/v2.11.0...v2.11.1
+[2.11.0]: https://github.com/twitter/rezolus/compare/v2.10.0...v2.11.0
 [2.10.0]: https://github.com/twitter/rezolus/compare/v2.9.0...v2.10.0
 [2.9.0]: https://github.com/twitter/rezolus/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/twitter/rezolus/compare/v2.7.1...v2.8.0
