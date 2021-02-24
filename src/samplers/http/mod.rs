@@ -112,7 +112,7 @@ impl Sampler for Http {
                                 self.common().metrics().register(statistic);
                                 self.common()
                                     .metrics()
-                                    .set_summary(statistic, Summary::stream(self.samples()));
+                                    .add_summary(statistic, Summary::stream(self.samples()));
                                 if self.passthrough {
                                     self.common()
                                         .metrics()

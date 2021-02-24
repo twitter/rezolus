@@ -131,7 +131,7 @@ impl Sampler for Memcache {
                                         // these select metrics get histogram summaries and
                                         // percentile output
                                         self.common().metrics().register(&statistic);
-                                        self.common().metrics().set_summary(
+                                        self.common().metrics().add_summary(
                                             &statistic,
                                             Summary::stream(self.samples()),
                                         );
