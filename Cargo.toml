@@ -22,6 +22,7 @@ num = "0.4.0"
 num-derive = "0.3.3"
 num-traits = "0.2.14"
 nvml-wrapper = "0.7.0"
+openssl = { version = "0.10.33", features = ["vendored"] }
 regex = "1.4.6"
 reqwest = { version = "0.11.3", features = ["blocking"] }
 rustcommon-atomics = { git = "https://github.com/twitter/rustcommon", branch = "master" }

@@ -131,7 +131,12 @@ fn default_ntptimeval() -> libc::ntptimeval {
     }
 }
 
-#[cfg(all(not(target_os = "macos"), not(target_os = "ios"), not(target_env = "musl"), unix))]
+#[cfg(all(
+    not(target_os = "macos"),
+    not(target_os = "ios"),
+    not(target_env = "musl"),
+    unix
+))]
 fn default_ntptimeval() -> libc::ntptimeval {
     libc::ntptimeval {
         time: libc::timeval {
