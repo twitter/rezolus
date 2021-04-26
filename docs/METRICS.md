@@ -327,6 +327,18 @@ Provides system-wide network telemetry
 * `network/receive/size` - size distribution, in bytes, of received packets
 * `network/transmit/size` - size distribution, in bytes, of transmitted packets
 
+## NTP
+
+NTP sampler provides some basic stats about time synchronization via NTP.
+
+**NOTE:** this sampler is currently not supported for musl toolchains
+
+### Basic
+
+* `ntp/estimated_error` - the current estimated error of the local clock in
+  nanoseconds
+* `ntp/maximum_error` - the maximum error of the local clock in nanoseconds
+
 ## Nvidia
 
 Telemetry for Nvidia GPUs, collected by using the Nvidia Management Library

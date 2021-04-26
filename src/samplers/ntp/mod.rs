@@ -88,6 +88,7 @@ impl Sampler for Ntp {
 }
 
 impl Ntp {
+    #[cfg(not(target_env = "musl"))]
     async fn sample_ntp_adjtime(&mut self) -> Result<(), std::io::Error> {
         let mut timeval = default_ntptimeval();
         let time = Instant::now();
@@ -108,6 +109,12 @@ impl Ntp {
         }
         Ok(())
     }
+
+    #[cfg(target_env = "musl")]
+    async fn sample_ntp_adjtime(&mut self) -> Result<(), std::io::Error> {
+        // TODO: implement NTP sampling for musl
+        Ok(())
+    }
 }
 
 #[cfg(any(target_os = "macos", target_os = "ios"))]
@@ -124,7 +131,7 @@ fn default_ntptimeval() -> libc::ntptimeval {
     }
 }
 
-#[cfg(all(not(target_os = "macos"), not(target_os = "ios"), unix))]
+#[cfg(all(not(target_os = "macos"), not(target_os = "ios"), not(target_env = "musl"), unix))]
 fn default_ntptimeval() -> libc::ntptimeval {
     libc::ntptimeval {
         time: libc::timeval {
