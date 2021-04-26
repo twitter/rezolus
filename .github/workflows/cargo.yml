@@ -212,8 +212,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: install toolchain
+      - name: install rust musl toolchain
         run: rustup target add x86_64-unknown-linux-musl
+      - name: install musl-gcc
+        run: apt-get install -y musl-gcc
       - name: build
         run: cargo build --release --target x86_64-unknown-linux-musl
   rustfmt:
