@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use rustcommon_atomics::*;
 use serde_derive::Deserialize;
 use strum::IntoEnumIterator;
 
@@ -14,13 +13,13 @@ use super::stat::*;
 #[serde(deny_unknown_fields)]
 pub struct CpuConfig {
     #[serde(default)]
-    enabled: AtomicBool,
+    enabled: bool,
     #[serde(default)]
-    interval: Option<AtomicUsize>,
+    interval: Option<usize>,
     #[serde(default = "crate::common::default_percentiles")]
     percentiles: Vec<f64>,
     #[serde(default)]
-    perf_events: AtomicBool,
+    perf_events: bool,
     #[serde(default = "default_statistics")]
     statistics: Vec<CpuStatistic>,
 }
@@ -44,11 +43,11 @@ fn default_statistics() -> Vec<CpuStatistic> {
 impl SamplerConfig for CpuConfig {
     type Statistic = CpuStatistic;
     fn enabled(&self) -> bool {
-        self.enabled.load(Ordering::Relaxed)
+        self.enabled
     }
 
     fn interval(&self) -> Option<usize> {
-        self.interval.as_ref().map(|v| v.load(Ordering::Relaxed))
+        self.interval
     }
 
     fn percentiles(&self) -> &[f64] {
@@ -56,7 +55,7 @@ impl SamplerConfig for CpuConfig {
     }
 
     fn perf_events(&self) -> bool {
-        self.perf_events.load(Ordering::Relaxed)
+        self.perf_events
     }
 
     fn statistics(&self) -> Vec<<Self as SamplerConfig>::Statistic> {
