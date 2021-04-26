@@ -3,7 +3,6 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use nvml_wrapper::NVML;
-use rustcommon_atomics::*;
 use serde_derive::Deserialize;
 use strum::IntoEnumIterator;
 
@@ -15,9 +14,9 @@ use super::stat::*;
 #[serde(deny_unknown_fields)]
 pub struct NvidiaConfig {
     #[serde(default)]
-    enabled: AtomicBool,
+    enabled: bool,
     #[serde(default)]
-    interval: Option<AtomicUsize>,
+    interval: Option<usize>,
     #[serde(default = "crate::common::default_percentiles")]
     percentiles: Vec<f64>,
     #[serde(default = "default_statistics")]
@@ -41,12 +40,13 @@ fn default_statistics() -> Vec<NvidiaConfigStatistic> {
 
 impl SamplerConfig for NvidiaConfig {
     type Statistic = NvidiaStatistic;
+
     fn enabled(&self) -> bool {
-        self.enabled.load(Ordering::Relaxed)
+        self.enabled
     }
 
     fn interval(&self) -> Option<usize> {
-        self.interval.as_ref().map(|v| v.load(Ordering::Relaxed))
+        self.interval
     }
 
     fn percentiles(&self) -> &[f64] {

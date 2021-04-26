@@ -2,18 +2,19 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use super::stat::*;
+use serde_derive::Deserialize;
+
 use crate::config::SamplerConfig;
-use rustcommon_atomics::*;
-use serde_derive::*;
+
+use super::stat::*;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MemcacheConfig {
     #[serde(default)]
-    enabled: AtomicBool,
+    enabled: bool,
     #[serde(default)]
-    interval: Option<AtomicUsize>,
+    interval: Option<usize>,
     #[serde(default = "crate::common::default_percentiles")]
     percentiles: Vec<f64>,
     endpoint: Option<String>,
@@ -40,11 +41,11 @@ impl SamplerConfig for MemcacheConfig {
     type Statistic = MemcacheStatistic;
 
     fn enabled(&self) -> bool {
-        self.enabled.load(Ordering::Relaxed)
+        self.enabled
     }
 
     fn interval(&self) -> Option<usize> {
-        self.interval.as_ref().map(|v| v.load(Ordering::Relaxed))
+        self.interval
     }
 
     fn percentiles(&self) -> &[f64] {

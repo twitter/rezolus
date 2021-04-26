@@ -2,23 +2,23 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use super::stat::*;
+use serde_derive::Deserialize;
+
 use crate::config::SamplerConfig;
-use core::sync::atomic::AtomicBool;
-use rustcommon_atomics::*;
-use serde_derive::*;
+
+use super::stat::*;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct HttpConfig {
     counters: Vec<String>,
     #[serde(default)]
-    enabled: AtomicBool,
+    enabled: bool,
     gauges: Vec<String>,
     #[serde(default)]
-    interval: Option<AtomicUsize>,
+    interval: Option<usize>,
     #[serde(default)]
-    passthrough: AtomicBool,
+    passthrough: bool,
     #[serde(default = "crate::common::default_percentiles")]
     percentiles: Vec<f64>,
     url: Option<String>,
@@ -59,7 +59,7 @@ impl HttpConfig {
     /// Whether unlisted metrics should be passed through to the output, which
     /// internally treats them as gauges without percentiles
     pub fn passthrough(&self) -> bool {
-        self.passthrough.load(Ordering::Relaxed)
+        self.passthrough
     }
 }
 
@@ -67,11 +67,11 @@ impl SamplerConfig for HttpConfig {
     type Statistic = HttpStatistic;
 
     fn enabled(&self) -> bool {
-        self.enabled.load(Ordering::Relaxed)
+        self.enabled
     }
 
     fn interval(&self) -> Option<usize> {
-        self.interval.as_ref().map(|v| v.load(Ordering::Relaxed))
+        self.interval
     }
 
     fn percentiles(&self) -> &[f64] {
