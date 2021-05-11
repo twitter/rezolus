@@ -80,6 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ext4::spawn(common.clone());
     Http::spawn(common.clone());
     Interrupt::spawn(common.clone());
+    LibCall::spawn(common.clone());
     Memcache::spawn(common.clone());
     Memory::spawn(common.clone());
     PageCache::spawn(common.clone());

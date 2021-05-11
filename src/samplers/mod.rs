@@ -20,6 +20,7 @@ pub mod disk;
 pub mod ext4;
 pub mod http;
 pub mod interrupt;
+pub mod libcall;
 pub mod memcache;
 pub mod memory;
 pub mod network;
@@ -38,6 +39,7 @@ pub use disk::Disk;
 pub use ext4::Ext4;
 pub use http::Http;
 pub use interrupt::Interrupt;
+pub use libcall::LibCall;
 pub use memcache::Memcache;
 pub use memory::Memory;
 pub use network::Network;
@@ -99,6 +101,7 @@ pub trait Sampler: Sized + Send {
     /// Register all the statistics
     fn register(&self) {
         for statistic in self.sampler_config().statistics() {
+            info!("Registering statistic");
             self.common()
                 .metrics()
                 .add_output(&statistic, Output::Reading);
