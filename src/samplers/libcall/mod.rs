@@ -26,23 +26,21 @@ impl Sampler for LibCall {
     type Statistic = LibCallStatistic;
 
     fn new(common: Common) -> Result<Self, anyhow::Error> {
+        let statistics = common.config().samplers().libcall().statistics();
         let sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
-            statistics: vec![LibCallStatistic::FooBar],
+            statistics,
         };
         if sampler.sampler_config().enabled() {
-            info!("We're registering libcall");
             sampler.register();
         }
-        info!("We're newing libcall");
         Ok(sampler)
     }
 
     fn spawn(common: Common) {
         if common.config().samplers().libcall().enabled() {
-            info!("We're spawning libcall");
             if let Ok(mut sampler) = Self::new(common.clone()) {
                 common.runtime().spawn(async move {
                     loop {
@@ -78,11 +76,8 @@ impl Sampler for LibCall {
             return Ok(());
         }
         for statistic in self.statistics.iter() {
-            info!("Recording statistic: {:?}", statistic);
             let _ = self.metrics().record_counter(statistic, Instant::now(), 1);
         }
-
-        info!("Sampling libcall!");
 
         Ok(())
     }

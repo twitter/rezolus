@@ -39,3 +39,5 @@ listen = "0.0.0.0:4242"
 [samplers.libcall]
 enabled = true
 
+[samplers.libcall.probe_funcs]
+c = []

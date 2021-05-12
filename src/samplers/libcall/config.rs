@@ -1,4 +1,5 @@
 use serde_derive::Deserialize;
+use std::collections::HashMap;
 
 use crate::config::SamplerConfig;
 
@@ -16,9 +17,7 @@ pub struct LibCallConfig {
     #[serde(default = "crate::common::default_percentiles")]
     percentiles: Vec<f64>,
     #[serde(default)]
-    lib: Option<String>,
-    #[serde(default)]
-    func_selector: Option<String>,
+    probe_funcs: HashMap<String, Vec<String>>,
 }
 
 impl Default for LibCallConfig {
@@ -28,8 +27,7 @@ impl Default for LibCallConfig {
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: crate::common::default_percentiles(),
-            lib: None,
-            func_selector: None,
+            probe_funcs: HashMap::new(),
         }
     }
 }
@@ -54,6 +52,12 @@ impl SamplerConfig for LibCallConfig {
     }
 
     fn statistics(&self) -> Vec<<Self as SamplerConfig>::Statistic> {
-        vec![LibCallStatistic::FooBar]
+        let mut stats = Vec::new();
+        for (lib, funcs) in &self.probe_funcs {
+            for func in funcs.iter() {
+                stats.push(LibCallStatistic::new(lib, func));
+            }
+        }
+        stats
     }
 }
