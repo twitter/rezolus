@@ -27,12 +27,14 @@ impl Sampler for LibCall {
 
     fn new(common: Common) -> Result<Self, anyhow::Error> {
         let statistics = common.config().samplers().libcall().statistics();
+        let lib_paths = common.config().samplers().libcall().lib_paths();
         let sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
             statistics,
         };
+        info!("{:?}", lib_paths);
         if sampler.sampler_config().enabled() {
             sampler.register();
         }

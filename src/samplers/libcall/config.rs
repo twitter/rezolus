@@ -14,8 +14,10 @@ pub struct LibCallConfig {
     enabled: bool,
     #[serde(default)]
     interval: Option<usize>,
-    #[serde(default = "crate::common::default_percentiles")]
+    #[serde(default)]
     percentiles: Vec<f64>,
+    #[serde(default)]
+    lib_paths: Vec<String>,
     #[serde(default)]
     probe_funcs: HashMap<String, Vec<String>>,
 }
@@ -26,9 +28,16 @@ impl Default for LibCallConfig {
             bpf: Default::default(),
             enabled: Default::default(),
             interval: Default::default(),
-            percentiles: crate::common::default_percentiles(),
+            percentiles: vec![],
+            lib_paths: vec![],
             probe_funcs: HashMap::new(),
         }
+    }
+}
+
+impl LibCallConfig {
+    pub fn lib_paths(&self) -> Vec<String> {
+        self.lib_paths.clone()
     }
 }
 
