@@ -130,3 +130,11 @@ pub fn parse_u64(x: Vec<u8>) -> u64 {
 
     u64::from_ne_bytes(v)
 }
+
+#[cfg(feature = "bpf")]
+pub fn parse_string(x: &[u8]) -> String {
+    match x.iter().position(|&r| r == 0) {
+        Some(zero_pos) => String::from_utf8_lossy(&x[0..zero_pos]).to_string(),
+        None => String::from_utf8_lossy(x).to_string(),
+    }
+}

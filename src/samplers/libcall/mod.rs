@@ -1,15 +1,16 @@
 use async_trait::async_trait;
 
 use std::collections::HashMap;
-use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
-use walkdir::WalkDir;
-
 use crate::common::bpf::BPF;
+#[cfg(feature = "bpf")]
+use crate::common::bpf::{parse_string, parse_u64};
 use crate::config::SamplerConfig;
 use crate::samplers::{Common, Sampler};
+
+use rustcommon_metrics::Statistic;
 
 mod config;
 mod stat;
@@ -17,29 +18,44 @@ mod stat;
 pub use config::LibCallConfig;
 pub use stat::LibCallStatistic;
 
+use std::path::Path;
+
 #[allow(dead_code)]
 pub struct LibCall {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
-    statistics: Vec<LibCallStatistic>,
+    statistics: HashMap<String, LibCallStatistic>,
     probe_funcs: HashMap<String, Vec<String>>,
     lib_paths: Vec<String>,
 }
 
-const _PROBE_TEMPLATE: &str = r#"
-int {}(void *ctx) {
-    int loc = {};
-    u64 *val = counts.lookup(&loc);
-    if (!val) {
-        return 0;   // Should never happen, # of locations is known
-    }
-    (*val)++;
-    return 0;
-}
+const PROBE_PRELUDE: &str = r#"
+#include <uapi/linux/ptrace.h>
+struct key_t {
+    char c[80];
+};
+BPF_HASH(counts, struct key_t);
+
 "#;
 
-fn path_match(lib_names: &[String], path: &Path) -> bool {
+macro_rules! probe_template {
+    () => {
+        r#"
+
+int probe_{}(void *ctx) {{
+    struct key_t key = {{.c = "{}"}};
+    u64 zero = 0, *val;
+    val = counts.lookup_or_init(&key, &zero);
+    (*val)++;
+    return 0;
+}}
+"#
+    };
+}
+
+#[allow(dead_code)]
+fn path_match(lib_name: &str, path: &Path) -> bool {
     if let Some(file_name) = path.file_name() {
         if let Some(file_str) = file_name.to_str() {
             let parts: Vec<&str> = file_str.split('.').collect();
@@ -57,14 +73,14 @@ fn path_match(lib_names: &[String], path: &Path) -> bool {
                 true => stem_str[3..].into(),
                 false => stem_str,
             };
-            return lib_names.contains(&to_test) && "so".eq(&ext_str[..]);
+            return to_test.eq(lib_name) && "so".eq(&ext_str[..]);
         }
     }
     false
 }
 
 impl LibCall {
-    fn init_bpf(&self) {
+    fn init_bpf(&mut self) -> Result<(), anyhow::Error> {
         let default_paths = vec![
             "/lib64".into(),
             "/usr/lib64".into(),
@@ -74,19 +90,54 @@ impl LibCall {
             "/usr/local/lib".into(),
         ];
         let to_search: Vec<String> = [&self.lib_paths[..], &default_paths[..]].concat();
-        // let bpf_prog = String::new();
-        for path in to_search.iter() {
-            for (lib, funcs) in &self.probe_funcs {
-                info!("Searching for {}, {:?}", lib, funcs);
-                for entry in WalkDir::new(path)
+        let entries: Vec<walkdir::DirEntry> = to_search
+            .iter()
+            .map(|p| {
+                walkdir::WalkDir::new(p)
                     .follow_links(true)
                     .into_iter()
                     .filter_map(|e| e.ok())
-                {
-                    path_match(&to_search, entry.path());
+            })
+            .flatten()
+            .collect();
+
+        let mut bpf_probes = String::new();
+        let mut found_probes: Vec<(String, &str, &str)> = Vec::new();
+        for (lib, funcs) in &self.probe_funcs {
+            for entry in &entries {
+                if path_match(&lib, entry.path()) {
+                    for func in funcs.iter() {
+                        bpf_probes.push_str(&format!(
+                            probe_template!(),
+                            found_probes.len(),
+                            format!("{}/{}", lib, func)
+                        ));
+                        found_probes.push((entry.path().to_string_lossy().to_string(), lib, func));
+                    }
+                    break;
                 }
             }
         }
+        let bpf_prog = PROBE_PRELUDE.to_string() + &bpf_probes;
+        info!("{:?}", found_probes);
+        info!("BPF PROG: {}", bpf_prog);
+
+        #[cfg(feature = "bpf")]
+        {
+            let mut bpf = bcc::BPF::new(&bpf_prog)?;
+            let i = 0;
+            for (path, _lib, func) in found_probes.iter() {
+                bcc::Uprobe::new()
+                    .handler(&format!("probe_{}", i))
+                    .binary(path)
+                    .symbol(func)
+                    .attach(&mut bpf)?;
+            }
+
+            self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
+        }
+
+        Ok(())
     }
 }
 
@@ -98,16 +149,20 @@ impl Sampler for LibCall {
         let statistics = common.config().samplers().libcall().statistics();
         let probe_funcs = common.config().samplers().libcall().probe_funcs();
         let lib_paths = common.config().samplers().libcall().lib_paths();
-        let sampler = Self {
+
+        let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
-            statistics,
+            statistics: statistics
+                .into_iter()
+                .map(|s| (s.name().to_string(), s))
+                .collect(),
             lib_paths,
             probe_funcs,
         };
         if sampler.sampler_config().enabled() {
-            sampler.init_bpf();
+            sampler.init_bpf().unwrap();
             sampler.register();
         }
         Ok(sampler)
@@ -149,8 +204,22 @@ impl Sampler for LibCall {
         if !self.sampler_config().enabled() {
             return Ok(());
         }
-        for statistic in self.statistics.iter() {
-            let _ = self.metrics().record_counter(statistic, Instant::now(), 1);
+
+        #[cfg(feature = "bpf")]
+        if let Some(ref bpf) = self.bpf {
+            let bpf = bpf.lock().unwrap();
+            let table = (*bpf).inner.table("counts").unwrap();
+            for e in &table {
+                let key = parse_string(&e.key);
+                let value = parse_u64(e.value);
+                match self.statistics.get(&key) {
+                    Some(stat) => self
+                        .metrics()
+                        .record_counter(stat, Instant::now(), value)
+                        .unwrap(),
+                    None => warn!("Statistic not found: {}", key),
+                }
+            }
         }
 
         Ok(())
@@ -168,21 +237,18 @@ mod tests {
             fn $name() {
                 let (to_test, path, expected) = $value;
                 let p = Path::new(path);
-                let test_vec : Vec<String> = to_test.iter().map(|s: &&str| s.to_string()).collect();
-                assert_eq!(expected, path_match(&test_vec, p));
+                assert_eq!(expected, path_match(to_test, p));
             }
         )*
         }
     }
 
     path_tests! {
-        path_0: (vec![], "test.so", false),
-        path_1: (vec!["test"], "test.so", true),
-        path_2: (vec!["one", "two", "three", "test"], "test.so", true),
-        path_3: (vec!["pam"], "test.so", false),
-        path_4: (vec!["test", "pam"], "libpam.so", true),
-        path_5: (vec!["test", "krb5"], "libkrb5.so.3.3", true),
-        path_6: (vec!["test", "pthread"], "libpthread-2.17.so", false),
-        path_7: (vec!["test", "pthread-2.17"], "libpthread-2.17.so", true),
+        path_1: ("test", "test.so", true),
+        path_2: ("pam", "test.so", false),
+        path_3: ("pam", "libpam.so", true),
+        path_4: ("krb5", "libkrb5.so.3.3", true),
+        path_5: ("pthread-2.17", "/usr/bin/libpthread-2.17.so", true),
+        path_6: ("krb5", "/usr/lib64/libkrb5.so.3.3", true),
     }
 }

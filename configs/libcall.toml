@@ -41,4 +41,5 @@ enabled = true
 lib_paths = ["/tmp", "/home/foo/.lib"]
 
 [samplers.libcall.probe_funcs]
-c = ["one", "two", "three"]
+pam = ["one", "two", "three"]
+test = ["one", "two", "three"]
