@@ -6,9 +6,9 @@ pub struct LibCallStatistic {
 }
 
 impl LibCallStatistic {
-    pub fn new(library: &str, path: &str) -> Self {
+    pub fn new(library: &str, func: &str) -> Self {
         Self {
-            stat_path: format!("{}/{}", library, path),
+            stat_path: format!("{}/{}", library, func),
         }
     }
 }

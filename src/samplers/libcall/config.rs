@@ -39,6 +39,10 @@ impl LibCallConfig {
     pub fn lib_paths(&self) -> Vec<String> {
         self.lib_paths.clone()
     }
+
+    pub fn probe_funcs(&self) -> HashMap<String, Vec<String>> {
+        self.probe_funcs.clone()
+    }
 }
 
 impl SamplerConfig for LibCallConfig {
