@@ -5,11 +5,12 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use crate::common::bpf::BPF;
-#[cfg(feature = "bpf")]
-use crate::common::bpf::{parse_string, parse_u64};
 use crate::config::SamplerConfig;
 use crate::samplers::{Common, Sampler};
 
+#[cfg(feature = "bpf")]
+use crate::common::bpf::bpf_hash_char_to_map;
+#[cfg(feature = "bpf")]
 use rustcommon_metrics::Statistic;
 
 mod config;
@@ -25,11 +26,12 @@ pub struct LibCall {
     bpf: Option<Arc<Mutex<BPF>>>,
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
-    statistics: HashMap<String, LibCallStatistic>,
     probe_funcs: HashMap<String, Vec<String>>,
+    statistics: Vec<LibCallStatistic>,
     lib_paths: Vec<String>,
 }
 
+#[allow(dead_code)]
 const PROBE_PRELUDE: &str = r#"
 #include <uapi/linux/ptrace.h>
 struct key_t {
@@ -118,20 +120,19 @@ impl LibCall {
                 }
             }
         }
-        let bpf_prog = PROBE_PRELUDE.to_string() + &bpf_probes;
-        info!("{:?}", found_probes);
-        info!("BPF PROG: {}", bpf_prog);
-
         #[cfg(feature = "bpf")]
         {
+            info!("Registering probes: {:?}", found_probes);
+            let bpf_prog = PROBE_PRELUDE.to_string() + &bpf_probes;
             let mut bpf = bcc::BPF::new(&bpf_prog)?;
-            let i = 0;
+            let mut i = 0;
             for (path, _lib, func) in found_probes.iter() {
                 bcc::Uprobe::new()
                     .handler(&format!("probe_{}", i))
                     .binary(path)
                     .symbol(func)
                     .attach(&mut bpf)?;
+                i += 1;
             }
 
             self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
@@ -154,10 +155,7 @@ impl Sampler for LibCall {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
-            statistics: statistics
-                .into_iter()
-                .map(|s| (s.name().to_string(), s))
-                .collect(),
+            statistics,
             lib_paths,
             probe_funcs,
         };
@@ -209,16 +207,12 @@ impl Sampler for LibCall {
         if let Some(ref bpf) = self.bpf {
             let bpf = bpf.lock().unwrap();
             let table = (*bpf).inner.table("counts").unwrap();
-            for e in &table {
-                let key = parse_string(&e.key);
-                let value = parse_u64(e.value);
-                match self.statistics.get(&key) {
-                    Some(stat) => self
-                        .metrics()
-                        .record_counter(stat, Instant::now(), value)
-                        .unwrap(),
-                    None => warn!("Statistic not found: {}", key),
-                }
+            let stat_map = bpf_hash_char_to_map(&table);
+            for stat in self.statistics.iter() {
+                let val = stat_map.get(&stat.name().to_string()).unwrap_or(&0);
+                self.metrics()
+                    .record_counter(stat, Instant::now(), *val)
+                    .unwrap();
             }
         }
 

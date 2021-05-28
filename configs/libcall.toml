@@ -38,8 +38,8 @@ listen = "0.0.0.0:4242"
 
 [samplers.libcall]
 enabled = true
-lib_paths = ["/tmp", "/home/foo/.lib"]
+lib_paths = ["/tmp"]
 
 [samplers.libcall.probe_funcs]
-pam = ["one", "two", "three"]
-test = ["one", "two", "three"]
+curl = ["curl_global_init"]
+krb5 = ["krb5_cc_get_principal", "krb5_get_default_realm", "krb5_init_context"]
