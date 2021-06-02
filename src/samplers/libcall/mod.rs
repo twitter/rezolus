@@ -11,6 +11,7 @@ use crate::samplers::{Common, Sampler};
 #[cfg(feature = "bpf")]
 use crate::common::bpf::bpf_hash_char_to_map;
 
+#[cfg(feature = "bpf")]
 use rustcommon_metrics::Statistic;
 
 mod config;
@@ -31,6 +32,7 @@ pub struct LibCall {
     lib_search: HashMap<String, Vec<String>>,
 }
 
+#[cfg(feature = "bpf")]
 const PROBE_PRELUDE: &str = r#"
 #include <uapi/linux/ptrace.h>
 struct key_t {
