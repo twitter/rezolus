@@ -17,9 +17,9 @@ pub struct LibCallConfig {
     #[serde(default)]
     percentiles: Vec<f64>,
     #[serde(default)]
-    lib_paths: Vec<String>,
+    lib_files: HashMap<String, HashMap<String, Vec<String>>>,
     #[serde(default)]
-    probe_funcs: HashMap<String, Vec<String>>,
+    lib_search: HashMap<String, Vec<String>>,
 }
 
 impl Default for LibCallConfig {
@@ -29,19 +29,19 @@ impl Default for LibCallConfig {
             enabled: Default::default(),
             interval: Default::default(),
             percentiles: vec![],
-            lib_paths: vec![],
-            probe_funcs: HashMap::new(),
+            lib_search: HashMap::new(),
+            lib_files: HashMap::new(),
         }
     }
 }
 
 impl LibCallConfig {
-    pub fn lib_paths(&self) -> Vec<String> {
-        self.lib_paths.clone()
+    pub fn lib_files(&self) -> HashMap<String, HashMap<String, Vec<String>>> {
+        self.lib_files.clone()
     }
 
-    pub fn probe_funcs(&self) -> HashMap<String, Vec<String>> {
-        self.probe_funcs.clone()
+    pub fn lib_search(&self) -> HashMap<String, Vec<String>> {
+        self.lib_search.clone()
     }
 }
 
@@ -66,7 +66,16 @@ impl SamplerConfig for LibCallConfig {
 
     fn statistics(&self) -> Vec<<Self as SamplerConfig>::Statistic> {
         let mut stats = Vec::new();
-        for (lib, funcs) in &self.probe_funcs {
+        for (lib, func_map) in &self.lib_files {
+            for func in func_map.values().flatten() {
+                stats.push(LibCallStatistic::new(lib, func));
+            }
+        }
+        for (lib, funcs) in &self.lib_search {
+            // Do not add if this lib is already defined by a lib_file
+            if self.lib_files.contains_key(lib) {
+                continue;
+            }
             for func in funcs.iter() {
                 stats.push(LibCallStatistic::new(lib, func));
             }
