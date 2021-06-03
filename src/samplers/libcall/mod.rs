@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
@@ -17,7 +16,7 @@ use rustcommon_metrics::Statistic;
 mod config;
 mod stat;
 
-pub use config::LibCallConfig;
+pub use config::{LibCallConfig, LibFileMap, LibSearchMap};
 pub use stat::LibCallStatistic;
 
 use std::path::Path;
@@ -28,8 +27,8 @@ pub struct LibCall {
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
     statistics: Vec<LibCallStatistic>,
-    lib_files: HashMap<String, HashMap<String, Vec<String>>>,
-    lib_search: HashMap<String, Vec<String>>,
+    lib_files: LibFileMap,
+    lib_search: LibSearchMap,
 }
 
 #[cfg(feature = "bpf")]

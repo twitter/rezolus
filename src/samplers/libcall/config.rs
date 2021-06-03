@@ -5,6 +5,9 @@ use crate::config::SamplerConfig;
 
 use super::stat::LibCallStatistic;
 
+pub type LibSearchMap = HashMap<String, Vec<String>>;
+pub type LibFileMap = HashMap<String, HashMap<String, Vec<String>>>;
+
 #[derive(Debug, Deserialize, Default)]
 #[serde(deny_unknown_fields)]
 pub struct LibCallConfig {
@@ -17,17 +20,17 @@ pub struct LibCallConfig {
     #[serde(default)]
     percentiles: Vec<f64>,
     #[serde(default)]
-    lib_files: HashMap<String, HashMap<String, Vec<String>>>,
+    lib_files: LibFileMap,
     #[serde(default)]
-    lib_search: HashMap<String, Vec<String>>,
+    lib_search: LibSearchMap,
 }
 
 impl LibCallConfig {
-    pub fn lib_files(&self) -> HashMap<String, HashMap<String, Vec<String>>> {
+    pub fn lib_files(&self) -> LibFileMap {
         self.lib_files.clone()
     }
 
-    pub fn lib_search(&self) -> HashMap<String, Vec<String>> {
+    pub fn lib_search(&self) -> LibSearchMap {
         self.lib_search.clone()
     }
 }
