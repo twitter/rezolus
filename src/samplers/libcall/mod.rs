@@ -188,7 +188,7 @@ impl Sampler for LibCall {
             lib_search,
         };
         if sampler.sampler_config().enabled() {
-            sampler.init_bpf().unwrap();
+            sampler.init_bpf()?;
             sampler.register();
         }
         Ok(sampler)
@@ -234,13 +234,16 @@ impl Sampler for LibCall {
         #[cfg(feature = "bpf")]
         if let Some(ref bpf) = self.bpf {
             let bpf = bpf.lock().unwrap();
-            let table = (*bpf).inner.table("counts").unwrap();
+            let table = (*bpf)
+                .inner
+                .table("counts")
+                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
             let stat_map = bpf_hash_char_to_map(&table);
             for stat in self.statistics.iter() {
                 let val = stat_map.get(&stat.name().to_string()).unwrap_or(&0);
                 self.metrics()
                     .record_counter(stat, Instant::now(), *val)
-                    .unwrap();
+                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
             }
         }
 
