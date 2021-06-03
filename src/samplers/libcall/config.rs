@@ -5,7 +5,7 @@ use crate::config::SamplerConfig;
 
 use super::stat::LibCallStatistic;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 #[serde(deny_unknown_fields)]
 pub struct LibCallConfig {
     #[serde(default)]
@@ -20,19 +20,6 @@ pub struct LibCallConfig {
     lib_files: HashMap<String, HashMap<String, Vec<String>>>,
     #[serde(default)]
     lib_search: HashMap<String, Vec<String>>,
-}
-
-impl Default for LibCallConfig {
-    fn default() -> Self {
-        Self {
-            bpf: Default::default(),
-            enabled: Default::default(),
-            interval: Default::default(),
-            percentiles: vec![],
-            lib_search: HashMap::new(),
-            lib_files: HashMap::new(),
-        }
-    }
 }
 
 impl LibCallConfig {
