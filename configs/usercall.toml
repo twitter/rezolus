@@ -1,16 +1,16 @@
-# This example configuration covers detailed configuration for the libcall sampler
+# This example configuration covers detailed configuration for the usercall sampler
 
 [general]
 listen = "0.0.0.0:4242"
 
-[samplers.libcall]
+[samplers.usercall]
 enabled = true
 
 
 # The quickest and easiest way to configure a library to be configured is to use the lib_search
 # configuration. This will look through some common library paths for the specified library and
 # add probes for the specified functions.
-[samplers.libcall.lib_search]
+[samplers.usercall.lib_search]
 # search for libcurl, and probe the function curl_global_init
 curl = ["curl_global_init"]
 
@@ -20,15 +20,15 @@ curl = ["curl_global_init"]
 # versions of libkrb.
 #
 # WARNING: You cannot attach multiple probes to the same function.
-[samplers.libcall.lib_files.krb3]
+[samplers.usercall.lib_files.krb3]
 # Export krb3/krb5_cc_get_principal and krb3/krb5_parse_name_flags from the specified file
 "/usr/lib/x86_64-linux-gnu/libkrb5.so.3" = ["krb5_cc_get_principal", "krb5_parse_name_flags"]
 
-[samplers.libcall.lib_files.krb26]
+[samplers.usercall.lib_files.krb26]
 # Export krb26/krb5_cc_get_principal and krb26/krb5_parse_name_flags from the specified file
 "/usr/lib/x86_64-linux-gnu/libkrb5.so.26" = ["krb5_cc_get_principal", "krb5_parse_name_flags"]
 
 # You can also combine both files to the same library name.
-[samplers.libcall.lib_files.krb_combined]
+[samplers.usercall.lib_files.krb_combined]
 "/usr/lib/x86_64-linux-gnu/libkrb5.so.26" = ["krb5_build_principal"]
 "/usr/lib/x86_64-linux-gnu/libkrb5.so.3" = ["krb5_build_principal"]

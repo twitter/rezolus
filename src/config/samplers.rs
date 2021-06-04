@@ -9,7 +9,7 @@ use samplers::disk::DiskConfig;
 use samplers::ext4::Ext4Config;
 use samplers::http::HttpConfig;
 use samplers::interrupt::InterruptConfig;
-use samplers::libcall::LibCallConfig;
+use samplers::usercall::UsercallConfig;
 use samplers::memcache::MemcacheConfig;
 use samplers::memory::MemoryConfig;
 use samplers::network::NetworkConfig;
@@ -37,7 +37,7 @@ pub struct Samplers {
     #[serde(default)]
     interrupt: InterruptConfig,
     #[serde(default)]
-    libcall: LibCallConfig,
+    usercall: UsercallConfig,
     #[serde(default)]
     memcache: MemcacheConfig,
     #[serde(default)]
@@ -85,8 +85,8 @@ impl Samplers {
         &self.interrupt
     }
 
-    pub fn libcall(&self) -> &LibCallConfig {
-        &self.libcall
+    pub fn usercall(&self) -> &UsercallConfig {
+        &self.usercall
     }
 
     pub fn memcache(&self) -> &MemcacheConfig {

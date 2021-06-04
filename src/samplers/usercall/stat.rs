@@ -5,11 +5,11 @@
 use rustcommon_metrics::{AtomicU32, AtomicU64, Source, Statistic};
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct LibCallStatistic {
+pub struct UsercallStatistic {
     stat_path: String,
 }
 
-impl LibCallStatistic {
+impl UsercallStatistic {
     pub fn new(library: &str, func: &str) -> Self {
         Self {
             stat_path: format!("{}/{}", library, func),
@@ -17,7 +17,7 @@ impl LibCallStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for LibCallStatistic {
+impl Statistic<AtomicU64, AtomicU32> for UsercallStatistic {
     fn name(&self) -> &str {
         &self.stat_path
     }

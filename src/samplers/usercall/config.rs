@@ -7,14 +7,14 @@ use std::collections::HashMap;
 
 use crate::config::SamplerConfig;
 
-use super::stat::LibCallStatistic;
+use super::stat::UsercallStatistic;
 
 pub type LibSearchMap = HashMap<String, Vec<String>>;
 pub type LibFileMap = HashMap<String, HashMap<String, Vec<String>>>;
 
 #[derive(Debug, Deserialize, Default)]
 #[serde(deny_unknown_fields)]
-pub struct LibCallConfig {
+pub struct UsercallConfig {
     #[serde(default)]
     bpf: bool,
     #[serde(default)]
@@ -29,7 +29,7 @@ pub struct LibCallConfig {
     lib_search: LibSearchMap,
 }
 
-impl LibCallConfig {
+impl UsercallConfig {
     pub fn lib_files(&self) -> LibFileMap {
         self.lib_files.clone()
     }
@@ -39,8 +39,8 @@ impl LibCallConfig {
     }
 }
 
-impl SamplerConfig for LibCallConfig {
-    type Statistic = LibCallStatistic;
+impl SamplerConfig for UsercallConfig {
+    type Statistic = UsercallStatistic;
 
     fn bpf(&self) -> bool {
         self.bpf
@@ -62,7 +62,7 @@ impl SamplerConfig for LibCallConfig {
         let mut stats = Vec::new();
         for (lib, func_map) in &self.lib_files {
             for func in func_map.values().flatten() {
-                stats.push(LibCallStatistic::new(lib, func));
+                stats.push(UsercallStatistic::new(lib, func));
             }
         }
         for (lib, funcs) in &self.lib_search {
@@ -71,7 +71,7 @@ impl SamplerConfig for LibCallConfig {
                 continue;
             }
             for func in funcs.iter() {
-                stats.push(LibCallStatistic::new(lib, func));
+                stats.push(UsercallStatistic::new(lib, func));
             }
         }
         stats
