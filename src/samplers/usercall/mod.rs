@@ -20,8 +20,8 @@ use rustcommon_metrics::Statistic;
 mod config;
 mod stat;
 
-pub use config::{UsercallConfig, LibFileMap, LibSearchMap};
-pub use stat::UsercallStatistic;
+pub use config::{LibFileMap, LibSearchMap, UsercallConfig};
+pub use stat::{UsercallStatistic, NAMESPACE};
 
 use std::path::Path;
 
@@ -109,7 +109,7 @@ impl Usercall {
                     bpf_probes.push_str(&format!(
                         probe_template!(),
                         found_probes.len(),
-                        format!("{}/{}", lib, func)
+                        format!("{}/{}/{}", NAMESPACE, lib, func)
                     ));
                     found_probes.push((file.clone(), lib, func));
                 }
@@ -142,7 +142,7 @@ impl Usercall {
                         bpf_probes.push_str(&format!(
                             probe_template!(),
                             found_probes.len(),
-                            format!("{}/{}", lib, func)
+                            format!("{}/{}/{}", NAMESPACE, lib, func)
                         ));
                         found_probes.push((entry.path().to_string_lossy().to_string(), lib, func));
                     }

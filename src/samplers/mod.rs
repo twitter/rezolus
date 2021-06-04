@@ -20,7 +20,6 @@ pub mod disk;
 pub mod ext4;
 pub mod http;
 pub mod interrupt;
-pub mod usercall;
 pub mod memcache;
 pub mod memory;
 pub mod network;
@@ -32,6 +31,7 @@ pub mod scheduler;
 pub mod softnet;
 pub mod tcp;
 pub mod udp;
+pub mod usercall;
 pub mod xfs;
 
 pub use cpu::Cpu;
@@ -39,7 +39,6 @@ pub use disk::Disk;
 pub use ext4::Ext4;
 pub use http::Http;
 pub use interrupt::Interrupt;
-pub use usercall::Usercall;
 pub use memcache::Memcache;
 pub use memory::Memory;
 pub use network::Network;
@@ -51,6 +50,7 @@ pub use scheduler::Scheduler;
 pub use softnet::Softnet;
 pub use tcp::Tcp;
 pub use udp::Udp;
+pub use usercall::Usercall;
 pub use xfs::Xfs;
 
 #[async_trait]

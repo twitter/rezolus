@@ -9,7 +9,6 @@ use samplers::disk::DiskConfig;
 use samplers::ext4::Ext4Config;
 use samplers::http::HttpConfig;
 use samplers::interrupt::InterruptConfig;
-use samplers::usercall::UsercallConfig;
 use samplers::memcache::MemcacheConfig;
 use samplers::memory::MemoryConfig;
 use samplers::network::NetworkConfig;
@@ -21,6 +20,7 @@ use samplers::scheduler::SchedulerConfig;
 use samplers::softnet::SoftnetConfig;
 use samplers::tcp::TcpConfig;
 use samplers::udp::UdpConfig;
+use samplers::usercall::UsercallConfig;
 use samplers::xfs::XfsConfig;
 
 #[derive(Debug, Default, Deserialize)]

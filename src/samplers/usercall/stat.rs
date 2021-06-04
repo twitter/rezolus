@@ -4,6 +4,8 @@
 
 use rustcommon_metrics::{AtomicU32, AtomicU64, Source, Statistic};
 
+pub const NAMESPACE: &str = "usercall";
+
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct UsercallStatistic {
     stat_path: String,
@@ -12,7 +14,7 @@ pub struct UsercallStatistic {
 impl UsercallStatistic {
     pub fn new(library: &str, func: &str) -> Self {
         Self {
-            stat_path: format!("{}/{}", library, func),
+            stat_path: format!("{}/{}/{}", NAMESPACE, library, func),
         }
     }
 }
