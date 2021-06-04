@@ -35,6 +35,15 @@ pub struct LibCall {
     lib_search: LibSearchMap,
 }
 
+const DEFAULT_LIB_SEARCH_PATHS: [&str; 6] = [
+    "/lib64",
+    "/usr/lib64",
+    "/usr/local/lib64",
+    "/lib",
+    "/usr/lib",
+    "/usr/local/lib",
+];
+
 #[cfg(feature = "bpf")]
 const PROBE_PRELUDE: &str = r#"
 #include <uapi/linux/ptrace.h>
@@ -108,15 +117,7 @@ impl LibCall {
         }
 
         // Add probes by searching the default paths.
-        let default_paths: Vec<String> = vec![
-            "/lib64".into(),
-            "/usr/lib64".into(),
-            "/usr/local/lib64".into(),
-            "/lib".into(),
-            "/usr/lib".into(),
-            "/usr/local/lib".into(),
-        ];
-        let entries: Vec<walkdir::DirEntry> = default_paths
+        let entries: Vec<walkdir::DirEntry> = DEFAULT_LIB_SEARCH_PATHS
             .iter()
             .map(|p| {
                 walkdir::WalkDir::new(p)
