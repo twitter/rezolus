@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Twitter, Inc.
+// Copyright 2021 Twitter, Inc.
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
@@ -69,6 +69,12 @@ int probe_{}(void *ctx) {{
     };
 }
 
+/// Determines if a path is a match for the given lib_name
+///
+/// This custom logic is necessary because of the common convention of versioning linux libraries by
+/// appending the version number to the library file name. I.E. the file /usr/lib/libkrb5.so.3.3
+/// results in an extension of '3' with a naive parsing of the file extension. This is what Path
+/// and PathBuf would return for the extension.
 #[allow(dead_code)]
 fn path_match(lib_name: &str, path: &Path) -> bool {
     if let Some(file_name) = path.file_name() {
