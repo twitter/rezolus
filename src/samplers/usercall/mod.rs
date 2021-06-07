@@ -20,7 +20,7 @@ use rustcommon_metrics::Statistic;
 mod config;
 mod stat;
 
-pub use config::{LibFileMap, LibSearchMap, UsercallConfig};
+pub use config::{LibraryProbeConfig, UsercallConfig};
 pub use stat::{UsercallStatistic, NAMESPACE};
 
 use std::path::Path;
@@ -31,8 +31,7 @@ pub struct Usercall {
     bpf_last: Arc<Mutex<Instant>>,
     common: Common,
     statistics: Vec<UsercallStatistic>,
-    lib_files: LibFileMap,
-    lib_search: LibSearchMap,
+    libraries: Vec<LibraryProbeConfig>,
 }
 
 const DEFAULT_LIB_SEARCH_PATHS: [&str; 6] = [
@@ -106,19 +105,21 @@ impl Usercall {
         let mut bpf_probes = String::new();
 
         // The list of probes that have been found.
-        let mut found_probes: Vec<(String, &str, &str)> = Vec::new();
+        let mut found_probes: Vec<(String, String, String)> = Vec::new();
 
         // Add probes that are linked to specific files in the config
-        for (lib, func_map) in &self.lib_files {
-            for (file, funcs) in func_map {
-                for func in funcs.iter() {
-                    bpf_probes.push_str(&format!(
-                        probe_template!(),
-                        found_probes.len(),
-                        format!("{}/{}/{}", NAMESPACE, lib, func)
-                    ));
-                    found_probes.push((file.clone(), lib, func));
-                }
+        for probe_config in self.libraries.iter().filter(|x| x.path.is_some()) {
+            for func in probe_config.functions.iter() {
+                bpf_probes.push_str(&format!(
+                    probe_template!(),
+                    found_probes.len(),
+                    format!("{}/{}/{}", NAMESPACE, probe_config.name, func)
+                ));
+                found_probes.push((
+                    probe_config.path.as_ref().unwrap().clone(),
+                    probe_config.name.clone(),
+                    func.clone(),
+                ));
             }
         }
 
@@ -134,23 +135,20 @@ impl Usercall {
             .flatten()
             .collect();
 
-        for (lib, funcs) in &self.lib_search {
-            if self.lib_files.contains_key(lib) {
-                warn!(
-                    "Probe search for {} overridden by specifically configured file",
-                    lib
-                );
-                continue;
-            }
+        for probe_config in self.libraries.iter().filter(|x| x.path.is_none()) {
             for entry in &entries {
-                if path_match(&lib, entry.path()) {
-                    for func in funcs.iter() {
+                if path_match(&probe_config.name, entry.path()) {
+                    for func in probe_config.functions.iter() {
                         bpf_probes.push_str(&format!(
                             probe_template!(),
                             found_probes.len(),
-                            format!("{}/{}/{}", NAMESPACE, lib, func)
+                            format!("{}/{}/{}", NAMESPACE, probe_config.name, func)
                         ));
-                        found_probes.push((entry.path().to_string_lossy().to_string(), lib, func));
+                        found_probes.push((
+                            entry.path().to_string_lossy().to_string(),
+                            probe_config.name.clone(),
+                            func.clone(),
+                        ));
                     }
                     break;
                 }
@@ -186,16 +184,14 @@ impl Sampler for Usercall {
 
     fn new(common: Common) -> Result<Self, anyhow::Error> {
         let statistics = common.config().samplers().usercall().statistics();
-        let lib_search = common.config().samplers().usercall().lib_search();
-        let lib_files = common.config().samplers().usercall().lib_files();
+        let libraries = common.config().samplers().usercall().libraries();
 
         let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
             statistics,
-            lib_files,
-            lib_search,
+            libraries,
         };
         if sampler.sampler_config().enabled() {
             sampler.init_bpf()?;

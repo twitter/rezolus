@@ -1,4 +1,6 @@
 # This example configuration covers detailed configuration for the usercall sampler
+# This sampler allows you to attach a probe to a user space library and export the number of times
+# that it has been called.
 
 [general]
 listen = "0.0.0.0:4242"
@@ -7,28 +9,35 @@ listen = "0.0.0.0:4242"
 enabled = true
 
 
-# The quickest and easiest way to configure a library to be configured is to use the lib_search
-# configuration. This will look through some common library paths for the specified library and
-# add probes for the specified functions.
-[samplers.usercall.lib_search]
-# search for libcurl, and probe the function curl_global_init
-curl = ["curl_global_init"]
 
-# If the default search behavior doesn't work for you, you can specify the exact path to the library
-# you would like to probe by using the lib_files configuration option. If both a lib_search and
-# lib_file are specified, the lib_file will be used. Below is an example of sampling two different
-# versions of libkrb.
-#
-# WARNING: You cannot attach multiple probes to the same function.
-[samplers.usercall.lib_files.krb3]
-# Export krb3/krb5_cc_get_principal and krb3/krb5_parse_name_flags from the specified file
-"/usr/lib/x86_64-linux-gnu/libkrb5.so.3" = ["krb5_cc_get_principal", "krb5_parse_name_flags"]
+# WARNING: Probing the same function in the same library file will result in one of the probes
+# being discarded.
 
-[samplers.usercall.lib_files.krb26]
-# Export krb26/krb5_cc_get_principal and krb26/krb5_parse_name_flags from the specified file
-"/usr/lib/x86_64-linux-gnu/libkrb5.so.26" = ["krb5_cc_get_principal", "krb5_parse_name_flags"]
+# Exporting metrics for libcurl by searching in the default paths.
+[[samplers.usercall.libraries]]
+# This is the name for the library that is exported. It will show up in the metric path.
+name = "curl"
+# Since no path is specified, rezolus will search in the following directories:
+# "/lib64", "/usr/lib64", "/usr/local/lib64", "/lib", "/usr/lib", "/usr/local/lib" looking for
+# variants of curl.so, libcurl.so and libcurl.so.5
+functions = ["curl_global_init"]
 
-# You can also combine both files to the same library name.
-[samplers.usercall.lib_files.krb_combined]
-"/usr/lib/x86_64-linux-gnu/libkrb5.so.26" = ["krb5_build_principal"]
-"/usr/lib/x86_64-linux-gnu/libkrb5.so.3" = ["krb5_build_principal"]
+
+# Below is an example of exporting metrics for two different versions of the same KRB library by
+# specifying the exact file to be probed.
+
+[[samplers.usercall.libraries]]
+# This is the name for the library that is exported. It will show up in the metric path.
+name = "krb3"
+# This is the path to the library that will be probed.
+path = "/usr/lib/x86_64-linux-gnu/libkrb5.so.3"
+# Export usercall/krb3/krb5_cc_get_principal and usercall/krb3/krb5_parse_name_flags
+functions = ["krb5_cc_get_principal", "krb5_parse_name_flags"]
+
+[[samplers.usercall.libraries]]
+# This is the name for the library that is exported. It will show up in the metric path.
+name = "krb26"
+# This is the path to the library that will be probed.
+path = "/usr/lib/x86_64-linux-gnu/libkrb5.so.26"
+# Export usercall/krb26/krb5_cc_get_principal and usercall/krb26/krb5_parse_name_flags
+functions = ["krb5_cc_get_principal", "krb5_parse_name_flags"]
