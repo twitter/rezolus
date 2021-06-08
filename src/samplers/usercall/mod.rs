@@ -157,7 +157,7 @@ impl Usercall {
 
         #[cfg(feature = "bpf")]
         {
-            info!("Registering probes: {:?}", found_probes);
+            debug!("Registering probes: {:?}", found_probes);
             // Build the bpf program by appending all the bpf_probe source to the prelude
             let bpf_prog = PROBE_PRELUDE.to_string() + &bpf_probes;
             let mut bpf = bcc::BPF::new(&bpf_prog)?;
