@@ -93,7 +93,7 @@ impl SamplerConfig for UsercallConfig {
 
     fn statistics(&self) -> Vec<<Self as SamplerConfig>::Statistic> {
         let mut stats = Vec::new();
-        for lib_conf in &self.libraries {
+        for lib_conf in self.libraries().iter() {
             for func in lib_conf.functions.iter() {
                 stats.push(UsercallStatistic::new(&lib_conf.name, &func));
             }

@@ -4,6 +4,8 @@
 
 use async_trait::async_trait;
 
+use std::collections::HashSet;
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
@@ -23,8 +25,6 @@ mod stat;
 pub use config::{LibraryProbeConfig, UsercallConfig};
 pub use stat::{UsercallStatistic, NAMESPACE};
 
-use std::path::Path;
-
 #[allow(dead_code)]
 pub struct Usercall {
     bpf: Option<Arc<Mutex<BPF>>>,
@@ -32,6 +32,7 @@ pub struct Usercall {
     common: Common,
     statistics: Vec<UsercallStatistic>,
     libraries: Vec<LibraryProbeConfig>,
+    unprobed: HashSet<String>,
 }
 
 const DEFAULT_LIB_SEARCH_PATHS: [&str; 6] = [
@@ -136,6 +137,7 @@ impl Usercall {
             .collect();
 
         for probe_config in self.libraries.iter().filter(|x| x.path.is_none()) {
+            let mut found = false;
             for entry in &entries {
                 if path_match(&probe_config.name, entry.path()) {
                     for func in probe_config.functions.iter() {
@@ -150,7 +152,23 @@ impl Usercall {
                             func.clone(),
                         ));
                     }
+                    found = true;
                     break;
+                }
+            }
+            if !found {
+                let err = std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    format!("probe not found {:?}", probe_config),
+                );
+                if self.common.config().fault_tolerant() {
+                    for func in probe_config.functions.iter() {
+                        self.unprobed
+                            .insert(format!("{}/{}/{}", NAMESPACE, probe_config.name, func));
+                    }
+                    warn!("{}", err);
+                } else {
+                    Err(err)?;
                 }
             }
         }
@@ -161,14 +179,41 @@ impl Usercall {
             // Build the bpf program by appending all the bpf_probe source to the prelude
             let bpf_prog = PROBE_PRELUDE.to_string() + &bpf_probes;
             let mut bpf = bcc::BPF::new(&bpf_prog)?;
-            let mut i = 0;
-            for (path, _lib, func) in found_probes.iter() {
-                bcc::Uprobe::new()
+            for (i, probe) in found_probes.iter().enumerate() {
+                let (path, lib, func) = probe;
+                if let Err(e) = bcc::Uprobe::new()
                     .handler(&format!("probe_{}", i))
                     .binary(path)
                     .symbol(func)
-                    .attach(&mut bpf)?;
-                i += 1;
+                    .attach(&mut bpf)
+                {
+                    let err = match std::fs::metadata(path) {
+                        Ok(md) => {
+                            if md.is_file() {
+                                std::io::Error::new(
+                                    std::io::ErrorKind::Other,
+                                    format!("problem probing {:?}: {}", probe, e),
+                                )
+                            } else {
+                                std::io::Error::new(
+                                    std::io::ErrorKind::NotFound,
+                                    format!("problem probing {:?}: Not a file: {}", probe, path),
+                                )
+                            }
+                        }
+                        Err(e) => std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            format!("problem probing {:?}: {}", probe, e),
+                        ),
+                    };
+                    if self.common.config().fault_tolerant() {
+                        self.unprobed
+                            .insert(format!("{}/{}/{}", NAMESPACE, lib, func));
+                        warn!("{}", err);
+                    } else {
+                        Err(err)?
+                    }
+                };
             }
 
             self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
@@ -189,6 +234,7 @@ impl Sampler for Usercall {
         let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
+            unprobed: HashSet::new(),
             common,
             statistics,
             libraries,
@@ -202,16 +248,21 @@ impl Sampler for Usercall {
 
     fn spawn(common: Common) {
         if common.config().samplers().usercall().enabled() {
-            if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.runtime().spawn(async move {
-                    loop {
-                        let _ = sampler.sample().await;
+            match Self::new(common.clone()) {
+                Ok(mut sampler) => {
+                    common.runtime().spawn(async move {
+                        loop {
+                            let _ = sampler.sample().await;
+                        }
+                    });
+                }
+                Err(e) => {
+                    if !common.config.fault_tolerant() {
+                        fatal!("failed to initialize usercall sampler {}", e);
+                    } else {
+                        error!("failed to initialize usercall sampler {}", e);
                     }
-                });
-            } else if !common.config.fault_tolerant() {
-                fatal!("failed to initialize usercall sampler");
-            } else {
-                error!("failed to initialize usercall sampler");
+                }
             }
         }
     }
@@ -246,6 +297,10 @@ impl Sampler for Usercall {
                 .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
             let stat_map = bpf_hash_char_to_map(&table);
             for stat in self.statistics.iter() {
+                // Skip anything that is not probed
+                if self.unprobed.contains(&stat.name().to_string()) {
+                    continue;
+                }
                 let val = stat_map.get(&stat.name().to_string()).unwrap_or(&0);
                 self.metrics()
                     .record_counter(stat, Instant::now(), *val)
