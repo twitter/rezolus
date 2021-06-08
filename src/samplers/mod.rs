@@ -101,7 +101,6 @@ pub trait Sampler: Sized + Send {
     /// Register all the statistics
     fn register(&self) {
         for statistic in self.sampler_config().statistics() {
-            info!("Registering statistic");
             self.common()
                 .metrics()
                 .add_output(&statistic, Output::Reading);
