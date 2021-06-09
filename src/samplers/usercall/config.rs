@@ -9,6 +9,8 @@ use crate::config::SamplerConfig;
 
 use super::stat::UsercallStatistic;
 
+pub const NAMESPACE: &str = "usercall";
+
 #[derive(Debug, Deserialize, Default, Clone, PartialEq)]
 pub struct LibraryProbeConfig {
     pub name: String,
@@ -95,7 +97,9 @@ impl SamplerConfig for UsercallConfig {
         let mut stats = Vec::new();
         for lib_conf in self.libraries().iter() {
             for func in lib_conf.functions.iter() {
-                stats.push(UsercallStatistic::new(&lib_conf.name, &func));
+                stats.push(UsercallStatistic {
+                    stat_path: format!("{}/{}/{}", NAMESPACE, lib_conf.name, func),
+                });
             }
         }
         stats

@@ -4,7 +4,6 @@
 
 use async_trait::async_trait;
 
-use std::collections::HashSet;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
@@ -16,14 +15,11 @@ use crate::samplers::{Common, Sampler};
 #[cfg(feature = "bpf")]
 use crate::common::bpf::bpf_hash_char_to_map;
 
-#[cfg(feature = "bpf")]
-use rustcommon_metrics::Statistic;
-
 mod config;
 mod stat;
 
-pub use config::{LibraryProbeConfig, UsercallConfig};
-pub use stat::{UsercallStatistic, NAMESPACE};
+pub use config::{LibraryProbeConfig, UsercallConfig, NAMESPACE};
+pub use stat::UsercallStatistic;
 
 #[allow(dead_code)]
 pub struct Usercall {
@@ -32,7 +28,6 @@ pub struct Usercall {
     common: Common,
     statistics: Vec<UsercallStatistic>,
     libraries: Vec<LibraryProbeConfig>,
-    unprobed: HashSet<String>,
 }
 
 const DEFAULT_LIB_SEARCH_PATHS: [&str; 6] = [
@@ -163,8 +158,8 @@ impl Usercall {
                 );
                 if self.common.config().fault_tolerant() {
                     for func in probe_config.functions.iter() {
-                        self.unprobed
-                            .insert(format!("{}/{}/{}", NAMESPACE, probe_config.name, func));
+                        let stat_name = format!("{}/{}/{}", NAMESPACE, probe_config.name, func);
+                        self.statistics.retain(|s| s.stat_path != stat_name);
                     }
                     warn!("{}", err);
                 } else {
@@ -207,8 +202,8 @@ impl Usercall {
                         ),
                     };
                     if self.common.config().fault_tolerant() {
-                        self.unprobed
-                            .insert(format!("{}/{}/{}", NAMESPACE, lib, func));
+                        let stat_name = format!("{}/{}/{}", NAMESPACE, lib, func);
+                        self.statistics.retain(|s| s.stat_path != stat_name);
                         warn!("{}", err);
                     } else {
                         Err(err)?
@@ -234,7 +229,6 @@ impl Sampler for Usercall {
         let mut sampler = Self {
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
-            unprobed: HashSet::new(),
             common,
             statistics,
             libraries,
@@ -297,11 +291,7 @@ impl Sampler for Usercall {
                 .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
             let stat_map = bpf_hash_char_to_map(&table);
             for stat in self.statistics.iter() {
-                // Skip anything that is not probed
-                if self.unprobed.contains(&stat.name().to_string()) {
-                    continue;
-                }
-                let val = stat_map.get(&stat.name().to_string()).unwrap_or(&0);
+                let val = stat_map.get(&stat.stat_path).unwrap_or(&0);
                 self.metrics()
                     .record_counter(stat, Instant::now(), *val)
                     .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
