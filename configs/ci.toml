@@ -52,7 +52,7 @@ perf_events = true
 enabled = true
 
 [samplers.tcp]
-bpf = true
+bpf = false
 enabled = true
 
 [samplers.udp]
