@@ -31,6 +31,7 @@ pub mod scheduler;
 pub mod softnet;
 pub mod tcp;
 pub mod udp;
+pub mod usercall;
 pub mod xfs;
 
 pub use cpu::Cpu;
@@ -49,6 +50,7 @@ pub use scheduler::Scheduler;
 pub use softnet::Softnet;
 pub use tcp::Tcp;
 pub use udp::Udp;
+pub use usercall::Usercall;
 pub use xfs::Xfs;
 
 #[async_trait]
