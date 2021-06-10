@@ -20,6 +20,7 @@ use samplers::scheduler::SchedulerConfig;
 use samplers::softnet::SoftnetConfig;
 use samplers::tcp::TcpConfig;
 use samplers::udp::UdpConfig;
+use samplers::usercall::UsercallConfig;
 use samplers::xfs::XfsConfig;
 
 #[derive(Debug, Default, Deserialize)]
@@ -35,6 +36,8 @@ pub struct Samplers {
     http: HttpConfig,
     #[serde(default)]
     interrupt: InterruptConfig,
+    #[serde(default)]
+    usercall: UsercallConfig,
     #[serde(default)]
     memcache: MemcacheConfig,
     #[serde(default)]
@@ -80,6 +83,10 @@ impl Samplers {
 
     pub fn interrupt(&self) -> &InterruptConfig {
         &self.interrupt
+    }
+
+    pub fn usercall(&self) -> &UsercallConfig {
+        &self.usercall
     }
 
     pub fn memcache(&self) -> &MemcacheConfig {

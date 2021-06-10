@@ -1,5 +1,13 @@
 # [Unreleased]
 
+# [2.12.0] - 2020-06-10
+## Fixed
+- NTP sampler failed to build with musl toolchain. (#216)
+
+## Added
+- New `usercall` sampler for probing arbitrary userspace functions in shared
+  libraries.
+
 # [2.11.1] - 2021-02-24
 ## Fixed
 - HTTP and Memcache samplers reporting incorrect percentiles.
@@ -164,7 +172,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.11.1...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.12.0...HEAD
+[2.12.0]: https://github.com/twitter/rezolus/compare/v2.11.1...v2.12.0
 [2.11.1]: https://github.com/twitter/rezolus/compare/v2.11.0...v2.11.1
 [2.11.0]: https://github.com/twitter/rezolus/compare/v2.10.0...v2.11.0
 [2.10.0]: https://github.com/twitter/rezolus/compare/v2.9.0...v2.10.0

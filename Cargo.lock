@@ -1344,7 +1344,7 @@ checksum = "24d5f089152e60f62d28b835fbff2cd2e8dc0baf1ac13343bef92ab7eed84548"
 
 [[package]]
 name = "rezolus"
-version = "2.11.1"
+version = "2.12.0"
 dependencies = [
  "anyhow",
  "async-trait",
