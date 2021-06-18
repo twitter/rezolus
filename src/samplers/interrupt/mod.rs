@@ -172,7 +172,13 @@ impl Interrupt {
             let mut reader = BufReader::new(file);
             let mut line = String::new();
 
-            while reader.read_line(&mut line).await? > 0 {
+            loop {
+                line.clear();
+
+                if reader.read_line(&mut line).await? == 0 {
+                    break;
+                }
+
                 let parts: Vec<&str> = line.split_whitespace().collect();
                 if cores.is_none() {
                     cores = Some(parts.len());
@@ -281,7 +287,6 @@ impl Interrupt {
                 } else {
                     result.insert(InterruptStatistic::Node1Total, node1);
                 }
-                line.clear();
             }
         }
 
