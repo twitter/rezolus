@@ -216,12 +216,12 @@ impl Interrupt {
                             if let Some(previous) = result.get_mut(&InterruptStatistic::Node0Nvme) {
                                 *previous += node0;
                             } else {
-                                result.insert(InterruptStatistic::Node0Nvme, sum);
+                                result.insert(InterruptStatistic::Node0Nvme, node0);
                             }
                             if let Some(previous) = result.get_mut(&InterruptStatistic::Node1Nvme) {
                                 *previous += node1;
                             } else {
-                                result.insert(InterruptStatistic::Node1Nvme, sum);
+                                result.insert(InterruptStatistic::Node1Nvme, node1);
                             }
                             InterruptStatistic::Nvme
                         }
@@ -232,14 +232,14 @@ impl Interrupt {
                                 {
                                     *previous += node0;
                                 } else {
-                                    result.insert(InterruptStatistic::Node0Network, sum);
+                                    result.insert(InterruptStatistic::Node0Network, node0);
                                 }
                                 if let Some(previous) =
                                     result.get_mut(&InterruptStatistic::Node1Network)
                                 {
                                     *previous += node1;
                                 } else {
-                                    result.insert(InterruptStatistic::Node1Network, sum);
+                                    result.insert(InterruptStatistic::Node1Network, node1);
                                 }
                                 InterruptStatistic::Network
                             } else if label.starts_with("nvme") {
@@ -248,14 +248,14 @@ impl Interrupt {
                                 {
                                     *previous += node0;
                                 } else {
-                                    result.insert(InterruptStatistic::Node0Nvme, sum);
+                                    result.insert(InterruptStatistic::Node0Nvme, node0);
                                 }
                                 if let Some(previous) =
                                     result.get_mut(&InterruptStatistic::Node1Nvme)
                                 {
                                     *previous += node1;
                                 } else {
-                                    result.insert(InterruptStatistic::Node1Nvme, sum);
+                                    result.insert(InterruptStatistic::Node1Nvme, node1);
                                 }
                                 InterruptStatistic::Nvme
                             } else {
