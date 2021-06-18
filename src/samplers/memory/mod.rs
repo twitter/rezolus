@@ -115,7 +115,7 @@ impl Memory {
             let mut line = String::new();
 
             let re =
-                Regex::new(r"(?P<stat>\w+):\s+(?P<value>\d+)").expect("failed to compile regex");
+                Regex::new(r"(?P<stat>.+):\s+(?P<value>\d+)").expect("failed to compile regex");
 
             while reader.read_line(&mut line).await? > 0 {
                 if let Some(caps) = re.captures(&line) {
