@@ -143,7 +143,6 @@ Provides system-wide telemetry for IRQs
 * `interrupt/rescheduling` - interrupts used to notify a core to schedule a
   thread
 * `interrupt/rtc` - interrupts caused by the realtime clock
-* `interrupt/serial` - interrupts caused by serial ports
 * `interrupt/spurious` - interrupts which were marked spurious and not handled
 * `interrupt/thermal_event` - interrupts caused by thermal events, like
   throttling

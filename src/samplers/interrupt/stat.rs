@@ -53,8 +53,6 @@ pub enum InterruptStatistic {
     MachineCheckException,
     #[strum(serialize = "interrupt/rtc")]
     RealTimeClock,
-    #[strum(serialize = "interrupt/serial")]
-    Serial,
     #[strum(serialize = "interrupt/node0/total")]
     Node0Total,
     #[strum(serialize = "interrupt/node1/total")]
