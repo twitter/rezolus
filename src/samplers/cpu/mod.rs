@@ -355,19 +355,21 @@ impl Cpu {
                         file.seek(SeekFrom::Start(0)).await?;
                         let mut reader = BufReader::new(file);
                         if let Ok(time) = reader.read_u64().await {
-                            let metric = match CState::from_str(&state) {
-                                Ok(CState::C0) => CpuStatistic::CstateC0Time,
-                                Ok(CState::C1) => CpuStatistic::CstateC1Time,
-                                Ok(CState::C1E) => CpuStatistic::CstateC1ETime,
-                                Ok(CState::C2) => CpuStatistic::CstateC2Time,
-                                Ok(CState::C3) => CpuStatistic::CstateC3Time,
-                                Ok(CState::C6) => CpuStatistic::CstateC6Time,
-                                Ok(CState::C7) => CpuStatistic::CstateC7Time,
-                                Ok(CState::C8) => CpuStatistic::CstateC8Time,
-                                _ => continue,
-                            };
-                            let counter = result.entry(metric).or_insert(0);
-                            *counter += time * MICROSECOND;
+                            if let Some(state) = state.split('-').next() {
+                                let metric = match CState::from_str(&state) {
+                                    Ok(CState::C0) => CpuStatistic::CstateC0Time,
+                                    Ok(CState::C1) => CpuStatistic::CstateC1Time,
+                                    Ok(CState::C1E) => CpuStatistic::CstateC1ETime,
+                                    Ok(CState::C2) => CpuStatistic::CstateC2Time,
+                                    Ok(CState::C3) => CpuStatistic::CstateC3Time,
+                                    Ok(CState::C6) => CpuStatistic::CstateC6Time,
+                                    Ok(CState::C7) => CpuStatistic::CstateC7Time,
+                                    Ok(CState::C8) => CpuStatistic::CstateC8Time,
+                                    _ => continue,
+                                };
+                                let counter = result.entry(metric).or_insert(0);
+                                *counter += time * MICROSECOND;
+                            }
                         }
                     }
                 }
