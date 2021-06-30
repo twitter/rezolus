@@ -62,11 +62,11 @@ perf_events = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 
@@ -91,11 +91,11 @@ bpf = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 # The ext4 sampler provides telemetry about ext4 filesystem operations.
@@ -120,11 +120,11 @@ bpf = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 # This sampler reads from a JSON key-value http endpoint and can calculate
@@ -161,11 +161,11 @@ bpf = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 
@@ -188,11 +188,11 @@ bpf = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 
@@ -213,11 +213,11 @@ enabled = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 
@@ -242,11 +242,11 @@ bpf = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 # The NTP sampler provides basic telemetry for the running network time protocol
@@ -267,11 +267,11 @@ enabled = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 # The Nvidia sampler provides telemetry for Nvidia GPUs by using the NVML
@@ -295,11 +295,11 @@ enabled = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 # The page cache sampler provides telemetry about page cache hits and misses
@@ -322,11 +322,11 @@ bpf = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 
@@ -360,11 +360,11 @@ perf_events = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 
@@ -385,11 +385,11 @@ enabled = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 
@@ -413,11 +413,11 @@ bpf = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 
@@ -438,11 +438,11 @@ enabled = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
 
 
@@ -468,9 +468,9 @@ bpf = true
 
 # The set of exported percentiles can be controlled by specifying them here
 # percentiles = [
-# 	"p1",
-# 	"p10",
-# 	"p50",
-# 	"p90",
-# 	"p99",
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
 # ]
