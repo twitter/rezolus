@@ -48,7 +48,10 @@ impl MetricsSnapshot {
                     data.push(format!("# TYPE {} gauge\n{} {}", label, label, value));
                 }
                 Output::Percentile(percentile) => {
-                    data.push(format!("# TYPE {} gauge\n{}{{percentile=\"{:02}\"}} {}", label, label, percentile, value));
+                    data.push(format!(
+                        "# TYPE {} gauge\n{}{{percentile=\"{:02}\"}} {}",
+                        label, label, percentile, value
+                    ));
                 }
             }
         }
