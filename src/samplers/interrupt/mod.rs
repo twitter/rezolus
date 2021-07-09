@@ -226,7 +226,10 @@ impl Interrupt {
                             InterruptStatistic::Nvme
                         }
                         Some(label) => {
-                            if label.starts_with("mlx") || label.starts_with("eth") {
+                            if label.starts_with("mlx")
+                                || label.starts_with("eth")
+                                || label.starts_with("enp")
+                            {
                                 if let Some(previous) =
                                     result.get_mut(&InterruptStatistic::Node0Network)
                                 {
