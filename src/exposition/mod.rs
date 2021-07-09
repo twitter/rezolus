@@ -45,14 +45,13 @@ impl MetricsSnapshot {
             let output = metric.output();
             match output {
                 Output::Reading => {
-                    if let Some(ref count_label) = self.count_label {
-                        data.push(format!("{}/{} {}", label, count_label, value));
-                    } else {
-                        data.push(format!("{} {}", label, value));
-                    }
+                    data.push(format!("# TYPE {} gauge\n{} {}", label, label, value));
                 }
                 Output::Percentile(percentile) => {
-                    data.push(format!("{}/histogram/p{:02} {}", label, percentile, value));
+                    data.push(format!(
+                        "# TYPE {} gauge\n{}{{percentile=\"{:02}\"}} {}",
+                        label, label, percentile, value
+                    ));
                 }
             }
         }
