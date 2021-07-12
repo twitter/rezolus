@@ -1,5 +1,20 @@
 # [Unreleased]
 
+# [2.13.0] - 2020-07-12
+## Fixed
+- Interrupt sampler failed to sample all interrupts if it encountered an
+  unexpected keyword. (#225)
+- Interrupt sampler incorrectly initialized per-NUMA node counts for NVMe and
+  network interrupts. (#226)
+- Memory sampler failed to report some stats. (#227)
+- CPU c-state sampling now handles older style c-state names. (#229)
+- Prometheus metric exposition now includes type annotations and changes the
+  format for percentiles to be encoded as a label value. This fixes collection
+  with OpenTelemetry. (#230)
+
+## Changed
+- Removed unused `interrupt/serial` metric from the interrupt sampler. (#228)
+
 # [2.12.0] - 2020-06-10
 ## Fixed
 - NTP sampler failed to build with musl toolchain. (#216)
@@ -172,7 +187,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.12.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.13.0...HEAD
+[2.13.0]: https://github.com/twitter/rezolus/compare/v2.12.0...v2.13.0
 [2.12.0]: https://github.com/twitter/rezolus/compare/v2.11.1...v2.12.0
 [2.11.1]: https://github.com/twitter/rezolus/compare/v2.11.0...v2.11.1
 [2.11.0]: https://github.com/twitter/rezolus/compare/v2.10.0...v2.11.0
