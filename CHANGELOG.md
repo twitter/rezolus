@@ -1,6 +1,6 @@
 # [Unreleased]
 
-# [2.13.0] - 2020-07-09
+# [2.13.0] - 2020-07-12
 ## Fixed
 - Interrupt sampler failed to sample all interrupts if it encountered an
   unexpected keyword. (#225)
