@@ -1,0 +1,33 @@
+# This example configuration covers detailed configuration for each sampler
+
+[general]
+listen = "0.0.0.0:4242"
+logging = "debug"
+interval = 1000
+window = 5
+
+# Per-sampler configuration sections
+[samplers]
+# The tcp sampler provides telemetry about tcp traffic
+[samplers.tcp]
+# Controls whether to use this sampler
+enabled = true
+
+# Enable BPF sampling
+bpf = true
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+statistics = [
+	"tcp/srtt",
+]
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	"1.0",
+# 	"10.0",
+# 	"50.0",
+# 	"90.0",
+# 	"99.0",
+# ]

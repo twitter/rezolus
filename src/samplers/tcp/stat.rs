@@ -71,6 +71,8 @@ pub enum TcpStatistic {
     AbortOnMemory,
     #[strum(serialize = "tcp/abort/on_timeout")]
     AbortOnTimeout,
+    #[strum(serialize = "tcp/srtt")]
+    SmoothedRoundTripTime,
 }
 
 impl TcpStatistic {
@@ -105,6 +107,7 @@ impl TcpStatistic {
     pub fn bpf_table(self) -> Option<&'static str> {
         match self {
             Self::ConnectLatency => Some("connlat"),
+            Self::SmoothedRoundTripTime => Some("srtt"),
             _ => None,
         }
     }

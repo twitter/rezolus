@@ -148,6 +148,10 @@ impl Tcp {
                     .handler("trace_tcp_rcv_state_process")
                     .function("tcp_rcv_state_process")
                     .attach(&mut bpf)?;
+                bcc::Kprobe::new()
+                    .handler("trace_tcp_rcv")
+                    .function("tcp_rcv_established")
+                    .attach(&mut bpf)?;
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
             }
@@ -164,7 +168,7 @@ impl Tcp {
         if let Some(file) = &mut self.proc_net_snmp {
             let parsed = crate::common::nested_map_from_file(file).await?;
             let time = Instant::now();
-            for statistic in &self.statistics {
+            for statistic in &self.statistics {                
                 if let Some((pkey, lkey)) = statistic.keys() {
                     if let Some(inner) = parsed.get(pkey) {
                         if let Some(value) = inner.get(lkey) {
