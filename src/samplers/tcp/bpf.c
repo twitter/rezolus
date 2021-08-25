@@ -93,7 +93,11 @@ int trace_tcp_rcv_state_process(struct pt_regs *ctx, struct sock *skp)
 int trace_tcp_rcv(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb)
 {
     struct tcp_sock *ts = tcp_sk(sk);
-    u64 index = value_to_index2(ts->srtt_us >> 3); // it's gonna be in microsecond
+    // we do >> 3 because the value recorded in ts->srtt_us is actually 8 times
+    // the value of real srtt for easier calculation.
+    // see the thread in: https://lkml.org/lkml/1998/9/12/41
+    // and source code in: https://elixir.bootlin.com/linux/latest/source/net/ipv4/tcp_input.c#L797
+    u64 index = value_to_index2(ts->srtt_us >> 3);
     srtt.increment(index);
     return 0;
 }
