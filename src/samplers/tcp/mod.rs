@@ -148,6 +148,10 @@ impl Tcp {
                     .handler("trace_tcp_rcv_state_process")
                     .function("tcp_rcv_state_process")
                     .attach(&mut bpf)?;
+                bcc::Kprobe::new()
+                    .handler("trace_tcp_rcv")
+                    .function("tcp_rcv_established")
+                    .attach(&mut bpf)?;
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
             }

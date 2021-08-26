@@ -7,7 +7,9 @@
 #include <uapi/linux/ptrace.h>
 #include <net/sock.h>
 #include <net/tcp_states.h>
+#include <net/inet_sock.h>
 #include <bcc/proto.h>
+#include <linux/tcp.h>
 
 struct info_t {
     u64 ts;
@@ -18,6 +20,7 @@ struct info_t {
 BPF_HASH(start, struct sock *, struct info_t);
 
 BPF_HISTOGRAM(connlat, int, 461);
+BPF_HISTOGRAM(srtt, int, 461);
 
 // histogram indexing
 static unsigned int value_to_index2(unsigned int value) {
@@ -84,5 +87,17 @@ int trace_tcp_rcv_state_process(struct pt_regs *ctx, struct sock *skp)
     connlat.increment(index);
 
     start.delete(&skp);
+    return 0;
+}
+
+int trace_tcp_rcv(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb)
+{
+    struct tcp_sock *ts = tcp_sk(sk);
+    // we do >> 3 because the value recorded in ts->srtt_us is actually 8 times
+    // the value of real srtt for easier calculation.
+    // see the thread in: https://lkml.org/lkml/1998/9/12/41
+    // and source code in: https://elixir.bootlin.com/linux/latest/source/net/ipv4/tcp_input.c#L797
+    u64 index = value_to_index2(ts->srtt_us >> 3);
+    srtt.increment(index);
     return 0;
 }
