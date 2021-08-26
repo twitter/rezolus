@@ -168,7 +168,7 @@ impl Tcp {
         if let Some(file) = &mut self.proc_net_snmp {
             let parsed = crate::common::nested_map_from_file(file).await?;
             let time = Instant::now();
-            for statistic in &self.statistics {                
+            for statistic in &self.statistics {
                 if let Some((pkey, lkey)) = statistic.keys() {
                     if let Some(inner) = parsed.get(pkey) {
                         if let Some(value) = inner.get(lkey) {
