@@ -8,6 +8,8 @@ extern crate rustcommon_logger;
 #[macro_use]
 extern crate anyhow;
 
+extern crate rustcommon_metrics as rustcommon_metrics_legacy;
+
 use rustcommon_atomics::{Atomic, Ordering};
 use std::sync::Arc;
 
