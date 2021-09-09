@@ -28,6 +28,7 @@ reqwest = { version = "0.11.4", features = ["blocking"] }
 rustcommon-atomics = { git = "https://github.com/twitter/rustcommon", branch = "master" }
 rustcommon-logger = { git = "https://github.com/twitter/rustcommon", branch = "master" }
 rustcommon-metrics = { git = "https://github.com/twitter/rustcommon", branch = "master" }
+rustcommon-metrics-v2 = { git = "https://github.com/twitter/rustcommon", branch = "master" }
 serde = "1.0.126"
 serde_derive = "1.0.126"
 strum = "0.21.0"
