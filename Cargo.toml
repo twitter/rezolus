@@ -14,6 +14,7 @@ async-trait = "0.1.50"
 bcc = { version = "0.0.31", optional = true }
 clap = "2.33.3"
 ctrlc = { version = "3.1.9", features = ["termination"] }
+crossbeam = "0.8.1"
 dashmap = "4.0.2"
 json = "0.12.4"
 kafka = { version = "0.8.0", optional = true }
@@ -28,7 +29,9 @@ reqwest = { version = "0.11.4", features = ["blocking"] }
 rustcommon-atomics = { git = "https://github.com/twitter/rustcommon", branch = "master" }
 rustcommon-logger = { git = "https://github.com/twitter/rustcommon", branch = "master" }
 rustcommon-metrics = { git = "https://github.com/twitter/rustcommon", branch = "master" }
-rustcommon-metrics-v2 = { git = "https://github.com/twitter/rustcommon", branch = "master" }
+rustcommon-metrics-v2 = { git = "https://github.com/twitter/rustcommon", branch = "master", features = [ "heatmap" ] }
+rustcommon-streamstats = { git = "https://github.com/twitter/rustcommon", branch = "master" }
+rustcommon-heatmap = { git = "https://github.com/twitter/rustcommon", branch = "master" }
 serde = "1.0.126"
 serde_derive = "1.0.126"
 strum = "0.21.0"

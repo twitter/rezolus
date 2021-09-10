@@ -1325,6 +1325,7 @@ dependencies = [
  "async-trait",
  "bcc",
  "clap",
+ "crossbeam",
  "ctrlc",
  "dashmap 4.0.2",
  "json",
@@ -1338,9 +1339,11 @@ dependencies = [
  "regex",
  "reqwest",
  "rustcommon-atomics",
+ "rustcommon-heatmap",
  "rustcommon-logger",
  "rustcommon-metrics",
  "rustcommon-metrics-v2",
+ "rustcommon-streamstats",
  "serde",
  "serde_derive",
  "strum",
@@ -1372,7 +1375,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-atomics"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#0f249acb08369db03854a38ddf13c5a2622cedee"
+source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
 dependencies = [
  "serde",
 ]
@@ -1380,7 +1383,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-heatmap"
 version = "0.1.1"
-source = "git+https://github.com/twitter/rustcommon?branch=master#0f249acb08369db03854a38ddf13c5a2622cedee"
+source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
 dependencies = [
  "crossbeam",
  "rustcommon-atomics",
@@ -1391,7 +1394,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-histogram"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#0f249acb08369db03854a38ddf13c5a2622cedee"
+source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
@@ -1400,7 +1403,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-logger"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#0f249acb08369db03854a38ddf13c5a2622cedee"
+source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
 dependencies = [
  "log 0.4.14",
  "time",
@@ -1409,7 +1412,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics"
 version = "2.0.0-alpha.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#0f249acb08369db03854a38ddf13c5a2622cedee"
+source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
 dependencies = [
  "crossbeam",
  "dashmap 3.11.10",
@@ -1422,7 +1425,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics-derive"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#0f249acb08369db03854a38ddf13c5a2622cedee"
+source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1433,18 +1436,20 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics-v2"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#0f249acb08369db03854a38ddf13c5a2622cedee"
+source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
 dependencies = [
  "linkme",
  "once_cell",
  "parking_lot",
+ "rustcommon-atomics",
+ "rustcommon-heatmap",
  "rustcommon-metrics-derive",
 ]
 
 [[package]]
 name = "rustcommon-streamstats"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#0f249acb08369db03854a38ddf13c5a2622cedee"
+source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
