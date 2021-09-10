@@ -67,7 +67,7 @@ impl MetricsSnapshot {
         for metric in &rustcommon_metrics_v2::metrics() {
             let any = match metric.as_any() {
                 Some(any) => any,
-                None => continue
+                None => continue,
             };
 
             downcast_match! { any => {
@@ -79,9 +79,13 @@ impl MetricsSnapshot {
                 },
                 heatmap @ SampledHeatmap => {
                     for percentile in heatmap.percentiles() {
+                        // SampledHeatmaps are by default named as <thing>/histogram
+                        // However, prometheus wants this to be exported as <thing>{{..}}
+                        let name = metric.name().trim_end_matches("/histogram");
+
                         data.push(format!(
                             "# TYPE {0} gauge\n{0}{{percentile=\"{1:02}\"}} {2}",
-                            metric.name(), percentile, heatmap.percentile(*percentile).unwrap_or(0)
+                            name, percentile, heatmap.percentile(*percentile).unwrap_or(0)
                         ));
                     }
                 },
@@ -113,6 +117,48 @@ impl MetricsSnapshot {
 
     pub fn human(&self) -> String {
         let mut data = Vec::new();
+
+        for metric in &rustcommon_metrics_v2::metrics() {
+            let any = match metric.as_any() {
+                Some(any) => any,
+                None => continue,
+            };
+
+            downcast_match! { any => {
+                counter @ Counter => {
+                    data.push(match &self.count_label {
+                        Some(count_label) => format!(
+                            "{}/{}: {}",
+                            metric.name(),
+                            count_label,
+                            counter.value()
+                        ),
+                        None => format!("{}: {}", metric.name(), counter.value())
+                    })
+                },
+                gauge @ Gauge => {
+                    data.push(match &self.count_label {
+                        Some(count_label) => format!(
+                            "{}/{}: {}",
+                            metric.name(),
+                            count_label,
+                            gauge.value()
+                        ),
+                        None => format!("{}: {}", metric.name(), gauge.value())
+                    })
+                },
+                heatmap @ SampledHeatmap => {
+                    for percentile in heatmap.percentiles() {
+                        data.push(format!(
+                            "{}/p{:02}: {}",
+                            metric.name(), percentile, heatmap.percentile(*percentile).unwrap_or(0)
+                        ));
+                    }
+                },
+                _ => ()
+            }}
+        }
+
         for (metric, value) in &self.snapshot {
             let label = metric.statistic().name();
             let output = metric.output();
@@ -141,6 +187,48 @@ impl MetricsSnapshot {
             head += "\n  ";
         }
         let mut data = Vec::new();
+
+        for metric in &rustcommon_metrics_v2::metrics() {
+            let any = match metric.as_any() {
+                Some(any) => any,
+                None => continue,
+            };
+
+            downcast_match! { any => {
+                counter @ Counter => {
+                    data.push(match &self.count_label {
+                        Some(count_label) => format!(
+                            "\"{}/{}\": {}",
+                            metric.name(),
+                            count_label,
+                            counter.value()
+                        ),
+                        None => format!("\"{}\": {}", metric.name(), counter.value())
+                    })
+                },
+                gauge @ Gauge => {
+                    data.push(match &self.count_label {
+                        Some(count_label) => format!(
+                            "\"{}/{}\": {}",
+                            metric.name(),
+                            count_label,
+                            gauge.value()
+                        ),
+                        None => format!("\"{}\": {}", metric.name(), gauge.value())
+                    })
+                },
+                heatmap @ SampledHeatmap => {
+                    for percentile in heatmap.percentiles() {
+                        data.push(format!(
+                            "\"{}/p{:02}\": {}",
+                            metric.name(), percentile, heatmap.percentile(*percentile).unwrap_or(0)
+                        ));
+                    }
+                },
+                _ => ()
+            }}
+        }
+
         for (metric, value) in &self.snapshot {
             let label = metric.statistic().name();
             let output = metric.output();
