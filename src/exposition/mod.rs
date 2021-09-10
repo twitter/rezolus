@@ -8,6 +8,8 @@ use std::time::Instant;
 
 use rustcommon_metrics::*;
 
+use crate::metrics::{Counter, Gauge, SampledHeatmap};
+
 mod http;
 #[cfg(feature = "push_kafka")]
 mod kafka;
@@ -15,6 +17,27 @@ mod kafka;
 pub use self::http::Http;
 #[cfg(feature = "push_kafka")]
 pub use self::kafka::KafkaProducer;
+
+macro_rules! downcast_match {
+    {
+        $any:expr => {
+            $( $name:ident @ $ty:ty => $stmt:expr, )*
+            $( _ => $default:expr )?
+        }
+    } => {{
+        let ref any = $any;
+
+        match () {
+            $(
+                _ if any.is::<$ty>() => match any.downcast_ref::<$ty>() {
+                    Some($name) => { $stmt },
+                    None => unreachable!()
+                }
+            ),*
+            () => { $( $default )? }
+        }
+    }};
+}
 
 pub struct MetricsSnapshot {
     metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
@@ -40,6 +63,32 @@ impl MetricsSnapshot {
 
     pub fn prometheus(&self) -> String {
         let mut data = Vec::new();
+
+        for metric in &rustcommon_metrics_v2::metrics() {
+            let any = match metric.as_any() {
+                Some(any) => any,
+                None => continue
+            };
+
+            downcast_match! { any => {
+                counter @ Counter => {
+                    data.push(format!("# TYPE {0} gauge\n{0} {1}", metric.name(), counter.value()));
+                },
+                gauge @ Gauge => {
+                    data.push(format!("# TYPE {0} gauge\n{0} {1}", metric.name(), gauge.value()));
+                },
+                heatmap @ SampledHeatmap => {
+                    for percentile in heatmap.percentiles() {
+                        data.push(format!(
+                            "# TYPE {0} gauge\n{0}{{percentile=\"{1:02}\"}} {2}",
+                            metric.name(), percentile, heatmap.percentile(*percentile).unwrap_or(0)
+                        ));
+                    }
+                },
+                _ => ()
+            }}
+        }
+
         for (metric, value) in &self.snapshot {
             let label = metric.statistic().name();
             let output = metric.output();
