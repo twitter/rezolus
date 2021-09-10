@@ -11,7 +11,117 @@ use bcc::perf_event::*;
 use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
-use strum_macros::{EnumIter, EnumString, IntoStaticStr};
+use strum_macros::{AsStaticStr, EnumIter, EnumString, IntoStaticStr};
+
+use crate::metrics::*;
+use std::time::Duration;
+use std::collections::HashSet;
+
+pub(super) struct CpuStats {
+    pub usage_user: HeatmapSummarizedCounter,
+    pub usage_nice: HeatmapSummarizedCounter,
+    pub usage_system: HeatmapSummarizedCounter,
+    pub usage_idle: HeatmapSummarizedCounter,
+    pub usage_irq: HeatmapSummarizedCounter,
+    pub usage_softirq: HeatmapSummarizedCounter,
+    pub usage_steal: HeatmapSummarizedCounter,
+    pub usage_guest: HeatmapSummarizedCounter,
+    pub usage_guest_nice: HeatmapSummarizedCounter,
+    pub cache_miss: HeatmapSummarizedCounter,
+    pub cache_access: HeatmapSummarizedCounter,
+    pub bpu_branches: HeatmapSummarizedCounter,
+    pub bpu_miss: HeatmapSummarizedCounter,
+    pub cycles: HeatmapSummarizedCounter,
+    pub dtlb_load_miss: HeatmapSummarizedCounter,
+    pub dtlb_load_access: HeatmapSummarizedCounter,
+    pub dtlb_store_access: HeatmapSummarizedCounter,
+    pub dtlb_store_miss: HeatmapSummarizedCounter,
+    pub instructions: HeatmapSummarizedCounter,
+    pub reference_cycles: HeatmapSummarizedCounter,
+    pub cstate_c0_time: HeatmapSummarizedCounter,
+    pub cstate_c1_time: HeatmapSummarizedCounter,
+    pub cstate_c1e_time: HeatmapSummarizedCounter,
+    pub cstate_c2_time: HeatmapSummarizedCounter,
+    pub cstate_c3_time: HeatmapSummarizedCounter,
+    pub cstate_c6_time: HeatmapSummarizedCounter,
+    pub cstate_c7_time: HeatmapSummarizedCounter,
+    pub cstate_c8_time: HeatmapSummarizedCounter,
+    pub frequency: HeatmapSummarizedGauge,
+}
+
+impl CpuStats {
+    pub fn new(common: &crate::samplers::Common, percentiles: &[f64]) -> Self {
+        let span = Duration::from_secs(common.config().general().window() as _);
+        let heatmap = |name| HeatmapSummarizedCounter::new(name, span, percentiles);
+
+        Self {
+            usage_user: heatmap("cpu/usage/user"),
+            usage_nice: heatmap("cpu/usage/nice"),
+            usage_system: heatmap("cpu/usage/system"),
+            usage_idle: heatmap("cpu/usage/idle"),
+            usage_irq: heatmap("cpu/usage/irq"),
+            usage_softirq: heatmap("cpu/usage/softirq"),
+            usage_steal: heatmap("cpu/usage/steal"),
+            usage_guest: heatmap("cpu/usage/guest"),
+            usage_guest_nice: heatmap("cpu/usage/guestnice"),
+            cache_miss: heatmap("cpu/cache/miss"),
+            cache_access: heatmap("cpu/cache/access"),
+            bpu_branches: heatmap("cpu/bpu/branch"),
+            bpu_miss: heatmap("cpu/bpu/miss"),
+            cycles: heatmap("cpu/cycles"),
+            dtlb_load_miss: heatmap("cpu/dtlb/load/miss"),
+            dtlb_load_access: heatmap("cpu/dtlb/load/access"),
+            dtlb_store_access: heatmap("cpu/dtlb/store/access"),
+            dtlb_store_miss: heatmap("cpu/dtlb/store/miss"),
+            instructions: heatmap("cpu/instructions"),
+            reference_cycles: heatmap("cpu/reference_cycles"),
+            cstate_c0_time: heatmap("cpu/cstate/c0/time"),
+            cstate_c1_time: heatmap("cpu/cstate/c1/time"),
+            cstate_c1e_time: heatmap("cpu/cstate/c1e/time"),
+            cstate_c2_time: heatmap("cpu/cstate/c2/time"),
+            cstate_c3_time: heatmap("cpu/cstate/c3/time"),
+            cstate_c6_time: heatmap("cpu/cstate/c6/time"),
+            cstate_c7_time: heatmap("cpu/cstate/c7/time"),
+            cstate_c8_time: heatmap("cpu/cstate/c8/time"),
+            frequency: HeatmapSummarizedGauge::new("cpu/frequency", span, percentiles),
+        }
+    }
+
+    pub fn disable_unwanted(&mut self, stats: &HashSet<CpuStatistic>) {
+        use self::CpuStatistic::*;
+
+        if_block! {
+            if !stats.contains(&UsageUser) => self.usage_user.disable();
+            if !stats.contains(&UsageNice) => self.usage_nice.disable();
+            if !stats.contains(&UsageSystem) => self.usage_system.disable();
+            if !stats.contains(&UsageIdle) => self.usage_idle.disable();
+            if !stats.contains(&UsageIrq) => self.usage_irq.disable();
+            if !stats.contains(&UsageSoftirq) => self.usage_softirq.disable();
+            if !stats.contains(&UsageSteal) => self.usage_steal.disable();
+            if !stats.contains(&UsageGuest) => self.usage_guest.disable();
+            if !stats.contains(&UsageGuestNice) => self.usage_guest_nice.disable();
+            if !stats.contains(&CacheMiss) => self.cache_miss.disable();
+            if !stats.contains(&CacheAccess) => self.cache_access.disable();
+            if !stats.contains(&BpuBranches) => self.bpu_branches.disable();
+            if !stats.contains(&BpuMiss) => self.bpu_miss.disable();
+            if !stats.contains(&Cycles) => self.cycles.disable();
+            if !stats.contains(&DtlbLoadMiss) => self.dtlb_load_miss.disable();
+            if !stats.contains(&DtlbLoadAccess) => self.dtlb_load_access.disable();
+            if !stats.contains(&DtlbStoreAccess) => self.dtlb_store_access.disable();
+            if !stats.contains(&DtlbStoreMiss) => self.dtlb_store_miss.disable();
+            if !stats.contains(&Instructions) => self.instructions.disable();
+            if !stats.contains(&ReferenceCycles) => self.reference_cycles.disable();
+            if !stats.contains(&CstateC0Time) => self.cstate_c0_time.disable();
+            if !stats.contains(&CstateC1Time) => self.cstate_c1_time.disable();
+            if !stats.contains(&CstateC2Time) => self.cstate_c2_time.disable();
+            if !stats.contains(&CstateC3Time) => self.cstate_c3_time.disable();
+            if !stats.contains(&CstateC6Time) => self.cstate_c6_time.disable();
+            if !stats.contains(&CstateC7Time) => self.cstate_c7_time.disable();
+            if !stats.contains(&CstateC8Time) => self.cstate_c8_time.disable();
+            if !stats.contains(&Frequency) => self.frequency.disable();
+        }
+    }
+}
 
 #[derive(
     Clone,
@@ -25,6 +135,7 @@ use strum_macros::{EnumIter, EnumString, IntoStaticStr};
     PartialEq,
     Hash,
     Serialize,
+    AsStaticStr,
 )]
 #[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum CpuStatistic {

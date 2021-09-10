@@ -28,6 +28,7 @@ mod stat;
 
 pub use config::*;
 pub use stat::*;
+use std::iter::FromIterator;
 
 #[allow(dead_code)]
 pub struct Cpu {
@@ -40,6 +41,7 @@ pub struct Cpu {
     proc_cpuinfo: Option<File>,
     proc_stat: Option<File>,
     statistics: Vec<CpuStatistic>,
+    stats: CpuStats,
 }
 
 pub fn nanos_per_tick() -> u64 {
@@ -56,6 +58,7 @@ impl Sampler for Cpu {
         let statistics = common.config().samplers().cpu().statistics();
         #[allow(unused_mut)]
         let mut sampler = Self {
+            stats: CpuStats::new(&common, common.config.samplers().cpu().percentiles()),
             common,
             cpus: HashSet::new(),
             cstates: HashMap::new(),
@@ -82,6 +85,10 @@ impl Sampler for Cpu {
                 }
             }
         }
+
+        sampler
+            .stats
+            .disable_unwanted(&HashSet::from_iter(sampler.statistics.iter().copied()));
 
         // delay by half the sample interval so that we land between perf
         // counter updates
@@ -220,22 +227,13 @@ impl Cpu {
 
         if let Some(file) = &mut self.proc_stat {
             file.seek(SeekFrom::Start(0)).await?;
+            let time = Instant::now();
 
             let mut reader = BufReader::new(file);
-            let mut result = HashMap::new();
             let mut buf = String::new();
             while reader.read_line(&mut buf).await? > 0 {
-                result.extend(parse_proc_stat(&buf));
+                Self::record_proc_stat(&self.stats, time, &buf);
                 buf.clear();
-            }
-
-            let time = Instant::now();
-            for stat in self.sampler_config().statistics() {
-                if let Some(value) = result.get(&stat) {
-                    let _ = self
-                        .metrics()
-                        .record_counter(&stat, time, value * self.tick_duration);
-                }
             }
         }
 
@@ -255,16 +253,14 @@ impl Cpu {
             let mut result = Vec::new();
             while reader.read_line(&mut buf).await? > 0 {
                 if let Some(freq) = parse_frequency(&buf) {
-                    result.push(freq.ceil() as u64);
+                    result.push(freq.ceil() as i64);
                 }
                 buf.clear();
             }
 
             let time = Instant::now();
             for frequency in result {
-                let _ = self
-                    .metrics()
-                    .record_gauge(&CpuStatistic::Frequency, time, frequency);
+                self.stats.frequency.store(time, frequency);
             }
         }
 
@@ -273,24 +269,37 @@ impl Cpu {
 
     #[cfg(feature = "bpf")]
     fn sample_bpf_perf_counters(&self) -> Result<(), std::io::Error> {
+        use self::CpuStatistic::*;
+
         if let Some(ref bpf) = self.perf {
             let bpf = bpf.lock().unwrap();
             let time = Instant::now();
-            for stat in self.statistics.iter().filter(|s| s.table().is_some()) {
-                if let Ok(table) = &(*bpf).inner.table(stat.table().unwrap()) {
-                    let map = crate::common::bpf::perf_table_to_map(table);
-                    let mut total = 0;
-                    for (_cpu, count) in map.iter() {
-                        total += count;
-                    }
-                    let _ = self.metrics().record_counter(stat, time, total);
-                }
+
+            let counter_value = |stat: CpuStatistic| -> Option<u64> {
+                let table = bpf.inner.table(stat.table()?).ok()?;
+                let map = crate::common::bpf::perf_table_to_map(&table);
+                Some(map.iter().map(|(_cpu, count)| *count).sum())
+            };
+
+            if_block! {
+                if let Some(value) = counter_value(BpuBranches) => self.stats.bpu_branches.store(time, value);
+                if let Some(value) = counter_value(BpuMiss) => self.stats.bpu_miss.store(time, value);
+                if let Some(value) = counter_value(CacheMiss) => self.stats.cache_miss.store(time, value);
+                if let Some(value) = counter_value(Cycles) => self.stats.cycles.store(time, value);
+                if let Some(value) = counter_value(DtlbLoadMiss) => self.stats.dtlb_load_miss.store(time, value);
+                if let Some(value) = counter_value(DtlbLoadAccess) => self.stats.dtlb_load_access.store(time, value);
+                if let Some(value) = counter_value(DtlbStoreMiss) => self.stats.dtlb_store_miss.store(time, value);
+                if let Some(value) = counter_value(DtlbStoreAccess) => self.stats.dtlb_store_access.store(time, value);
+                if let Some(value) = counter_value(Instructions) => self.stats.instructions.store(time, value);
+                if let Some(value) = counter_value(ReferenceCycles) => self.stats.reference_cycles.store(time, value);
             }
         }
         Ok(())
     }
 
     async fn sample_cstates(&mut self) -> Result<(), std::io::Error> {
+        use self::CpuStatistic::*;
+
         let mut result = HashMap::<CpuStatistic, u64>::new();
 
         // populate the cpu cache if empty
@@ -377,56 +386,58 @@ impl Cpu {
         }
 
         let time = Instant::now();
-        for stat in &self.statistics {
-            if let Some(value) = result.get(stat) {
-                let _ = self.metrics().record_counter(stat, time, *value);
-            }
+        if_block! {
+            if let Some(&value) = result.get(&CstateC0Time) => self.stats.cstate_c0_time.store(time, value);
+            if let Some(&value) = result.get(&CstateC1Time) => self.stats.cstate_c1_time.store(time, value);
+            if let Some(&value) = result.get(&CstateC1ETime) => self.stats.cstate_c1e_time.store(time, value);
+            if let Some(&value) = result.get(&CstateC2Time) => self.stats.cstate_c2_time.store(time, value);
+            if let Some(&value) = result.get(&CstateC3Time) => self.stats.cstate_c3_time.store(time, value);
+            if let Some(&value) = result.get(&CstateC6Time) => self.stats.cstate_c6_time.store(time, value);
+            if let Some(&value) = result.get(&CstateC7Time) => self.stats.cstate_c7_time.store(time, value);
+            if let Some(&value) = result.get(&CstateC8Time) => self.stats.cstate_c8_time.store(time, value);
         }
 
         Ok(())
     }
-}
 
-fn parse_proc_stat(line: &str) -> HashMap<CpuStatistic, u64> {
-    let mut result = HashMap::new();
-    for (id, part) in line.split_whitespace().enumerate() {
-        match id {
-            0 => {
-                if part != "cpu" {
-                    return result;
-                }
-            }
-            1 => {
-                result.insert(CpuStatistic::UsageUser, part.parse().unwrap_or(0));
-            }
-            2 => {
-                result.insert(CpuStatistic::UsageNice, part.parse().unwrap_or(0));
-            }
-            3 => {
-                result.insert(CpuStatistic::UsageSystem, part.parse().unwrap_or(0));
-            }
-            4 => {
-                result.insert(CpuStatistic::UsageIdle, part.parse().unwrap_or(0));
-            }
-            6 => {
-                result.insert(CpuStatistic::UsageIrq, part.parse().unwrap_or(0));
-            }
-            7 => {
-                result.insert(CpuStatistic::UsageSoftirq, part.parse().unwrap_or(0));
-            }
-            8 => {
-                result.insert(CpuStatistic::UsageSteal, part.parse().unwrap_or(0));
-            }
-            9 => {
-                result.insert(CpuStatistic::UsageGuest, part.parse().unwrap_or(0));
-            }
-            10 => {
-                result.insert(CpuStatistic::UsageGuestNice, part.parse().unwrap_or(0));
-            }
-            _ => {}
+    // Note: returns option to make the implementation easier
+    fn record_proc_stat(stats: &CpuStats, time: Instant, line: &str) -> Option<()> {
+        let mut iter = line.split_whitespace();
+
+        if iter.next()? != "cpu" {
+            return Some(());
         }
+
+        stats
+            .usage_user
+            .store(time, iter.next()?.parse().unwrap_or(0));
+        stats
+            .usage_nice
+            .store(time, iter.next()?.parse().unwrap_or(0));
+        stats
+            .usage_system
+            .store(time, iter.next()?.parse().unwrap_or(0));
+        stats
+            .usage_idle
+            .store(time, iter.next()?.parse().unwrap_or(0));
+        stats
+            .usage_irq
+            .store(time, iter.next()?.parse().unwrap_or(0));
+        stats
+            .usage_softirq
+            .store(time, iter.next()?.parse().unwrap_or(0));
+        stats
+            .usage_steal
+            .store(time, iter.next()?.parse().unwrap_or(0));
+        stats
+            .usage_guest
+            .store(time, iter.next()?.parse().unwrap_or(0));
+        stats
+            .usage_guest_nice
+            .store(time, iter.next()?.parse().unwrap_or(0));
+
+        Some(())
     }
-    result
 }
 
 fn parse_frequency(line: &str) -> Option<f64> {
@@ -441,15 +452,6 @@ fn parse_frequency(line: &str) -> Option<f64> {
 #[cfg(test)]
 mod test {
     use super::*;
-
-    #[test]
-    fn test_parse_proc_stat() {
-        let result = parse_proc_stat("cpu  131586 0 53564 8246483 35015 350665 4288 5632 0 0");
-        assert_eq!(result.len(), 9);
-        assert_eq!(result.get(&CpuStatistic::UsageUser), Some(&131586));
-        assert_eq!(result.get(&CpuStatistic::UsageNice), Some(&0));
-        assert_eq!(result.get(&CpuStatistic::UsageSystem), Some(&53564));
-    }
 
     #[test]
     fn test_parse_frequency() {
