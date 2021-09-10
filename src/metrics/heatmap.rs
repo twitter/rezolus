@@ -1,3 +1,7 @@
+// Copyright 2019-2020 Twitter, Inc.
+// Licensed under the Apache License, Version 2.0
+// http://www.apache.org/licenses/LICENSE-2.0
+
 #![allow(dead_code)]
 
 use std::any::Any;
