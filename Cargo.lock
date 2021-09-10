@@ -1375,7 +1375,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-atomics"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
+source = "git+https://github.com/twitter/rustcommon?branch=master#ce8c10abcf2a1e9a69a40d235f02ed16ca6eaf36"
 dependencies = [
  "serde",
 ]
@@ -1383,7 +1383,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-heatmap"
 version = "0.1.1"
-source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
+source = "git+https://github.com/twitter/rustcommon?branch=master#ce8c10abcf2a1e9a69a40d235f02ed16ca6eaf36"
 dependencies = [
  "crossbeam",
  "rustcommon-atomics",
@@ -1394,7 +1394,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-histogram"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
+source = "git+https://github.com/twitter/rustcommon?branch=master#ce8c10abcf2a1e9a69a40d235f02ed16ca6eaf36"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
@@ -1403,7 +1403,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-logger"
 version = "1.0.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
+source = "git+https://github.com/twitter/rustcommon?branch=master#ce8c10abcf2a1e9a69a40d235f02ed16ca6eaf36"
 dependencies = [
  "log 0.4.14",
  "time",
@@ -1412,7 +1412,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics"
 version = "2.0.0-alpha.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
+source = "git+https://github.com/twitter/rustcommon?branch=master#ce8c10abcf2a1e9a69a40d235f02ed16ca6eaf36"
 dependencies = [
  "crossbeam",
  "dashmap 3.11.10",
@@ -1425,7 +1425,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics-derive"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
+source = "git+https://github.com/twitter/rustcommon?branch=master#ce8c10abcf2a1e9a69a40d235f02ed16ca6eaf36"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1436,7 +1436,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-metrics-v2"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
+source = "git+https://github.com/twitter/rustcommon?branch=master#ce8c10abcf2a1e9a69a40d235f02ed16ca6eaf36"
 dependencies = [
  "linkme",
  "once_cell",
@@ -1449,7 +1449,7 @@ dependencies = [
 [[package]]
 name = "rustcommon-streamstats"
 version = "0.1.0"
-source = "git+https://github.com/twitter/rustcommon?branch=master#5b60456f099f3e7fbecd81cade8ce08eb4da1349"
+source = "git+https://github.com/twitter/rustcommon?branch=master#ce8c10abcf2a1e9a69a40d235f02ed16ca6eaf36"
 dependencies = [
  "rustcommon-atomics",
  "thiserror",
