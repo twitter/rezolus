@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ext4::spawn(common.clone());
     Http::spawn(common.clone());
     Interrupt::spawn(common.clone());
-    Usercall::spawn(common.clone());
+    Krb5kdc::spawn(common.clone());
     Memcache::spawn(common.clone());
     Memory::spawn(common.clone());
     PageCache::spawn(common.clone());
@@ -92,6 +92,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Softnet::spawn(common.clone());
     Tcp::spawn(common.clone());
     Udp::spawn(common.clone());
+    Usercall::spawn(common.clone());
     Xfs::spawn(common);
 
     #[cfg(feature = "push_kafka")]
