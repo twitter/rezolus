@@ -53,6 +53,24 @@ pub use udp::Udp;
 pub use usercall::Usercall;
 pub use xfs::Xfs;
 
+pub fn static_interval<S: Statistic<AtomicU64, AtomicU32>>(
+    sampler_config: &dyn SamplerConfig<Statistic = S>,
+    general_config: &GeneralConfig,
+) -> usize {
+    sampler_config
+        .interval()
+        .unwrap_or_else(|| general_config.interval())
+}
+
+pub fn static_samples<S: Statistic<AtomicU64, AtomicU32>>(
+    sampler_config: &dyn SamplerConfig<Statistic = S>,
+    general_config: &GeneralConfig,
+) -> usize {
+    ((1000.0 / static_interval(sampler_config, general_config) as f64)
+        * general_config.window() as f64)
+        .ceil() as usize
+}
+
 #[async_trait]
 pub trait Sampler: Sized + Send {
     type Statistic: Statistic<AtomicU64, AtomicU32>;
@@ -71,9 +89,7 @@ pub trait Sampler: Sized + Send {
     async fn sample(&mut self) -> Result<(), std::io::Error>;
 
     fn interval(&self) -> usize {
-        self.sampler_config()
-            .interval()
-            .unwrap_or_else(|| self.general_config().interval())
+        static_interval(self.sampler_config(), self.general_config())
     }
 
     /// Wait until the next time to sample
@@ -139,7 +155,7 @@ pub trait Sampler: Sized + Send {
     }
 
     fn samples(&self) -> usize {
-        ((1000.0 / self.interval() as f64) * self.general_config().window() as f64).ceil() as usize
+        static_samples(self.sampler_config(), self.general_config())
     }
 
     fn metrics(&self) -> &Metrics<AtomicU64, AtomicU32> {

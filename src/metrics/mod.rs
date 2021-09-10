@@ -2,14 +2,16 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use rustcommon_metrics_v2::Metric;
 use std::any::Any;
 use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 mod heatmap;
+mod stream;
 
-pub use self::heatmap::{HeatmapSummarizedCounter, HeatmapSummarizedGauge, SampledHeatmap};
-use rustcommon_metrics_v2::Metric;
+pub use self::heatmap::{SampledHeatmap, SummarizedDistribution};
+pub use self::stream::{SampledStream, StreamSummarizedCounter, StreamSummarizedGauge};
 pub use rustcommon_metrics_v2::{metric, Counter, DynBoxedMetric, Gauge, Heatmap};
 
 /// A short form for a sequence of if statements.
@@ -34,6 +36,31 @@ macro_rules! if_block {
         if_block! { $( $rest )* }
     }};
     {} => {};
+}
+
+macro_rules! stats_struct {
+    {
+        $( #[$attr:meta] )*
+        $svis:vis struct $struct:ident {
+            $( $vis:vis $field:ident: $ty:ty = $name:literal ),* $(,)?
+        }
+    } => {
+        $( #[$attr] )*
+        $svis struct $struct {
+            $( $vis $field: $ty, )*
+        }
+
+        impl $struct {
+            #[allow(dead_code)]
+            pub fn register(&mut self, enabled: &HashSet<&str>) {
+                $(
+                    if enabled.contains($name) {
+                        self.$field.register($name)
+                    }
+                )*
+            }
+        }
+    }
 }
 
 /// A metric that isn't enabled until it is first accessed.

@@ -10,6 +10,50 @@ use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
+use crate::metrics::{StreamSummarizedCounter, SummarizedDistribution};
+use std::collections::HashSet;
+use std::time::Duration;
+
+stats_struct! {
+    pub struct DiskStats {
+        pub bandwidth_read: StreamSummarizedCounter = "disk/read/bytes",
+        pub bandwidth_write: StreamSummarizedCounter = "disk/write/bytes",
+        pub bandwidth_discard: StreamSummarizedCounter = "disk/discard/bytes",
+        pub operations_read: StreamSummarizedCounter = "disk/read/operations",
+        pub operations_write: StreamSummarizedCounter = "disk/write/operations",
+        pub operations_discard: StreamSummarizedCounter = "disk/discard/operations",
+        pub latency_read: SummarizedDistribution = "disk/read/latency",
+        pub latency_write: SummarizedDistribution = "disk/write/latency",
+        pub device_latency_read: SummarizedDistribution = "disk/read/device_latency",
+        pub device_latency_write: SummarizedDistribution = "disk/write/device_latency",
+        pub queue_latency_read: SummarizedDistribution = "disk/read/queue_latency",
+        pub queue_latency_write: SummarizedDistribution = "disk/write/queue_latency",
+        pub io_size_read: SummarizedDistribution = "disk/read/io_size",
+        pub io_size_write: SummarizedDistribution = "disk/write/io_size",
+    }
+}
+
+impl DiskStats {
+    pub fn new(capacity: usize, span: Duration, percentiles: &[f64]) -> Self {
+        Self {
+            bandwidth_read: StreamSummarizedCounter::new(capacity, percentiles),
+            bandwidth_write: StreamSummarizedCounter::new(capacity, percentiles),
+            bandwidth_discard: StreamSummarizedCounter::new(capacity, percentiles),
+            operations_read: StreamSummarizedCounter::new(capacity, percentiles),
+            operations_write: StreamSummarizedCounter::new(capacity, percentiles),
+            operations_discard: StreamSummarizedCounter::new(capacity, percentiles),
+            latency_read: SummarizedDistribution::new(span, percentiles),
+            latency_write: SummarizedDistribution::new(span, percentiles),
+            device_latency_read: SummarizedDistribution::new(span, percentiles),
+            device_latency_write: SummarizedDistribution::new(span, percentiles),
+            queue_latency_read: SummarizedDistribution::new(span, percentiles),
+            queue_latency_write: SummarizedDistribution::new(span, percentiles),
+            io_size_read: SummarizedDistribution::new(span, percentiles),
+            io_size_write: SummarizedDistribution::new(span, percentiles),
+        }
+    }
+}
+
 #[derive(
     Clone,
     Copy,

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::collections::HashMap;
 use std::io::SeekFrom;
 use std::sync::{Arc, Mutex};
 use std::time::*;
@@ -31,6 +30,7 @@ pub struct Disk {
     proc_diskstats: Option<File>,
     disk_regex: Option<Regex>,
     statistics: Vec<DiskStatistic>,
+    stats: DiskStats,
 }
 
 #[async_trait]
@@ -43,6 +43,14 @@ impl Sampler for Disk {
 
         #[allow(unused_mut)]
         let mut sampler = Self {
+            stats: DiskStats::new(
+                crate::samplers::static_samples(
+                    common.config().samplers().disk(),
+                    common.config().general(),
+                ),
+                Duration::from_secs(common.config().general().window() as _),
+                common.config().samplers().disk().percentiles(),
+            ),
             bpf: None,
             bpf_last: Arc::new(Mutex::new(Instant::now())),
             common,
@@ -185,43 +193,49 @@ impl Disk {
         }
 
         if let Some(file) = &mut self.proc_diskstats {
+            let mut operations_read = None;
+            let mut operations_write = None;
+            let mut operations_discard = None;
+            let mut bandwidth_read = None;
+            let mut bandwidth_write = None;
+            let mut bandwidth_discard = None;
+
             file.seek(SeekFrom::Start(0)).await?;
             if let Some(re) = &mut self.disk_regex {
                 let mut reader = BufReader::new(file);
                 let mut line = String::new();
-                let mut result = HashMap::<DiskStatistic, u64>::new();
                 while reader.read_line(&mut line).await? > 0 {
                     let parts: Vec<&str> = line.split_whitespace().collect();
                     if re.is_match(parts.get(2).unwrap_or(&"unknown")) {
                         for (id, part) in parts.iter().enumerate() {
-                            if let Some(statistic) = match id {
-                                3 => Some(DiskStatistic::OperationsRead),
-                                5 => Some(DiskStatistic::BandwidthRead),
-                                7 => Some(DiskStatistic::OperationsWrite),
-                                9 => Some(DiskStatistic::BandwidthWrite),
-                                14 => Some(DiskStatistic::OperationsDiscard),
-                                16 => Some(DiskStatistic::BandwidthDiscard),
-                                _ => None,
-                            } {
-                                result.entry(statistic).or_insert(0);
-                                let current = result.get_mut(&statistic).unwrap();
-                                *current += part.parse().unwrap_or(0);
+                            match id {
+                                3 => *operations_read.get_or_insert(0) += part.parse().unwrap_or(0),
+                                5 => *bandwidth_read.get_or_insert(0) += part.parse().unwrap_or(0),
+                                7 => {
+                                    *operations_write.get_or_insert(0) += part.parse().unwrap_or(0)
+                                }
+                                9 => *bandwidth_write.get_or_insert(0) += part.parse().unwrap_or(0),
+                                14 => {
+                                    *operations_discard.get_or_insert(0) +=
+                                        part.parse().unwrap_or(0)
+                                }
+                                16 => {
+                                    *bandwidth_discard.get_or_insert(0) += part.parse().unwrap_or(0)
+                                }
+                                _ => (),
                             }
                         }
                     }
                     line.clear();
                 }
                 let time = Instant::now();
-                for stat in &self.statistics {
-                    if let Some(value) = result.get(stat) {
-                        let value = match stat {
-                            DiskStatistic::BandwidthWrite
-                            | DiskStatistic::BandwidthRead
-                            | DiskStatistic::BandwidthDiscard => value * 512,
-                            _ => *value,
-                        };
-                        let _ = self.metrics().record_counter(stat, time, value);
-                    }
+                if_block! {
+                    if let Some(value) = operations_read => self.stats.operations_read.store(time, value);
+                    if let Some(value) = operations_write => self.stats.operations_write.store(time, value);
+                    if let Some(value) = operations_discard => self.stats.operations_discard.store(time, value);
+                    if let Some(value) = bandwidth_read => self.stats.bandwidth_read.store(time, value * 512);
+                    if let Some(value) = bandwidth_write => self.stats.bandwidth_write.store(time, value * 512);
+                    if let Some(value) = bandwidth_discard => self.stats.bandwidth_discard.store(time, value * 512);
                 }
             }
         }
@@ -231,27 +245,53 @@ impl Disk {
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
-        use std::convert::TryInto;
         if self.bpf_last.lock().unwrap().elapsed()
-            >= Duration::new(self.general_config().window().try_into().unwrap(), 0)
+            >= Duration::from_secs(self.general_config().window() as _)
         {
             let time = Instant::now();
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();
-                for statistic in self.statistics.iter().filter(|s| s.bpf_table().is_some()) {
-                    if let Ok(mut table) = (*bpf).inner.table(statistic.bpf_table().unwrap()) {
-                        for (&value, &count) in &map_from_table(&mut table) {
-                            if count > 0 {
-                                let _ = self.metrics().record_bucket(
-                                    statistic,
-                                    time,
-                                    value * crate::MICROSECOND,
-                                    count,
-                                );
+
+                macro_rules! record_bucket {
+                    ($metric:expr, $stat:expr, $time:expr) => {{
+                        let ref metric = $metric;
+                        let time = $time;
+
+                        if let Ok(mut table) = bpf.inner.table($stat.bpf_table().unwrap()) {
+                            for (&value, &count) in &map_from_table(&mut table) {
+                                if count == 0 {
+                                    continue;
+                                }
+                                let _ = metric.insert(time, value * crate::MICROSECOND, count);
                             }
                         }
-                    }
+                    }};
                 }
+
+                record_bucket!(self.stats.latency_read, DiskStatistic::LatencyRead, time);
+                record_bucket!(self.stats.latency_write, DiskStatistic::LatencyWrite, time);
+                record_bucket!(
+                    self.stats.device_latency_read,
+                    DiskStatistic::DeviceLatencyRead,
+                    time
+                );
+                record_bucket!(
+                    self.stats.device_latency_write,
+                    DiskStatistic::DeviceLatencyWrite,
+                    time
+                );
+                record_bucket!(
+                    self.stats.queue_latency_read,
+                    DiskStatistic::QueueLatencyRead,
+                    time
+                );
+                record_bucket!(
+                    self.stats.queue_latency_write,
+                    DiskStatistic::QueueLatencyWrite,
+                    time
+                );
+                record_bucket!(self.stats.io_size_read, DiskStatistic::IoSizeRead, time);
+                record_bucket!(self.stats.io_size_write, DiskStatistic::IoSizeWrite, time);
             }
             *self.bpf_last.lock().unwrap() = Instant::now();
         }

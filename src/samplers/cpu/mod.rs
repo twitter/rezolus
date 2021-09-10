@@ -57,7 +57,13 @@ impl Sampler for Cpu {
         let statistics = common.config().samplers().cpu().statistics();
         #[allow(unused_mut)]
         let mut sampler = Self {
-            stats: CpuStats::new(&common, common.config.samplers().cpu().percentiles()),
+            stats: CpuStats::new(
+                crate::samplers::static_samples(
+                    common.config().samplers().cpu(),
+                    common.config().general(),
+                ),
+                common.config.samplers().cpu().percentiles(),
+            ),
             common,
             cpus: HashSet::new(),
             cstates: HashMap::new(),
@@ -71,7 +77,9 @@ impl Sampler for Cpu {
 
         if sampler.sampler_config().enabled() {
             sampler.register();
-            sampler.stats.register(&sampler.statistics.iter().copied().collect());
+            sampler
+                .stats
+                .register(&sampler.statistics.iter().map(|x| x.into()).collect());
         }
 
         // we initialize perf last so we can delay
@@ -362,7 +370,7 @@ impl Cpu {
                             if let Some(state) = state.split('-').next() {
                                 let cstate = match CState::from_str(&state) {
                                     Ok(cstate) => cstate,
-                                    _ => continue
+                                    _ => continue,
                                 };
                                 let counter = result.entry(cstate).or_insert(0);
                                 *counter += time * MICROSECOND;

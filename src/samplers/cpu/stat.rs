@@ -14,112 +14,74 @@ use strum::ParseError;
 use strum_macros::{AsStaticStr, EnumIter, EnumString, IntoStaticStr};
 
 use crate::metrics::*;
-use std::time::Duration;
 use std::collections::HashSet;
 
-pub(super) struct CpuStats {
-    pub usage_user: HeatmapSummarizedCounter,
-    pub usage_nice: HeatmapSummarizedCounter,
-    pub usage_system: HeatmapSummarizedCounter,
-    pub usage_idle: HeatmapSummarizedCounter,
-    pub usage_irq: HeatmapSummarizedCounter,
-    pub usage_softirq: HeatmapSummarizedCounter,
-    pub usage_steal: HeatmapSummarizedCounter,
-    pub usage_guest: HeatmapSummarizedCounter,
-    pub usage_guest_nice: HeatmapSummarizedCounter,
-    pub cache_miss: HeatmapSummarizedCounter,
-    pub cache_access: HeatmapSummarizedCounter,
-    pub bpu_branches: HeatmapSummarizedCounter,
-    pub bpu_miss: HeatmapSummarizedCounter,
-    pub cycles: HeatmapSummarizedCounter,
-    pub dtlb_load_miss: HeatmapSummarizedCounter,
-    pub dtlb_load_access: HeatmapSummarizedCounter,
-    pub dtlb_store_access: HeatmapSummarizedCounter,
-    pub dtlb_store_miss: HeatmapSummarizedCounter,
-    pub instructions: HeatmapSummarizedCounter,
-    pub reference_cycles: HeatmapSummarizedCounter,
-    pub cstate_c0_time: HeatmapSummarizedCounter,
-    pub cstate_c1_time: HeatmapSummarizedCounter,
-    pub cstate_c1e_time: HeatmapSummarizedCounter,
-    pub cstate_c2_time: HeatmapSummarizedCounter,
-    pub cstate_c3_time: HeatmapSummarizedCounter,
-    pub cstate_c6_time: HeatmapSummarizedCounter,
-    pub cstate_c7_time: HeatmapSummarizedCounter,
-    pub cstate_c8_time: HeatmapSummarizedCounter,
-    pub frequency: HeatmapSummarizedGauge,
+stats_struct! {
+    pub(super) struct CpuStats {
+        pub usage_user: StreamSummarizedCounter        = "cpu/usage/user",
+        pub usage_nice: StreamSummarizedCounter        = "cpu/usage/nice",
+        pub usage_system: StreamSummarizedCounter      = "cpu/usage/system",
+        pub usage_idle: StreamSummarizedCounter        = "cpu/usage/idle",
+        pub usage_irq: StreamSummarizedCounter         = "cpu/usage/irq",
+        pub usage_softirq: StreamSummarizedCounter     = "cpu/usage/softirq",
+        pub usage_steal: StreamSummarizedCounter       = "cpu/usage/steal",
+        pub usage_guest: StreamSummarizedCounter       = "cpu/usage/guest",
+        pub usage_guest_nice: StreamSummarizedCounter  = "cpu/usage/guestnice",
+        pub cache_miss: StreamSummarizedCounter        = "cpu/cache/miss",
+        pub cache_access: StreamSummarizedCounter      = "cpu/cache/access",
+        pub bpu_branches: StreamSummarizedCounter      = "cpu/bpu/branch",
+        pub bpu_miss: StreamSummarizedCounter          = "cpu/bpu/miss",
+        pub cycles: StreamSummarizedCounter            = "cpu/cycles",
+        pub dtlb_load_miss: StreamSummarizedCounter    = "cpu/dtlb/load/miss",
+        pub dtlb_load_access: StreamSummarizedCounter  = "cpu/dtlb/load/access",
+        pub dtlb_store_access: StreamSummarizedCounter = "cpu/dtlb/store/access",
+        pub dtlb_store_miss: StreamSummarizedCounter   = "cpu/dtlb/store/miss",
+        pub instructions: StreamSummarizedCounter      = "cpu/instructions",
+        pub reference_cycles: StreamSummarizedCounter  = "cpu/reference_cycles",
+        pub cstate_c0_time: StreamSummarizedCounter    = "cpu/cstate/c0/time",
+        pub cstate_c1_time: StreamSummarizedCounter    = "cpu/cstate/c1/time",
+        pub cstate_c1e_time: StreamSummarizedCounter   = "cpu/cstate/c1e/time",
+        pub cstate_c2_time: StreamSummarizedCounter    = "cpu/cstate/c2/time",
+        pub cstate_c3_time: StreamSummarizedCounter    = "cpu/cstate/c3/time",
+        pub cstate_c6_time: StreamSummarizedCounter    = "cpu/cstate/c6/time",
+        pub cstate_c7_time: StreamSummarizedCounter    = "cpu/cstate/c7/time",
+        pub cstate_c8_time: StreamSummarizedCounter    = "cpu/cstate/c8/time",
+        pub frequency: StreamSummarizedGauge           = "cpu/frequency",
+    }
 }
 
 impl CpuStats {
-    pub fn new(common: &crate::samplers::Common, percentiles: &[f64]) -> Self {
-        let span = Duration::from_secs(common.config().general().window() as _);
-        let heatmap = || HeatmapSummarizedCounter::new(span, percentiles);
-
+    pub fn new(capacity: usize, percentiles: &[f64]) -> Self {
         Self {
-            usage_user: heatmap(),
-            usage_nice: heatmap(),
-            usage_system: heatmap(),
-            usage_idle: heatmap(),
-            usage_irq: heatmap(),
-            usage_softirq: heatmap(),
-            usage_steal: heatmap(),
-            usage_guest: heatmap(),
-            usage_guest_nice: heatmap(),
-            cache_miss: heatmap(),
-            cache_access: heatmap(),
-            bpu_branches: heatmap(),
-            bpu_miss: heatmap(),
-            cycles: heatmap(),
-            dtlb_load_miss: heatmap(),
-            dtlb_load_access: heatmap(),
-            dtlb_store_access: heatmap(),
-            dtlb_store_miss: heatmap(),
-            instructions: heatmap(),
-            reference_cycles: heatmap(),
-            cstate_c0_time: heatmap(),
-            cstate_c1_time: heatmap(),
-            cstate_c1e_time: heatmap(),
-            cstate_c2_time: heatmap(),
-            cstate_c3_time: heatmap(),
-            cstate_c6_time: heatmap(),
-            cstate_c7_time: heatmap(),
-            cstate_c8_time: heatmap(),
-            frequency: HeatmapSummarizedGauge::new(span, percentiles),
-        }
-    }
-
-    pub fn register(&mut self, stats: &HashSet<CpuStatistic>) {
-        use self::CpuStatistic::*;
-
-        if_block! {
-            if stats.contains(&UsageUser) => self.usage_user.register("cpu/usage/user");
-            if stats.contains(&UsageNice) => self.usage_nice.register("cpu/usage/nice");
-            if stats.contains(&UsageSystem) => self.usage_system.register("cpu/usage/system");
-            if stats.contains(&UsageIdle) => self.usage_idle.register("cpu/usage/idle");
-            if stats.contains(&UsageIrq) => self.usage_irq.register("cpu/usage/irq");
-            if stats.contains(&UsageSoftirq) => self.usage_softirq.register("cpu/usage/softirq");
-            if stats.contains(&UsageSteal) => self.usage_steal.register("cpu/usage/steal");
-            if stats.contains(&UsageGuest) => self.usage_guest.register("cpu/usage/guest");
-            if stats.contains(&UsageGuestNice) => self.usage_guest_nice.register("cpu/usage/guestnice");
-            if stats.contains(&CacheMiss) => self.cache_miss.register("cpu/cache/miss");
-            if stats.contains(&CacheAccess) => self.cache_access.register("cpu/cache/access");
-            if stats.contains(&BpuBranches) => self.bpu_branches.register("cpu/bpu/branch");
-            if stats.contains(&BpuMiss) => self.bpu_miss.register("cpu/bpu/miss");
-            if stats.contains(&Cycles) => self.cycles.register("cpu/cycles");
-            if stats.contains(&DtlbLoadMiss) => self.dtlb_load_miss.register("cpu/dtlb/load/miss");
-            if stats.contains(&DtlbLoadAccess) => self.dtlb_load_access.register("cpu/dtlb/load/access");
-            if stats.contains(&DtlbStoreAccess) => self.dtlb_store_access.register("cpu/dtlb/store/access");
-            if stats.contains(&DtlbStoreMiss) => self.dtlb_store_miss.register("cpu/dtlb/store/miss");
-            if stats.contains(&Instructions) => self.instructions.register("cpu/instructions");
-            if stats.contains(&ReferenceCycles) => self.reference_cycles.register("cpu/reference_cycles");
-            if stats.contains(&CstateC0Time) => self.cstate_c0_time.register("cpu/cstate/c0/time");
-            if stats.contains(&CstateC1Time) => self.cstate_c1_time.register("cpu/cstate/c1/time");
-            if stats.contains(&CstateC1ETime) => self.cstate_c1e_time.register("cpu/cstate/c1e/time");
-            if stats.contains(&CstateC2Time) => self.cstate_c2_time.register("cpu/cstate/c2/time");
-            if stats.contains(&CstateC3Time) => self.cstate_c3_time.register("cpu/cstate/c3/time");
-            if stats.contains(&CstateC6Time) => self.cstate_c6_time.register("cpu/cstate/c6/time");
-            if stats.contains(&CstateC7Time) => self.cstate_c7_time.register("cpu/cstate/c7/time");
-            if stats.contains(&CstateC8Time) => self.cstate_c8_time.register("cpu/cstate/c8/time");
-            if stats.contains(&Frequency) => self.frequency.register("cpu/frequency");
+            usage_user: StreamSummarizedCounter::new(capacity, percentiles),
+            usage_nice: StreamSummarizedCounter::new(capacity, percentiles),
+            usage_system: StreamSummarizedCounter::new(capacity, percentiles),
+            usage_idle: StreamSummarizedCounter::new(capacity, percentiles),
+            usage_irq: StreamSummarizedCounter::new(capacity, percentiles),
+            usage_softirq: StreamSummarizedCounter::new(capacity, percentiles),
+            usage_steal: StreamSummarizedCounter::new(capacity, percentiles),
+            usage_guest: StreamSummarizedCounter::new(capacity, percentiles),
+            usage_guest_nice: StreamSummarizedCounter::new(capacity, percentiles),
+            cache_miss: StreamSummarizedCounter::new(capacity, percentiles),
+            cache_access: StreamSummarizedCounter::new(capacity, percentiles),
+            bpu_branches: StreamSummarizedCounter::new(capacity, percentiles),
+            bpu_miss: StreamSummarizedCounter::new(capacity, percentiles),
+            cycles: StreamSummarizedCounter::new(capacity, percentiles),
+            dtlb_load_miss: StreamSummarizedCounter::new(capacity, percentiles),
+            dtlb_load_access: StreamSummarizedCounter::new(capacity, percentiles),
+            dtlb_store_access: StreamSummarizedCounter::new(capacity, percentiles),
+            dtlb_store_miss: StreamSummarizedCounter::new(capacity, percentiles),
+            instructions: StreamSummarizedCounter::new(capacity, percentiles),
+            reference_cycles: StreamSummarizedCounter::new(capacity, percentiles),
+            cstate_c0_time: StreamSummarizedCounter::new(capacity, percentiles),
+            cstate_c1_time: StreamSummarizedCounter::new(capacity, percentiles),
+            cstate_c1e_time: StreamSummarizedCounter::new(capacity, percentiles),
+            cstate_c2_time: StreamSummarizedCounter::new(capacity, percentiles),
+            cstate_c3_time: StreamSummarizedCounter::new(capacity, percentiles),
+            cstate_c6_time: StreamSummarizedCounter::new(capacity, percentiles),
+            cstate_c7_time: StreamSummarizedCounter::new(capacity, percentiles),
+            cstate_c8_time: StreamSummarizedCounter::new(capacity, percentiles),
+            frequency: StreamSummarizedGauge::new(capacity, percentiles),
         }
     }
 }

@@ -8,7 +8,7 @@ use std::time::Instant;
 
 use rustcommon_metrics::*;
 
-use crate::metrics::{Counter, Gauge, SampledHeatmap};
+use crate::metrics::{Counter, Gauge, SampledHeatmap, SampledStream};
 
 mod http;
 #[cfg(feature = "push_kafka")]
@@ -76,14 +76,19 @@ impl MetricsSnapshot {
                     (metric.name().to_owned(), Output::Reading, gauge.value() as _)),
                 heatmap @ SampledHeatmap => {
                     for &percentile in heatmap.percentiles() {
-                        // SampledHeatmaps are by default named as <thing>/histogram
-                        // However, prometheus wants this to be exported as <thing>{{..}}
-                        let name = metric.name().trim_end_matches("/histogram");
-
                         self.snapshot_v2.push((
-                            name.to_owned(),
+                            metric.name().to_owned(),
                             Output::Percentile(percentile),
                             heatmap.percentile(percentile).unwrap_or(0)
+                        ));
+                    }
+                },
+                stream @ SampledStream => {
+                    for &percentile in stream.percentiles() {
+                        self.snapshot_v2.push((
+                            metric.name().to_owned(),
+                            Output::Percentile(percentile),
+                            stream.percentile(percentile).unwrap_or(0)
                         ));
                     }
                 },
