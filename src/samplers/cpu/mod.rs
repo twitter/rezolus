@@ -295,9 +295,7 @@ impl Cpu {
     }
 
     async fn sample_cstates(&mut self) -> Result<(), std::io::Error> {
-        use self::CpuStatistic::*;
-
-        let mut result = HashMap::<CpuStatistic, u64>::new();
+        let mut result = HashMap::<CState, u64>::new();
 
         // populate the cpu cache if empty
         if self.cpus.is_empty() {
@@ -362,18 +360,11 @@ impl Cpu {
                         let mut reader = BufReader::new(file);
                         if let Ok(time) = reader.read_u64().await {
                             if let Some(state) = state.split('-').next() {
-                                let metric = match CState::from_str(&state) {
-                                    Ok(CState::C0) => CpuStatistic::CstateC0Time,
-                                    Ok(CState::C1) => CpuStatistic::CstateC1Time,
-                                    Ok(CState::C1E) => CpuStatistic::CstateC1ETime,
-                                    Ok(CState::C2) => CpuStatistic::CstateC2Time,
-                                    Ok(CState::C3) => CpuStatistic::CstateC3Time,
-                                    Ok(CState::C6) => CpuStatistic::CstateC6Time,
-                                    Ok(CState::C7) => CpuStatistic::CstateC7Time,
-                                    Ok(CState::C8) => CpuStatistic::CstateC8Time,
-                                    _ => continue,
+                                let cstate = match CState::from_str(&state) {
+                                    Ok(cstate) => cstate,
+                                    _ => continue
                                 };
-                                let counter = result.entry(metric).or_insert(0);
+                                let counter = result.entry(cstate).or_insert(0);
                                 *counter += time * MICROSECOND;
                             }
                         }
@@ -384,14 +375,14 @@ impl Cpu {
 
         let time = Instant::now();
         if_block! {
-            if let Some(&value) = result.get(&CstateC0Time) => self.stats.cstate_c0_time.store(time, value);
-            if let Some(&value) = result.get(&CstateC1Time) => self.stats.cstate_c1_time.store(time, value);
-            if let Some(&value) = result.get(&CstateC1ETime) => self.stats.cstate_c1e_time.store(time, value);
-            if let Some(&value) = result.get(&CstateC2Time) => self.stats.cstate_c2_time.store(time, value);
-            if let Some(&value) = result.get(&CstateC3Time) => self.stats.cstate_c3_time.store(time, value);
-            if let Some(&value) = result.get(&CstateC6Time) => self.stats.cstate_c6_time.store(time, value);
-            if let Some(&value) = result.get(&CstateC7Time) => self.stats.cstate_c7_time.store(time, value);
-            if let Some(&value) = result.get(&CstateC8Time) => self.stats.cstate_c8_time.store(time, value);
+            if let Some(&value) = result.get(&CState::C0) => self.stats.cstate_c0_time.store(time, value);
+            if let Some(&value) = result.get(&CState::C1) => self.stats.cstate_c1_time.store(time, value);
+            if let Some(&value) = result.get(&CState::C1E) => self.stats.cstate_c1e_time.store(time, value);
+            if let Some(&value) = result.get(&CState::C2) => self.stats.cstate_c2_time.store(time, value);
+            if let Some(&value) = result.get(&CState::C3) => self.stats.cstate_c3_time.store(time, value);
+            if let Some(&value) = result.get(&CState::C6) => self.stats.cstate_c6_time.store(time, value);
+            if let Some(&value) = result.get(&CState::C7) => self.stats.cstate_c7_time.store(time, value);
+            if let Some(&value) = result.get(&CState::C8) => self.stats.cstate_c8_time.store(time, value);
         }
 
         Ok(())
