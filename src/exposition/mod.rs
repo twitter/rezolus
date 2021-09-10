@@ -42,6 +42,7 @@ macro_rules! downcast_match {
 pub struct MetricsSnapshot {
     metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
     snapshot: HashMap<Metric<AtomicU64, AtomicU32>, u64>,
+    snapshot_v2: Vec<(String, Output, u64)>,
     refreshed: Instant,
     count_label: Option<String>,
 }
@@ -51,6 +52,7 @@ impl MetricsSnapshot {
         Self {
             metrics,
             snapshot: HashMap::new(),
+            snapshot_v2: Vec::new(),
             refreshed: Instant::now(),
             count_label: count_label.map(std::string::ToString::to_string),
         }
@@ -59,11 +61,8 @@ impl MetricsSnapshot {
     pub fn refresh(&mut self) {
         self.snapshot = self.metrics.snapshot();
         self.refreshed = Instant::now();
-    }
 
-    pub fn prometheus(&self) -> String {
-        let mut data = Vec::new();
-
+        self.snapshot_v2.clear();
         for metric in &rustcommon_metrics_v2::metrics() {
             let any = match metric.as_any() {
                 Some(any) => any,
@@ -71,26 +70,43 @@ impl MetricsSnapshot {
             };
 
             downcast_match! { any => {
-                counter @ Counter => {
-                    data.push(format!("# TYPE {0} gauge\n{0} {1}", metric.name(), counter.value()));
-                },
-                gauge @ Gauge => {
-                    data.push(format!("# TYPE {0} gauge\n{0} {1}", metric.name(), gauge.value()));
-                },
+                counter @ Counter => self.snapshot_v2.push(
+                    (metric.name().to_owned(), Output::Reading, counter.value())),
+                gauge @ Gauge => self.snapshot_v2.push(
+                    (metric.name().to_owned(), Output::Reading, gauge.value() as _)),
                 heatmap @ SampledHeatmap => {
-                    for percentile in heatmap.percentiles() {
+                    for &percentile in heatmap.percentiles() {
                         // SampledHeatmaps are by default named as <thing>/histogram
                         // However, prometheus wants this to be exported as <thing>{{..}}
                         let name = metric.name().trim_end_matches("/histogram");
 
-                        data.push(format!(
-                            "# TYPE {0} gauge\n{0}{{percentile=\"{1:02}\"}} {2}",
-                            name, percentile, heatmap.percentile(*percentile).unwrap_or(0)
+                        self.snapshot_v2.push((
+                            name.to_owned(),
+                            Output::Percentile(percentile),
+                            heatmap.percentile(percentile).unwrap_or(0)
                         ));
                     }
                 },
                 _ => ()
             }}
+        }
+    }
+
+    pub fn prometheus(&self) -> String {
+        let mut data = Vec::new();
+
+        for (label, output, value) in &self.snapshot_v2 {
+            match output {
+                Output::Reading => {
+                    data.push(format!("# TYPE {} gauge\n{} {}", label, label, value));
+                }
+                &Output::Percentile(percentile) => {
+                    data.push(format!(
+                        "# TYPE {} gauge\n{}{{percentile=\"{:02}\"}} {}",
+                        label, label, percentile, value
+                    ));
+                }
+            }
         }
 
         for (metric, value) in &self.snapshot {
@@ -118,45 +134,19 @@ impl MetricsSnapshot {
     pub fn human(&self) -> String {
         let mut data = Vec::new();
 
-        for metric in &rustcommon_metrics_v2::metrics() {
-            let any = match metric.as_any() {
-                Some(any) => any,
-                None => continue,
-            };
-
-            downcast_match! { any => {
-                counter @ Counter => {
-                    data.push(match &self.count_label {
-                        Some(count_label) => format!(
-                            "{}/{}: {}",
-                            metric.name(),
-                            count_label,
-                            counter.value()
-                        ),
-                        None => format!("{}: {}", metric.name(), counter.value())
-                    })
-                },
-                gauge @ Gauge => {
-                    data.push(match &self.count_label {
-                        Some(count_label) => format!(
-                            "{}/{}: {}",
-                            metric.name(),
-                            count_label,
-                            gauge.value()
-                        ),
-                        None => format!("{}: {}", metric.name(), gauge.value())
-                    })
-                },
-                heatmap @ SampledHeatmap => {
-                    for percentile in heatmap.percentiles() {
-                        data.push(format!(
-                            "{}/p{:02}: {}",
-                            metric.name(), percentile, heatmap.percentile(*percentile).unwrap_or(0)
-                        ));
+        for (label, output, value) in &self.snapshot_v2 {
+            match output {
+                Output::Reading => {
+                    if let Some(ref count_label) = self.count_label {
+                        data.push(format!("{}/{}: {}", label, count_label, value));
+                    } else {
+                        data.push(format!("{}: {}", label, value));
                     }
-                },
-                _ => ()
-            }}
+                }
+                Output::Percentile(percentile) => {
+                    data.push(format!("{}/histogram/p{:02}: {}", label, percentile, value));
+                }
+            }
         }
 
         for (metric, value) in &self.snapshot {
@@ -188,45 +178,22 @@ impl MetricsSnapshot {
         }
         let mut data = Vec::new();
 
-        for metric in &rustcommon_metrics_v2::metrics() {
-            let any = match metric.as_any() {
-                Some(any) => any,
-                None => continue,
-            };
-
-            downcast_match! { any => {
-                counter @ Counter => {
-                    data.push(match &self.count_label {
-                        Some(count_label) => format!(
-                            "\"{}/{}\": {}",
-                            metric.name(),
-                            count_label,
-                            counter.value()
-                        ),
-                        None => format!("\"{}\": {}", metric.name(), counter.value())
-                    })
-                },
-                gauge @ Gauge => {
-                    data.push(match &self.count_label {
-                        Some(count_label) => format!(
-                            "\"{}/{}\": {}",
-                            metric.name(),
-                            count_label,
-                            gauge.value()
-                        ),
-                        None => format!("\"{}\": {}", metric.name(), gauge.value())
-                    })
-                },
-                heatmap @ SampledHeatmap => {
-                    for percentile in heatmap.percentiles() {
-                        data.push(format!(
-                            "\"{}/p{:02}\": {}",
-                            metric.name(), percentile, heatmap.percentile(*percentile).unwrap_or(0)
-                        ));
+        for (label, output, value) in &self.snapshot_v2 {
+            match output {
+                Output::Reading => {
+                    if let Some(ref count_label) = self.count_label {
+                        data.push(format!("\"{}/{}\": {}", label, count_label, value));
+                    } else {
+                        data.push(format!("\"{}\": {}", label, value));
                     }
-                },
-                _ => ()
-            }}
+                }
+                Output::Percentile(percentile) => {
+                    data.push(format!(
+                        "\"{}/histogram/p{:02}\": {}",
+                        label, percentile, value
+                    ));
+                }
+            }
         }
 
         for (metric, value) in &self.snapshot {
