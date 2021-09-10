@@ -52,73 +52,74 @@ pub(super) struct CpuStats {
 impl CpuStats {
     pub fn new(common: &crate::samplers::Common, percentiles: &[f64]) -> Self {
         let span = Duration::from_secs(common.config().general().window() as _);
-        let heatmap = |name| HeatmapSummarizedCounter::new(name, span, percentiles);
+        let heatmap = || HeatmapSummarizedCounter::new(span, percentiles);
 
         Self {
-            usage_user: heatmap("cpu/usage/user"),
-            usage_nice: heatmap("cpu/usage/nice"),
-            usage_system: heatmap("cpu/usage/system"),
-            usage_idle: heatmap("cpu/usage/idle"),
-            usage_irq: heatmap("cpu/usage/irq"),
-            usage_softirq: heatmap("cpu/usage/softirq"),
-            usage_steal: heatmap("cpu/usage/steal"),
-            usage_guest: heatmap("cpu/usage/guest"),
-            usage_guest_nice: heatmap("cpu/usage/guestnice"),
-            cache_miss: heatmap("cpu/cache/miss"),
-            cache_access: heatmap("cpu/cache/access"),
-            bpu_branches: heatmap("cpu/bpu/branch"),
-            bpu_miss: heatmap("cpu/bpu/miss"),
-            cycles: heatmap("cpu/cycles"),
-            dtlb_load_miss: heatmap("cpu/dtlb/load/miss"),
-            dtlb_load_access: heatmap("cpu/dtlb/load/access"),
-            dtlb_store_access: heatmap("cpu/dtlb/store/access"),
-            dtlb_store_miss: heatmap("cpu/dtlb/store/miss"),
-            instructions: heatmap("cpu/instructions"),
-            reference_cycles: heatmap("cpu/reference_cycles"),
-            cstate_c0_time: heatmap("cpu/cstate/c0/time"),
-            cstate_c1_time: heatmap("cpu/cstate/c1/time"),
-            cstate_c1e_time: heatmap("cpu/cstate/c1e/time"),
-            cstate_c2_time: heatmap("cpu/cstate/c2/time"),
-            cstate_c3_time: heatmap("cpu/cstate/c3/time"),
-            cstate_c6_time: heatmap("cpu/cstate/c6/time"),
-            cstate_c7_time: heatmap("cpu/cstate/c7/time"),
-            cstate_c8_time: heatmap("cpu/cstate/c8/time"),
-            frequency: HeatmapSummarizedGauge::new("cpu/frequency", span, percentiles),
+            usage_user: heatmap(),
+            usage_nice: heatmap(),
+            usage_system: heatmap(),
+            usage_idle: heatmap(),
+            usage_irq: heatmap(),
+            usage_softirq: heatmap(),
+            usage_steal: heatmap(),
+            usage_guest: heatmap(),
+            usage_guest_nice: heatmap(),
+            cache_miss: heatmap(),
+            cache_access: heatmap(),
+            bpu_branches: heatmap(),
+            bpu_miss: heatmap(),
+            cycles: heatmap(),
+            dtlb_load_miss: heatmap(),
+            dtlb_load_access: heatmap(),
+            dtlb_store_access: heatmap(),
+            dtlb_store_miss: heatmap(),
+            instructions: heatmap(),
+            reference_cycles: heatmap(),
+            cstate_c0_time: heatmap(),
+            cstate_c1_time: heatmap(),
+            cstate_c1e_time: heatmap(),
+            cstate_c2_time: heatmap(),
+            cstate_c3_time: heatmap(),
+            cstate_c6_time: heatmap(),
+            cstate_c7_time: heatmap(),
+            cstate_c8_time: heatmap(),
+            frequency: HeatmapSummarizedGauge::new(span, percentiles),
         }
     }
 
-    pub fn disable_unwanted(&mut self, stats: &HashSet<CpuStatistic>) {
+    pub fn register(&mut self, stats: &HashSet<CpuStatistic>) {
         use self::CpuStatistic::*;
 
         if_block! {
-            if !stats.contains(&UsageUser) => self.usage_user.disable();
-            if !stats.contains(&UsageNice) => self.usage_nice.disable();
-            if !stats.contains(&UsageSystem) => self.usage_system.disable();
-            if !stats.contains(&UsageIdle) => self.usage_idle.disable();
-            if !stats.contains(&UsageIrq) => self.usage_irq.disable();
-            if !stats.contains(&UsageSoftirq) => self.usage_softirq.disable();
-            if !stats.contains(&UsageSteal) => self.usage_steal.disable();
-            if !stats.contains(&UsageGuest) => self.usage_guest.disable();
-            if !stats.contains(&UsageGuestNice) => self.usage_guest_nice.disable();
-            if !stats.contains(&CacheMiss) => self.cache_miss.disable();
-            if !stats.contains(&CacheAccess) => self.cache_access.disable();
-            if !stats.contains(&BpuBranches) => self.bpu_branches.disable();
-            if !stats.contains(&BpuMiss) => self.bpu_miss.disable();
-            if !stats.contains(&Cycles) => self.cycles.disable();
-            if !stats.contains(&DtlbLoadMiss) => self.dtlb_load_miss.disable();
-            if !stats.contains(&DtlbLoadAccess) => self.dtlb_load_access.disable();
-            if !stats.contains(&DtlbStoreAccess) => self.dtlb_store_access.disable();
-            if !stats.contains(&DtlbStoreMiss) => self.dtlb_store_miss.disable();
-            if !stats.contains(&Instructions) => self.instructions.disable();
-            if !stats.contains(&ReferenceCycles) => self.reference_cycles.disable();
-            if !stats.contains(&CstateC0Time) => self.cstate_c0_time.disable();
-            if !stats.contains(&CstateC1Time) => self.cstate_c1_time.disable();
-            if !stats.contains(&CstateC2Time) => self.cstate_c2_time.disable();
-            if !stats.contains(&CstateC3Time) => self.cstate_c3_time.disable();
-            if !stats.contains(&CstateC6Time) => self.cstate_c6_time.disable();
-            if !stats.contains(&CstateC7Time) => self.cstate_c7_time.disable();
-            if !stats.contains(&CstateC8Time) => self.cstate_c8_time.disable();
-            if !stats.contains(&Frequency) => self.frequency.disable();
+            if stats.contains(&UsageUser) => self.usage_user.register("cpu/usage/user");
+            if stats.contains(&UsageNice) => self.usage_nice.register("cpu/usage/nice");
+            if stats.contains(&UsageSystem) => self.usage_system.register("cpu/usage/system");
+            if stats.contains(&UsageIdle) => self.usage_idle.register("cpu/usage/idle");
+            if stats.contains(&UsageIrq) => self.usage_irq.register("cpu/usage/irq");
+            if stats.contains(&UsageSoftirq) => self.usage_softirq.register("cpu/usage/softirq");
+            if stats.contains(&UsageSteal) => self.usage_steal.register("cpu/usage/steal");
+            if stats.contains(&UsageGuest) => self.usage_guest.register("cpu/usage/guest");
+            if stats.contains(&UsageGuestNice) => self.usage_guest_nice.register("cpu/usage/guestnice");
+            if stats.contains(&CacheMiss) => self.cache_miss.register("cpu/cache/miss");
+            if stats.contains(&CacheAccess) => self.cache_access.register("cpu/cache/access");
+            if stats.contains(&BpuBranches) => self.bpu_branches.register("cpu/bpu/branch");
+            if stats.contains(&BpuMiss) => self.bpu_miss.register("cpu/bpu/miss");
+            if stats.contains(&Cycles) => self.cycles.register("cpu/cycles");
+            if stats.contains(&DtlbLoadMiss) => self.dtlb_load_miss.register("cpu/dtlb/load/miss");
+            if stats.contains(&DtlbLoadAccess) => self.dtlb_load_access.register("cpu/dtlb/load/access");
+            if stats.contains(&DtlbStoreAccess) => self.dtlb_store_access.register("cpu/dtlb/store/access");
+            if stats.contains(&DtlbStoreMiss) => self.dtlb_store_miss.register("cpu/dtlb/store/miss");
+            if stats.contains(&Instructions) => self.instructions.register("cpu/instructions");
+            if stats.contains(&ReferenceCycles) => self.reference_cycles.register("cpu/reference_cycles");
+            if stats.contains(&CstateC0Time) => self.cstate_c0_time.register("cpu/cstate/c0/time");
+            if stats.contains(&CstateC1Time) => self.cstate_c1_time.register("cpu/cstate/c1/time");
+            if stats.contains(&CstateC1ETime) => self.cstate_c1e_time.register("cpu/cstate/c1e/time");
+            if stats.contains(&CstateC2Time) => self.cstate_c2_time.register("cpu/cstate/c2/time");
+            if stats.contains(&CstateC3Time) => self.cstate_c3_time.register("cpu/cstate/c3/time");
+            if stats.contains(&CstateC6Time) => self.cstate_c6_time.register("cpu/cstate/c6/time");
+            if stats.contains(&CstateC7Time) => self.cstate_c7_time.register("cpu/cstate/c7/time");
+            if stats.contains(&CstateC8Time) => self.cstate_c8_time.register("cpu/cstate/c8/time");
+            if stats.contains(&Frequency) => self.frequency.register("cpu/frequency");
         }
     }
 }

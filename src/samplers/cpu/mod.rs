@@ -28,7 +28,6 @@ mod stat;
 
 pub use config::*;
 pub use stat::*;
-use std::iter::FromIterator;
 
 #[allow(dead_code)]
 pub struct Cpu {
@@ -72,6 +71,7 @@ impl Sampler for Cpu {
 
         if sampler.sampler_config().enabled() {
             sampler.register();
+            sampler.stats.register(&sampler.statistics.iter().copied().collect());
         }
 
         // we initialize perf last so we can delay
@@ -85,10 +85,6 @@ impl Sampler for Cpu {
                 }
             }
         }
-
-        sampler
-            .stats
-            .disable_unwanted(&HashSet::from_iter(sampler.statistics.iter().copied()));
 
         // delay by half the sample interval so that we land between perf
         // counter updates
@@ -259,6 +255,7 @@ impl Cpu {
             }
 
             let time = Instant::now();
+            info!("freq: {:?}", result);
             for frequency in result {
                 self.stats.frequency.store(time, frequency);
             }
