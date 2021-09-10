@@ -11,6 +11,8 @@ use rustcommon_atomics::{Atomic, AtomicU32, AtomicU64};
 use rustcommon_heatmap::AtomicHeatmap;
 use rustcommon_metrics_v2::{Counter, DynBoxedMetric, Gauge, Metric};
 
+use super::LazyMetric;
+
 type Heatmap = AtomicHeatmap<u64, AtomicU32>;
 
 pub struct SampledHeatmap {
@@ -21,10 +23,7 @@ pub struct SampledHeatmap {
 }
 
 impl SampledHeatmap {
-    pub fn new(
-        heatmap: Heatmap,
-        percentiles: impl Into<Cow<'static, [f64]>>,
-    ) -> Self {
+    pub fn new(heatmap: Heatmap, percentiles: impl Into<Cow<'static, [f64]>>) -> Self {
         Self {
             refreshed: AtomicCell::new(None),
             reading: AtomicU64::new(0),
@@ -96,27 +95,24 @@ impl Metric for SampledHeatmap {
 
 /// A combination of two metrics: a counter and a heatmap of its rate of change
 pub struct HeatmapSummarizedCounter {
-    counter: DynBoxedMetric<Counter>,
-    heatmap: DynBoxedMetric<SampledHeatmap>,
+    counter: DynBoxedMetric<LazyMetric<Counter>>,
+    heatmap: DynBoxedMetric<LazyMetric<SampledHeatmap>>,
 }
 
 impl HeatmapSummarizedCounter {
-    pub fn new(name: &str, span: Duration, percentiles: &[f64]) -> Self {
+    pub fn new(span: Duration, percentiles: &[f64]) -> Self {
         Self {
-            counter: DynBoxedMetric::new(Counter::new(), name.to_owned()),
-            heatmap: DynBoxedMetric::new(
-                SampledHeatmap::new(
-                    AtomicHeatmap::new(1_000_000_000, 2, span, Duration::from_secs(1)),
-                    percentiles.to_owned(),
-                ),
-                format!("{}/histogram", name),
-            ),
+            counter: DynBoxedMetric::unregistered(LazyMetric::new(Counter::new())),
+            heatmap: DynBoxedMetric::unregistered(LazyMetric::new(SampledHeatmap::new(
+                AtomicHeatmap::new(1_000_000_000, 2, span, Duration::from_secs(1)),
+                percentiles.to_owned(),
+            ))),
         }
     }
 
-    pub fn disable(&mut self) {
-        rustcommon_metrics_v2::dynmetrics::unregister(&*self.counter);
-        rustcommon_metrics_v2::dynmetrics::unregister(&*self.heatmap);
+    pub fn register(&mut self, name: &str) {
+        self.counter.register(name.to_owned());
+        self.heatmap.register(format!("{}/histogram", name));
     }
 
     pub fn counter(&self) -> &Counter {
@@ -143,27 +139,24 @@ impl HeatmapSummarizedCounter {
 }
 
 pub struct HeatmapSummarizedGauge {
-    gauge: DynBoxedMetric<Gauge>,
-    heatmap: DynBoxedMetric<SampledHeatmap>,
+    gauge: DynBoxedMetric<LazyMetric<Gauge>>,
+    heatmap: DynBoxedMetric<LazyMetric<SampledHeatmap>>,
 }
 
 impl HeatmapSummarizedGauge {
-    pub fn new(name: &str, span: Duration, percentiles: &[f64]) -> Self {
+    pub fn new(span: Duration, percentiles: &[f64]) -> Self {
         Self {
-            gauge: DynBoxedMetric::new(Gauge::new(), name.to_owned()),
-            heatmap: DynBoxedMetric::new(
-                SampledHeatmap::new(
-                    AtomicHeatmap::new(1_000_000_000, 2, span, Duration::from_secs(1)),
-                    percentiles.to_owned(),
-                ),
-                format!("{}/histogram", name),
-            ),
+            gauge: DynBoxedMetric::unregistered(LazyMetric::new(Gauge::new())),
+            heatmap: DynBoxedMetric::unregistered(LazyMetric::new(SampledHeatmap::new(
+                AtomicHeatmap::new(1_000_000_000, 2, span, Duration::from_secs(1)),
+                percentiles.to_owned(),
+            ))),
         }
     }
 
-    pub fn disable(&mut self) {
-        rustcommon_metrics_v2::dynmetrics::unregister(&*self.gauge);
-        rustcommon_metrics_v2::dynmetrics::unregister(&*self.heatmap);
+    pub fn register(&mut self, name: &str) {
+        self.gauge.register(name.to_owned());
+        self.heatmap.register(format!("{}/histogram", name));
     }
 
     pub fn gauge(&self) -> &Gauge {
