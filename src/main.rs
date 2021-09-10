@@ -18,6 +18,9 @@ use rustcommon_logger::Logger;
 use rustcommon_metrics::*;
 use tokio::runtime::Builder;
 
+#[macro_use]
+mod metrics;
+
 mod common;
 mod config;
 mod exposition;
