@@ -53,6 +53,12 @@ pub use udp::Udp;
 pub use usercall::Usercall;
 pub use xfs::Xfs;
 
+pub struct CommonSamplerConfig<'a> {
+    pub capacity: usize,
+    pub span: Duration,
+    pub percentiles: &'a [f64]
+}
+
 pub fn static_interval<S: Statistic<AtomicU64, AtomicU32>>(
     sampler_config: &dyn SamplerConfig<Statistic = S>,
     general_config: &GeneralConfig,
@@ -237,5 +243,25 @@ impl Common {
 
     pub fn metrics(&self) -> &Metrics<AtomicU64, AtomicU32> {
         &self.metrics
+    }
+
+    pub fn calc_interval(&self, sampler_config: &impl SamplerConfig) -> usize {
+        sampler_config
+            .interval()
+            .unwrap_or_else(|| self.config().general().interval())
+    }
+
+    pub fn calc_samples(&self, sampler_config: &impl SamplerConfig) -> usize {
+        ((1000.0 / self.calc_interval(sampler_config) as f64)
+            * self.config().general().window() as f64)
+            .ceil() as usize
+    }
+
+    pub fn common_sampler_config(&self, sampler_config: &impl SamplerConfig) -> CommonSamplerConfig {
+        CommonSamplerConfig {
+            span: self.calc_interval(sampler_config),
+            capacity: self.calc_interval(sampler_config),
+            percentiles: sampler_config.percentiles()
+        }
     }
 }

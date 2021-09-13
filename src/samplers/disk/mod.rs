@@ -207,24 +207,18 @@ impl Disk {
                 while reader.read_line(&mut line).await? > 0 {
                     let parts: Vec<&str> = line.split_whitespace().collect();
                     if re.is_match(parts.get(2).unwrap_or(&"unknown")) {
-                        for (id, part) in parts.iter().enumerate() {
-                            match id {
-                                3 => *operations_read.get_or_insert(0) += part.parse().unwrap_or(0),
-                                5 => *bandwidth_read.get_or_insert(0) += part.parse().unwrap_or(0),
-                                7 => {
-                                    *operations_write.get_or_insert(0) += part.parse().unwrap_or(0)
-                                }
-                                9 => *bandwidth_write.get_or_insert(0) += part.parse().unwrap_or(0),
-                                14 => {
-                                    *operations_discard.get_or_insert(0) +=
-                                        part.parse().unwrap_or(0)
-                                }
-                                16 => {
-                                    *bandwidth_discard.get_or_insert(0) += part.parse().unwrap_or(0)
-                                }
-                                _ => (),
-                            }
-                        }
+                        let mut iter = parts.iter();
+
+                        let _ = || -> Option<()> {
+                            *operations_read.get_or_insert(0) += iter.nth(3)?.parse().unwrap_or(0);
+                            *bandwidth_read.get_or_insert(0) += iter.nth(2)?.parse().unwrap_or(0);
+                            *operations_write.get_or_insert(0) += iter.nth(2)?.parse().unwrap_or(0);
+                            *bandwidth_write.get_or_insert(0) += iter.nth(2)?.parse().unwrap_or(0);
+                            *operations_discard.get_or_insert(0) += iter.nth(5)?.parse().unwrap_or(0);
+                            *bandwidth_discard.get_or_insert(0) += iter.nth(2)?.parse().unwrap_or(0);
+
+                            None
+                        }();
                     }
                     line.clear();
                 }

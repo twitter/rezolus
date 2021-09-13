@@ -17,6 +17,7 @@ use rustcommon_metrics_v2::{Counter, DynBoxedMetric, Gauge, Metric};
 
 use super::LazyMetric;
 use rustcommon_streamstats::AtomicStreamstats;
+use crate::samplers::CommonSamplerConfig;
 
 type Heatmap = AtomicHeatmap<u64, AtomicU32>;
 
@@ -104,6 +105,10 @@ pub struct StreamSummarizedCounter {
 }
 
 impl StreamSummarizedCounter {
+    pub fn with_config(config: &CommonSamplerConfig) -> Self {
+        Self::new(config.capacity, &config.percentiles)
+    }
+
     pub fn new(capacity: usize, percentiles: &[f64]) -> Self {
         Self {
             counter: DynBoxedMetric::unregistered(LazyMetric::new(Counter::new())),
@@ -144,6 +149,10 @@ pub struct StreamSummarizedGauge {
 }
 
 impl StreamSummarizedGauge {
+    pub fn with_config(config: &CommonSamplerConfig) -> Self {
+        Self::new(config.capacity, &config.percentiles)
+    }
+    
     pub fn new(capacity: usize, percentiles: &[f64]) -> Self {
         Self {
             gauge: DynBoxedMetric::unregistered(LazyMetric::new(Gauge::new())),

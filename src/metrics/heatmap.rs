@@ -14,6 +14,7 @@ use rustcommon_heatmap::AtomicHeatmap;
 use rustcommon_metrics_v2::{DynBoxedMetric, Metric};
 
 use super::LazyMetric;
+use crate::samplers::CommonSamplerConfig;
 
 type Heatmap = AtomicHeatmap<u64, AtomicU32>;
 
@@ -63,6 +64,10 @@ pub struct SummarizedDistribution {
 }
 
 impl SummarizedDistribution {
+    pub fn with_config(config: &CommonSamplerConfig) -> Self {
+        Self::new(config.span, &config.percentiles)
+    }
+
     pub fn new(span: Duration, percentiles: &[f64]) -> Self {
         Self {
             heatmap: DynBoxedMetric::unregistered(LazyMetric::new(SampledHeatmap::new(

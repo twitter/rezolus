@@ -25,6 +25,7 @@ use crate::Sampler;
 
 mod config;
 mod stat;
+mod next;
 
 pub use config::*;
 pub use stat::*;
