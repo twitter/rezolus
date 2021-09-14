@@ -25,283 +25,283 @@ use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 )]
 #[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
 pub enum Krb5kdcStatistic {
-    #[strum(serialize = "krb5kdc/finish_process_as_req/unknown/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/unknown")]
     FinishProcessAsReqUnknown,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/none/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/none")]
     FinishProcessAsReqNone,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/name_exp/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/name_exp")]
     FinishProcessAsReqNameExp,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/service_exp/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/service_exp")]
     FinishProcessAsReqServiceExp,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/bad_pvno/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/bad_pvno")]
     FinishProcessAsReqBadPvno,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/c_old_mast_kvno/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/c_old_mast_kvno")]
     FinishProcessAsReqCOldMastKvno,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/s_old_mast_kvno/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/s_old_mast_kvno")]
     FinishProcessAsReqSOldMastKvno,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/c_principal_unknown/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/c_principal_unknown")]
     FinishProcessAsReqCPrincipalUnknown,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/s_principal_unknown/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/s_principal_unknown")]
     FinishProcessAsReqSPrincipalUnknown,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/principal_not_unique/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/principal_not_unique")]
     FinishProcessAsReqPrincipalNotUnique,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/null_key/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/null_key")]
     FinishProcessAsReqNullKey,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/cannot_postdate/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/cannot_postdate")]
     FinishProcessAsReqCannotPostdate,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/never_valid/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/never_valid")]
     FinishProcessAsReqNeverValid,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/policy/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/policy")]
     FinishProcessAsReqPolicy,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/badoption/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/badoption")]
     FinishProcessAsReqBadoption,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/etype_nosupp/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/etype_nosupp")]
     FinishProcessAsReqEtypeNosupp,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/sumtype_nosupp/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/sumtype_nosupp")]
     FinishProcessAsReqSumtypeNosupp,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/padata_type_nosupp/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/padata_type_nosupp")]
     FinishProcessAsReqPadataTypeNosupp,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/trtype_nosupp/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/trtype_nosupp")]
     FinishProcessAsReqTrtypeNosupp,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/client_revoked/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/client_revoked")]
     FinishProcessAsReqClientRevoked,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/service_revoked/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/service_revoked")]
     FinishProcessAsReqServiceRevoked,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/tgt_revoked/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/tgt_revoked")]
     FinishProcessAsReqTgtRevoked,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/client_notyet/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/client_notyet")]
     FinishProcessAsReqClientNotyet,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/service_notyet/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/service_notyet")]
     FinishProcessAsReqServiceNotyet,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/key_exp/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/key_exp")]
     FinishProcessAsReqKeyExp,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/preauth_failed/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/preauth_failed")]
     FinishProcessAsReqPreauthFailed,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/preauth_required/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/preauth_required")]
     FinishProcessAsReqPreauthRequired,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/server_nomatch/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/server_nomatch")]
     FinishProcessAsReqServerNomatch,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/must_use_user2user/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/must_use_user2user")]
     FinishProcessAsReqMustUseUser2user,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/path_not_accepted/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/path_not_accepted")]
     FinishProcessAsReqPathNotAccepted,
 
-    #[strum(serialize = "krb5kdc/finish_process_as_req/svc_unavailable/count")]
+    #[strum(serialize = "krb5kdc/finish_process_as_req/svc_unavailable")]
     FinishProcessAsReqSvcUnavailable,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/unknown/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/unknown")]
     FinishDispatchCacheUnknown,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/none/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/none")]
     FinishDispatchCacheNone,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/name_exp/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/name_exp")]
     FinishDispatchCacheNameExp,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/service_exp/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/service_exp")]
     FinishDispatchCacheServiceExp,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/bad_pvno/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/bad_pvno")]
     FinishDispatchCacheBadPvno,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/c_old_mast_kvno/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/c_old_mast_kvno")]
     FinishDispatchCacheCOldMastKvno,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/s_old_mast_kvno/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/s_old_mast_kvno")]
     FinishDispatchCacheSOldMastKvno,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/c_principal_unknown/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/c_principal_unknown")]
     FinishDispatchCacheCPrincipalUnknown,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/s_principal_unknown/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/s_principal_unknown")]
     FinishDispatchCacheSPrincipalUnknown,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/principal_not_unique/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/principal_not_unique")]
     FinishDispatchCachePrincipalNotUnique,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/null_key/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/null_key")]
     FinishDispatchCacheNullKey,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/cannot_postdate/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/cannot_postdate")]
     FinishDispatchCacheCannotPostdate,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/never_valid/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/never_valid")]
     FinishDispatchCacheNeverValid,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/policy/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/policy")]
     FinishDispatchCachePolicy,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/badoption/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/badoption")]
     FinishDispatchCacheBadoption,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/etype_nosupp/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/etype_nosupp")]
     FinishDispatchCacheEtypeNosupp,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/sumtype_nosupp/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/sumtype_nosupp")]
     FinishDispatchCacheSumtypeNosupp,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/padata_type_nosupp/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/padata_type_nosupp")]
     FinishDispatchCachePadataTypeNosupp,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/trtype_nosupp/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/trtype_nosupp")]
     FinishDispatchCacheTrtypeNosupp,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/client_revoked/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/client_revoked")]
     FinishDispatchCacheClientRevoked,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/service_revoked/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/service_revoked")]
     FinishDispatchCacheServiceRevoked,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/tgt_revoked/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/tgt_revoked")]
     FinishDispatchCacheTgtRevoked,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/client_notyet/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/client_notyet")]
     FinishDispatchCacheClientNotyet,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/service_notyet/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/service_notyet")]
     FinishDispatchCacheServiceNotyet,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/key_exp/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/key_exp")]
     FinishDispatchCacheKeyExp,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/preauth_failed/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/preauth_failed")]
     FinishDispatchCachePreauthFailed,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/preauth_required/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/preauth_required")]
     FinishDispatchCachePreauthRequired,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/server_nomatch/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/server_nomatch")]
     FinishDispatchCacheServerNomatch,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/must_use_user2user/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/must_use_user2user")]
     FinishDispatchCacheMustUseUser2user,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/path_not_accepted/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/path_not_accepted")]
     FinishDispatchCachePathNotAccepted,
 
-    #[strum(serialize = "krb5kdc/finish_dispatch_cache/svc_unavailable/count")]
+    #[strum(serialize = "krb5kdc/finish_dispatch_cache/svc_unavailable")]
     FinishDispatchCacheSvcUnavailable,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/unknown/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/unknown")]
     ProcessTgsReqUnknown,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/none/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/none")]
     ProcessTgsReqNone,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/name_exp/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/name_exp")]
     ProcessTgsReqNameExp,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/service_exp/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/service_exp")]
     ProcessTgsReqServiceExp,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/bad_pvno/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/bad_pvno")]
     ProcessTgsReqBadPvno,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/c_old_mast_kvno/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/c_old_mast_kvno")]
     ProcessTgsReqCOldMastKvno,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/s_old_mast_kvno/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/s_old_mast_kvno")]
     ProcessTgsReqSOldMastKvno,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/c_principal_unknown/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/c_principal_unknown")]
     ProcessTgsReqCPrincipalUnknown,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/s_principal_unknown/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/s_principal_unknown")]
     ProcessTgsReqSPrincipalUnknown,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/principal_not_unique/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/principal_not_unique")]
     ProcessTgsReqPrincipalNotUnique,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/null_key/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/null_key")]
     ProcessTgsReqNullKey,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/cannot_postdate/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/cannot_postdate")]
     ProcessTgsReqCannotPostdate,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/never_valid/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/never_valid")]
     ProcessTgsReqNeverValid,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/policy/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/policy")]
     ProcessTgsReqPolicy,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/badoption/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/badoption")]
     ProcessTgsReqBadoption,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/etype_nosupp/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/etype_nosupp")]
     ProcessTgsReqEtypeNosupp,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/sumtype_nosupp/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/sumtype_nosupp")]
     ProcessTgsReqSumtypeNosupp,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/padata_type_nosupp/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/padata_type_nosupp")]
     ProcessTgsReqPadataTypeNosupp,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/trtype_nosupp/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/trtype_nosupp")]
     ProcessTgsReqTrtypeNosupp,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/client_revoked/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/client_revoked")]
     ProcessTgsReqClientRevoked,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/service_revoked/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/service_revoked")]
     ProcessTgsReqServiceRevoked,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/tgt_revoked/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/tgt_revoked")]
     ProcessTgsReqTgtRevoked,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/client_notyet/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/client_notyet")]
     ProcessTgsReqClientNotyet,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/service_notyet/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/service_notyet")]
     ProcessTgsReqServiceNotyet,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/key_exp/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/key_exp")]
     ProcessTgsReqKeyExp,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/preauth_failed/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/preauth_failed")]
     ProcessTgsReqPreauthFailed,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/preauth_required/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/preauth_required")]
     ProcessTgsReqPreauthRequired,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/server_nomatch/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/server_nomatch")]
     ProcessTgsReqServerNomatch,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/must_use_user2user/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/must_use_user2user")]
     ProcessTgsReqMustUseUser2user,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/path_not_accepted/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/path_not_accepted")]
     ProcessTgsReqPathNotAccepted,
 
-    #[strum(serialize = "krb5kdc/process_tgs_req/svc_unavailable/count")]
+    #[strum(serialize = "krb5kdc/process_tgs_req/svc_unavailable")]
     ProcessTgsReqSvcUnavailable,
 }
 
