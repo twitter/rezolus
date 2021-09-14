@@ -153,7 +153,7 @@ Provides system-wide telemetry for IRQs
 ## Krb5kdc
 
 Provides telemetry to track MIT kerberos ticket requests served by the krb5kdc
-binary. This is accomplished by attaching user space probes the following
+binary. This is accomplished by attaching user space probes to the following
 functions: finish_process_as_req, finish_dispatch_cache and process_tgs_req.
 Each function exports a call count that is broken down by the resulting
 [error code](https://github.com/krb5/krb5-test/blob/master/src/lib/krb5/error_tables/krb5_err.et).
