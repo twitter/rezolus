@@ -16,167 +16,105 @@ BPF_HASH(counts_finish_process_as_req, struct key_t);
 
 int count_finish_process_as_req(struct pt_regs *ctx) {
 
-  if (!PT_REGS_PARM1(ctx))
-    return 0;
-
-  u64 match_val = PT_REGS_PARM1(ctx);
+  u64 match_val = PT_REGS_PARM2(ctx);
+  u64 zero = 0, *count;
 
   if (match_val == 0) {
     struct key_t key = {.c = "NONE"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 1) {
+  } else if (match_val == 2529638913) {
     struct key_t key = {.c = "NAME_EXP"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 2) {
+  } else if (match_val == 2529638914) {
     struct key_t key = {.c = "SERVICE_EXP"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 3) {
+  } else if (match_val == 2529638915) {
     struct key_t key = {.c = "BAD_PVNO"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 4) {
+  } else if (match_val == 2529638916) {
     struct key_t key = {.c = "C_OLD_MAST_KVNO"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 5) {
+  } else if (match_val == 2529638917) {
     struct key_t key = {.c = "S_OLD_MAST_KVNO"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 6) {
+  } else if (match_val == 2529638918) {
     struct key_t key = {.c = "C_PRINCIPAL_UNKNOWN"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 7) {
+  } else if (match_val == 2529638919) {
     struct key_t key = {.c = "S_PRINCIPAL_UNKNOWN"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 8) {
+  } else if (match_val == 2529638920) {
     struct key_t key = {.c = "PRINCIPAL_NOT_UNIQUE"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 9) {
+  } else if (match_val == 2529638921) {
     struct key_t key = {.c = "NULL_KEY"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 10) {
+  } else if (match_val == 2529638922) {
     struct key_t key = {.c = "CANNOT_POSTDATE"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 11) {
+  } else if (match_val == 2529638923) {
     struct key_t key = {.c = "NEVER_VALID"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 12) {
+  } else if (match_val == 2529638924) {
     struct key_t key = {.c = "POLICY"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 13) {
+  } else if (match_val == 2529638925) {
     struct key_t key = {.c = "BADOPTION"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 14) {
+  } else if (match_val == 2529638926) {
     struct key_t key = {.c = "ETYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 15) {
+  } else if (match_val == 2529638927) {
     struct key_t key = {.c = "SUMTYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 16) {
+  } else if (match_val == 2529638928) {
     struct key_t key = {.c = "PADATA_TYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 17) {
+  } else if (match_val == 2529638929) {
     struct key_t key = {.c = "TRTYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 18) {
+  } else if (match_val == 2529638930) {
     struct key_t key = {.c = "CLIENT_REVOKED"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 19) {
+  } else if (match_val == 2529638931) {
     struct key_t key = {.c = "SERVICE_REVOKED"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 20) {
+  } else if (match_val == 2529638932) {
     struct key_t key = {.c = "TGT_REVOKED"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 21) {
+  } else if (match_val == 2529638933) {
     struct key_t key = {.c = "CLIENT_NOTYET"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 22) {
+  } else if (match_val == 2529638934) {
     struct key_t key = {.c = "SERVICE_NOTYET"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 23) {
+  } else if (match_val == 2529638935) {
     struct key_t key = {.c = "KEY_EXP"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 24) {
+  } else if (match_val == 2529638936) {
     struct key_t key = {.c = "PREAUTH_FAILED"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 25) {
+  } else if (match_val == 2529638937) {
     struct key_t key = {.c = "PREAUTH_REQUIRED"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 26) {
+  } else if (match_val == 2529638938) {
     struct key_t key = {.c = "SERVER_NOMATCH"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 27) {
+  } else if (match_val == 2529638939) {
     struct key_t key = {.c = "MUST_USE_USER2USER"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 28) {
+  } else if (match_val == 2529638940) {
     struct key_t key = {.c = "PATH_NOT_ACCEPTED"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 29) {
+  } else if (match_val == 2529638941) {
     struct key_t key = {.c = "SVC_UNAVAILABLE"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
   } else {
     struct key_t key = {.c = "UNKNOWN"};
-    u64 zero = 0, *count;
     count = counts_finish_process_as_req.lookup_or_init(&key, &zero);
-    (*count)++;
   }
+
+  (*count)++;
 
   return 0;
 }
@@ -187,167 +125,105 @@ BPF_HASH(counts_finish_dispatch_cache, struct key_t);
 
 int count_finish_dispatch_cache(struct pt_regs *ctx) {
 
-  if (!PT_REGS_PARM1(ctx))
-    return 0;
-
-  u64 match_val = PT_REGS_PARM1(ctx);
+  u64 match_val = PT_REGS_PARM2(ctx);
+  u64 zero = 0, *count;
 
   if (match_val == 0) {
     struct key_t key = {.c = "NONE"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 1) {
+  } else if (match_val == 2529638913) {
     struct key_t key = {.c = "NAME_EXP"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 2) {
+  } else if (match_val == 2529638914) {
     struct key_t key = {.c = "SERVICE_EXP"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 3) {
+  } else if (match_val == 2529638915) {
     struct key_t key = {.c = "BAD_PVNO"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 4) {
+  } else if (match_val == 2529638916) {
     struct key_t key = {.c = "C_OLD_MAST_KVNO"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 5) {
+  } else if (match_val == 2529638917) {
     struct key_t key = {.c = "S_OLD_MAST_KVNO"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 6) {
+  } else if (match_val == 2529638918) {
     struct key_t key = {.c = "C_PRINCIPAL_UNKNOWN"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 7) {
+  } else if (match_val == 2529638919) {
     struct key_t key = {.c = "S_PRINCIPAL_UNKNOWN"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 8) {
+  } else if (match_val == 2529638920) {
     struct key_t key = {.c = "PRINCIPAL_NOT_UNIQUE"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 9) {
+  } else if (match_val == 2529638921) {
     struct key_t key = {.c = "NULL_KEY"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 10) {
+  } else if (match_val == 2529638922) {
     struct key_t key = {.c = "CANNOT_POSTDATE"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 11) {
+  } else if (match_val == 2529638923) {
     struct key_t key = {.c = "NEVER_VALID"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 12) {
+  } else if (match_val == 2529638924) {
     struct key_t key = {.c = "POLICY"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 13) {
+  } else if (match_val == 2529638925) {
     struct key_t key = {.c = "BADOPTION"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 14) {
+  } else if (match_val == 2529638926) {
     struct key_t key = {.c = "ETYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 15) {
+  } else if (match_val == 2529638927) {
     struct key_t key = {.c = "SUMTYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 16) {
+  } else if (match_val == 2529638928) {
     struct key_t key = {.c = "PADATA_TYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 17) {
+  } else if (match_val == 2529638929) {
     struct key_t key = {.c = "TRTYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 18) {
+  } else if (match_val == 2529638930) {
     struct key_t key = {.c = "CLIENT_REVOKED"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 19) {
+  } else if (match_val == 2529638931) {
     struct key_t key = {.c = "SERVICE_REVOKED"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 20) {
+  } else if (match_val == 2529638932) {
     struct key_t key = {.c = "TGT_REVOKED"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 21) {
+  } else if (match_val == 2529638933) {
     struct key_t key = {.c = "CLIENT_NOTYET"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 22) {
+  } else if (match_val == 2529638934) {
     struct key_t key = {.c = "SERVICE_NOTYET"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 23) {
+  } else if (match_val == 2529638935) {
     struct key_t key = {.c = "KEY_EXP"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 24) {
+  } else if (match_val == 2529638936) {
     struct key_t key = {.c = "PREAUTH_FAILED"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 25) {
+  } else if (match_val == 2529638937) {
     struct key_t key = {.c = "PREAUTH_REQUIRED"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 26) {
+  } else if (match_val == 2529638938) {
     struct key_t key = {.c = "SERVER_NOMATCH"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 27) {
+  } else if (match_val == 2529638939) {
     struct key_t key = {.c = "MUST_USE_USER2USER"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 28) {
+  } else if (match_val == 2529638940) {
     struct key_t key = {.c = "PATH_NOT_ACCEPTED"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 29) {
+  } else if (match_val == 2529638941) {
     struct key_t key = {.c = "SVC_UNAVAILABLE"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
   } else {
     struct key_t key = {.c = "UNKNOWN"};
-    u64 zero = 0, *count;
     count = counts_finish_dispatch_cache.lookup_or_init(&key, &zero);
-    (*count)++;
   }
+
+  (*count)++;
 
   return 0;
 }
@@ -358,167 +234,105 @@ BPF_HASH(counts_process_tgs_req, struct key_t);
 
 int count_process_tgs_req(struct pt_regs *ctx) {
 
-  if (!PT_REGS_RC(ctx))
-    return 0;
-
   u64 match_val = PT_REGS_RC(ctx);
+  u64 zero = 0, *count;
 
   if (match_val == 0) {
     struct key_t key = {.c = "NONE"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 1) {
+  } else if (match_val == 2529638913) {
     struct key_t key = {.c = "NAME_EXP"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 2) {
+  } else if (match_val == 2529638914) {
     struct key_t key = {.c = "SERVICE_EXP"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 3) {
+  } else if (match_val == 2529638915) {
     struct key_t key = {.c = "BAD_PVNO"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 4) {
+  } else if (match_val == 2529638916) {
     struct key_t key = {.c = "C_OLD_MAST_KVNO"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 5) {
+  } else if (match_val == 2529638917) {
     struct key_t key = {.c = "S_OLD_MAST_KVNO"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 6) {
+  } else if (match_val == 2529638918) {
     struct key_t key = {.c = "C_PRINCIPAL_UNKNOWN"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 7) {
+  } else if (match_val == 2529638919) {
     struct key_t key = {.c = "S_PRINCIPAL_UNKNOWN"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 8) {
+  } else if (match_val == 2529638920) {
     struct key_t key = {.c = "PRINCIPAL_NOT_UNIQUE"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 9) {
+  } else if (match_val == 2529638921) {
     struct key_t key = {.c = "NULL_KEY"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 10) {
+  } else if (match_val == 2529638922) {
     struct key_t key = {.c = "CANNOT_POSTDATE"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 11) {
+  } else if (match_val == 2529638923) {
     struct key_t key = {.c = "NEVER_VALID"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 12) {
+  } else if (match_val == 2529638924) {
     struct key_t key = {.c = "POLICY"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 13) {
+  } else if (match_val == 2529638925) {
     struct key_t key = {.c = "BADOPTION"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 14) {
+  } else if (match_val == 2529638926) {
     struct key_t key = {.c = "ETYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 15) {
+  } else if (match_val == 2529638927) {
     struct key_t key = {.c = "SUMTYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 16) {
+  } else if (match_val == 2529638928) {
     struct key_t key = {.c = "PADATA_TYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 17) {
+  } else if (match_val == 2529638929) {
     struct key_t key = {.c = "TRTYPE_NOSUPP"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 18) {
+  } else if (match_val == 2529638930) {
     struct key_t key = {.c = "CLIENT_REVOKED"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 19) {
+  } else if (match_val == 2529638931) {
     struct key_t key = {.c = "SERVICE_REVOKED"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 20) {
+  } else if (match_val == 2529638932) {
     struct key_t key = {.c = "TGT_REVOKED"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 21) {
+  } else if (match_val == 2529638933) {
     struct key_t key = {.c = "CLIENT_NOTYET"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 22) {
+  } else if (match_val == 2529638934) {
     struct key_t key = {.c = "SERVICE_NOTYET"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 23) {
+  } else if (match_val == 2529638935) {
     struct key_t key = {.c = "KEY_EXP"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 24) {
+  } else if (match_val == 2529638936) {
     struct key_t key = {.c = "PREAUTH_FAILED"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 25) {
+  } else if (match_val == 2529638937) {
     struct key_t key = {.c = "PREAUTH_REQUIRED"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 26) {
+  } else if (match_val == 2529638938) {
     struct key_t key = {.c = "SERVER_NOMATCH"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 27) {
+  } else if (match_val == 2529638939) {
     struct key_t key = {.c = "MUST_USE_USER2USER"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 28) {
+  } else if (match_val == 2529638940) {
     struct key_t key = {.c = "PATH_NOT_ACCEPTED"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
-  } else if (match_val == 29) {
+  } else if (match_val == 2529638941) {
     struct key_t key = {.c = "SVC_UNAVAILABLE"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
   } else {
     struct key_t key = {.c = "UNKNOWN"};
-    u64 zero = 0, *count;
     count = counts_process_tgs_req.lookup_or_init(&key, &zero);
-    (*count)++;
   }
+
+  (*count)++;
 
   return 0;
 }
