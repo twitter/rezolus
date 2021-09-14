@@ -150,6 +150,26 @@ Provides system-wide telemetry for IRQs
 * `interrupt/tlb_shootdowns` - interrupts caused to trigger TLB shootdowns
 * `interrupt/total` - total interrupts
 
+## Krb5kdc
+
+Provides telemetry to track MIT kerberos ticket requests served by the krb5kdc
+binary. This is accomplished by attaching user space probes the following
+functions: finish_process_as_req, finish_dispatch_cache and process_tgs_req.
+Each function exports a call count that is broken down by the resulting
+[error code](https://github.com/krb5/krb5-test/blob/master/src/lib/krb5/error_tables/krb5_err.et).
+Since there is a very large list of possible error codes, the first 30 error
+codes are exported. All other error code values are exported as UNKNOWN.
+
+Each error code is reformatted to better fit metric naming standards:
+"KRB5KDC_ERR_BAD_PVNO" -> "bad_pvno"
+
+* `krb5kdc/finish_process_as_req/{ERROR_CODE}` - count of finish_process_as_req
+  calls by error
+* `krb5kdc/finish_dispatch_cache/{ERROR_CODE}` - count of finish_dispatch_cache
+  calls by error
+* `krb5kdc/process_tgs_req/{ERROR_CODE}` - count of process_tgs_req calls  by
+  error
+
 ## Memory
 
 Provides telemetry around memory usage, transparent huge-pages, huge-pages,
