@@ -38,23 +38,44 @@ impl Krb5kdc {
             let code = include_str!("bpf.c");
             let mut bpf = bcc::BPF::new(code)?;
 
-            bcc::Uprobe::new()
+            if let Err(err) = bcc::Uprobe::new()
                 .handler("count_finish_process_as_req")
                 .binary(self.path.clone())
                 .symbol("finish_process_as_req")
-                .attach(&mut bpf)?;
+                .attach(&mut bpf)
+            {
+                if self.common.config().fault_tolerant() {
+                    warn!("krb5kdc unable to attach probe to function finish_process_as_req");
+                } else {
+                    Err(err)?;
+                }
+            }
 
-            bcc::Uprobe::new()
+            if let Err(err) = bcc::Uprobe::new()
                 .handler("count_finish_dispatch_cache")
                 .binary(self.path.clone())
                 .symbol("finish_dispatch_cache")
-                .attach(&mut bpf)?;
+                .attach(&mut bpf)
+            {
+                if self.common.config().fault_tolerant() {
+                    warn!("krb5kdc unable to attach probe to function finish_dispatch_cache");
+                } else {
+                    Err(err)?;
+                }
+            }
 
-            bcc::Uretprobe::new()
+            if let Err(err) = bcc::Uretprobe::new()
                 .handler("count_process_tgs_req")
                 .binary(self.path.clone())
                 .symbol("process_tgs_req")
-                .attach(&mut bpf)?;
+                .attach(&mut bpf)
+            {
+                if self.common.config().fault_tolerant() {
+                    warn!("krb5kdc unable to attach probe to function process_tgs_req");
+                } else {
+                    Err(err)?;
+                }
+            }
 
             self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
         }
