@@ -4,6 +4,11 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+// krb_error_codes are an old format and translated into a platform appropriate
+// format to be passed around on the stack. This is why the krb_error_codes are
+// matched at an offset.
+// https://github.com/heimdal/MKShim/blob/964a930dfee5942efb8364ac07997ab5b2480033/Kerberos/krb5.h#L2457
+
 #include <uapi/linux/ptrace.h>
 
 struct key_t {
