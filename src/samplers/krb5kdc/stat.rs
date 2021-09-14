@@ -309,189 +309,99 @@ impl Krb5kdcStatistic {
     pub fn bpf_table(self) -> &'static str {
         match self {
             Self::FinishProcessAsReqUnknown => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqNone => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqNameExp => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqServiceExp => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqBadPvno => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqCOldMastKvno => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqSOldMastKvno => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqCPrincipalUnknown => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqSPrincipalUnknown => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqPrincipalNotUnique => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqNullKey => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqCannotPostdate => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqNeverValid => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqPolicy => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqBadoption => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqEtypeNosupp => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqSumtypeNosupp => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqPadataTypeNosupp => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqTrtypeNosupp => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqClientRevoked => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqServiceRevoked => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqTgtRevoked => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqClientNotyet => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqServiceNotyet => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqKeyExp => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqPreauthFailed => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqPreauthRequired => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqServerNomatch => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqMustUseUser2user => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqPathNotAccepted => "counts_finish_process_as_req",
-
             Self::FinishProcessAsReqSvcUnavailable => "counts_finish_process_as_req",
 
             Self::FinishDispatchCacheUnknown => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheNone => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheNameExp => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheServiceExp => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheBadPvno => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheCOldMastKvno => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheSOldMastKvno => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheCPrincipalUnknown => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheSPrincipalUnknown => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCachePrincipalNotUnique => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheNullKey => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheCannotPostdate => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheNeverValid => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCachePolicy => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheBadoption => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheEtypeNosupp => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheSumtypeNosupp => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCachePadataTypeNosupp => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheTrtypeNosupp => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheClientRevoked => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheServiceRevoked => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheTgtRevoked => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheClientNotyet => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheServiceNotyet => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheKeyExp => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCachePreauthFailed => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCachePreauthRequired => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheServerNomatch => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheMustUseUser2user => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCachePathNotAccepted => "counts_finish_dispatch_cache",
-
             Self::FinishDispatchCacheSvcUnavailable => "counts_finish_dispatch_cache",
 
             Self::ProcessTgsReqUnknown => "counts_process_tgs_req",
-
             Self::ProcessTgsReqNone => "counts_process_tgs_req",
-
             Self::ProcessTgsReqNameExp => "counts_process_tgs_req",
-
             Self::ProcessTgsReqServiceExp => "counts_process_tgs_req",
-
             Self::ProcessTgsReqBadPvno => "counts_process_tgs_req",
-
             Self::ProcessTgsReqCOldMastKvno => "counts_process_tgs_req",
-
             Self::ProcessTgsReqSOldMastKvno => "counts_process_tgs_req",
-
             Self::ProcessTgsReqCPrincipalUnknown => "counts_process_tgs_req",
-
             Self::ProcessTgsReqSPrincipalUnknown => "counts_process_tgs_req",
-
             Self::ProcessTgsReqPrincipalNotUnique => "counts_process_tgs_req",
-
             Self::ProcessTgsReqNullKey => "counts_process_tgs_req",
-
             Self::ProcessTgsReqCannotPostdate => "counts_process_tgs_req",
-
             Self::ProcessTgsReqNeverValid => "counts_process_tgs_req",
-
             Self::ProcessTgsReqPolicy => "counts_process_tgs_req",
-
             Self::ProcessTgsReqBadoption => "counts_process_tgs_req",
-
             Self::ProcessTgsReqEtypeNosupp => "counts_process_tgs_req",
-
             Self::ProcessTgsReqSumtypeNosupp => "counts_process_tgs_req",
-
             Self::ProcessTgsReqPadataTypeNosupp => "counts_process_tgs_req",
-
             Self::ProcessTgsReqTrtypeNosupp => "counts_process_tgs_req",
-
             Self::ProcessTgsReqClientRevoked => "counts_process_tgs_req",
-
             Self::ProcessTgsReqServiceRevoked => "counts_process_tgs_req",
-
             Self::ProcessTgsReqTgtRevoked => "counts_process_tgs_req",
-
             Self::ProcessTgsReqClientNotyet => "counts_process_tgs_req",
-
             Self::ProcessTgsReqServiceNotyet => "counts_process_tgs_req",
-
             Self::ProcessTgsReqKeyExp => "counts_process_tgs_req",
-
             Self::ProcessTgsReqPreauthFailed => "counts_process_tgs_req",
-
             Self::ProcessTgsReqPreauthRequired => "counts_process_tgs_req",
-
             Self::ProcessTgsReqServerNomatch => "counts_process_tgs_req",
-
             Self::ProcessTgsReqMustUseUser2user => "counts_process_tgs_req",
-
             Self::ProcessTgsReqPathNotAccepted => "counts_process_tgs_req",
-
             Self::ProcessTgsReqSvcUnavailable => "counts_process_tgs_req",
         }
     }
@@ -499,189 +409,99 @@ impl Krb5kdcStatistic {
     pub fn bpf_entry(self) -> &'static str {
         match self {
             Self::FinishProcessAsReqUnknown => "UNKNOWN",
-
             Self::FinishProcessAsReqNone => "NONE",
-
             Self::FinishProcessAsReqNameExp => "NAME_EXP",
-
             Self::FinishProcessAsReqServiceExp => "SERVICE_EXP",
-
             Self::FinishProcessAsReqBadPvno => "BAD_PVNO",
-
             Self::FinishProcessAsReqCOldMastKvno => "C_OLD_MAST_KVNO",
-
             Self::FinishProcessAsReqSOldMastKvno => "S_OLD_MAST_KVNO",
-
             Self::FinishProcessAsReqCPrincipalUnknown => "C_PRINCIPAL_UNKNOWN",
-
             Self::FinishProcessAsReqSPrincipalUnknown => "S_PRINCIPAL_UNKNOWN",
-
             Self::FinishProcessAsReqPrincipalNotUnique => "PRINCIPAL_NOT_UNIQUE",
-
             Self::FinishProcessAsReqNullKey => "NULL_KEY",
-
             Self::FinishProcessAsReqCannotPostdate => "CANNOT_POSTDATE",
-
             Self::FinishProcessAsReqNeverValid => "NEVER_VALID",
-
             Self::FinishProcessAsReqPolicy => "POLICY",
-
             Self::FinishProcessAsReqBadoption => "BADOPTION",
-
             Self::FinishProcessAsReqEtypeNosupp => "ETYPE_NOSUPP",
-
             Self::FinishProcessAsReqSumtypeNosupp => "SUMTYPE_NOSUPP",
-
             Self::FinishProcessAsReqPadataTypeNosupp => "PADATA_TYPE_NOSUPP",
-
             Self::FinishProcessAsReqTrtypeNosupp => "TRTYPE_NOSUPP",
-
             Self::FinishProcessAsReqClientRevoked => "CLIENT_REVOKED",
-
             Self::FinishProcessAsReqServiceRevoked => "SERVICE_REVOKED",
-
             Self::FinishProcessAsReqTgtRevoked => "TGT_REVOKED",
-
             Self::FinishProcessAsReqClientNotyet => "CLIENT_NOTYET",
-
             Self::FinishProcessAsReqServiceNotyet => "SERVICE_NOTYET",
-
             Self::FinishProcessAsReqKeyExp => "KEY_EXP",
-
             Self::FinishProcessAsReqPreauthFailed => "PREAUTH_FAILED",
-
             Self::FinishProcessAsReqPreauthRequired => "PREAUTH_REQUIRED",
-
             Self::FinishProcessAsReqServerNomatch => "SERVER_NOMATCH",
-
             Self::FinishProcessAsReqMustUseUser2user => "MUST_USE_USER2USER",
-
             Self::FinishProcessAsReqPathNotAccepted => "PATH_NOT_ACCEPTED",
-
             Self::FinishProcessAsReqSvcUnavailable => "SVC_UNAVAILABLE",
 
             Self::FinishDispatchCacheUnknown => "UNKNOWN",
-
             Self::FinishDispatchCacheNone => "NONE",
-
             Self::FinishDispatchCacheNameExp => "NAME_EXP",
-
             Self::FinishDispatchCacheServiceExp => "SERVICE_EXP",
-
             Self::FinishDispatchCacheBadPvno => "BAD_PVNO",
-
             Self::FinishDispatchCacheCOldMastKvno => "C_OLD_MAST_KVNO",
-
             Self::FinishDispatchCacheSOldMastKvno => "S_OLD_MAST_KVNO",
-
             Self::FinishDispatchCacheCPrincipalUnknown => "C_PRINCIPAL_UNKNOWN",
-
             Self::FinishDispatchCacheSPrincipalUnknown => "S_PRINCIPAL_UNKNOWN",
-
             Self::FinishDispatchCachePrincipalNotUnique => "PRINCIPAL_NOT_UNIQUE",
-
             Self::FinishDispatchCacheNullKey => "NULL_KEY",
-
             Self::FinishDispatchCacheCannotPostdate => "CANNOT_POSTDATE",
-
             Self::FinishDispatchCacheNeverValid => "NEVER_VALID",
-
             Self::FinishDispatchCachePolicy => "POLICY",
-
             Self::FinishDispatchCacheBadoption => "BADOPTION",
-
             Self::FinishDispatchCacheEtypeNosupp => "ETYPE_NOSUPP",
-
             Self::FinishDispatchCacheSumtypeNosupp => "SUMTYPE_NOSUPP",
-
             Self::FinishDispatchCachePadataTypeNosupp => "PADATA_TYPE_NOSUPP",
-
             Self::FinishDispatchCacheTrtypeNosupp => "TRTYPE_NOSUPP",
-
             Self::FinishDispatchCacheClientRevoked => "CLIENT_REVOKED",
-
             Self::FinishDispatchCacheServiceRevoked => "SERVICE_REVOKED",
-
             Self::FinishDispatchCacheTgtRevoked => "TGT_REVOKED",
-
             Self::FinishDispatchCacheClientNotyet => "CLIENT_NOTYET",
-
             Self::FinishDispatchCacheServiceNotyet => "SERVICE_NOTYET",
-
             Self::FinishDispatchCacheKeyExp => "KEY_EXP",
-
             Self::FinishDispatchCachePreauthFailed => "PREAUTH_FAILED",
-
             Self::FinishDispatchCachePreauthRequired => "PREAUTH_REQUIRED",
-
             Self::FinishDispatchCacheServerNomatch => "SERVER_NOMATCH",
-
             Self::FinishDispatchCacheMustUseUser2user => "MUST_USE_USER2USER",
-
             Self::FinishDispatchCachePathNotAccepted => "PATH_NOT_ACCEPTED",
-
             Self::FinishDispatchCacheSvcUnavailable => "SVC_UNAVAILABLE",
 
             Self::ProcessTgsReqUnknown => "UNKNOWN",
-
             Self::ProcessTgsReqNone => "NONE",
-
             Self::ProcessTgsReqNameExp => "NAME_EXP",
-
             Self::ProcessTgsReqServiceExp => "SERVICE_EXP",
-
             Self::ProcessTgsReqBadPvno => "BAD_PVNO",
-
             Self::ProcessTgsReqCOldMastKvno => "C_OLD_MAST_KVNO",
-
             Self::ProcessTgsReqSOldMastKvno => "S_OLD_MAST_KVNO",
-
             Self::ProcessTgsReqCPrincipalUnknown => "C_PRINCIPAL_UNKNOWN",
-
             Self::ProcessTgsReqSPrincipalUnknown => "S_PRINCIPAL_UNKNOWN",
-
             Self::ProcessTgsReqPrincipalNotUnique => "PRINCIPAL_NOT_UNIQUE",
-
             Self::ProcessTgsReqNullKey => "NULL_KEY",
-
             Self::ProcessTgsReqCannotPostdate => "CANNOT_POSTDATE",
-
             Self::ProcessTgsReqNeverValid => "NEVER_VALID",
-
             Self::ProcessTgsReqPolicy => "POLICY",
-
             Self::ProcessTgsReqBadoption => "BADOPTION",
-
             Self::ProcessTgsReqEtypeNosupp => "ETYPE_NOSUPP",
-
             Self::ProcessTgsReqSumtypeNosupp => "SUMTYPE_NOSUPP",
-
             Self::ProcessTgsReqPadataTypeNosupp => "PADATA_TYPE_NOSUPP",
-
             Self::ProcessTgsReqTrtypeNosupp => "TRTYPE_NOSUPP",
-
             Self::ProcessTgsReqClientRevoked => "CLIENT_REVOKED",
-
             Self::ProcessTgsReqServiceRevoked => "SERVICE_REVOKED",
-
             Self::ProcessTgsReqTgtRevoked => "TGT_REVOKED",
-
             Self::ProcessTgsReqClientNotyet => "CLIENT_NOTYET",
-
             Self::ProcessTgsReqServiceNotyet => "SERVICE_NOTYET",
-
             Self::ProcessTgsReqKeyExp => "KEY_EXP",
-
             Self::ProcessTgsReqPreauthFailed => "PREAUTH_FAILED",
-
             Self::ProcessTgsReqPreauthRequired => "PREAUTH_REQUIRED",
-
             Self::ProcessTgsReqServerNomatch => "SERVER_NOMATCH",
-
             Self::ProcessTgsReqMustUseUser2user => "MUST_USE_USER2USER",
-
             Self::ProcessTgsReqPathNotAccepted => "PATH_NOT_ACCEPTED",
-
             Self::ProcessTgsReqSvcUnavailable => "SVC_UNAVAILABLE",
         }
     }
