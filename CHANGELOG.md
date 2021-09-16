@@ -1,5 +1,10 @@
 # [Unreleased]
 
+# [2.14.0] - 2020-09-16
+## Added
+- Adds new `SRTT` metric for TCP sampler using BPF. (#238)
+- Adds new `krb5kdc` sampler to get telemetry on MIT Kerberos. (#241)
+
 # [2.13.0] - 2020-07-12
 ## Fixed
 - Interrupt sampler failed to sample all interrupts if it encountered an
@@ -187,7 +192,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.13.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.14.0...HEAD
+[2.14.0]: https://github.com/twitter/rezolus/compare/v2.13.0...v2.14.0
 [2.13.0]: https://github.com/twitter/rezolus/compare/v2.12.0...v2.13.0
 [2.12.0]: https://github.com/twitter/rezolus/compare/v2.11.1...v2.12.0
 [2.11.1]: https://github.com/twitter/rezolus/compare/v2.11.0...v2.11.1
