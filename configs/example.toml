@@ -196,6 +196,19 @@ bpf = true
 # ]
 
 
+# The krb5kdc sampler attaches user space probes to the krb5kdc binary distributed as part
+# of MIT kerberos. It will interpret the krb5_error_codes for the functions as well and export
+# the number of calls to each ticket processing function and its result. Specifically it will
+# attach to: finish_process_as_req, finish_dispatch_cache, and process_tgs_request.
+[samplers.krb5kdc]
+# Controls whether to use this sampler
+# enabled = true
+
+# Path to the krb5kdc binary to probe
+# path = "/usr/sbin/krb5kdc"
+
+
+
 # The memory sampler provides telemetry for system memory utilization
 [samplers.memory]
 # Controls whether to use this sampler

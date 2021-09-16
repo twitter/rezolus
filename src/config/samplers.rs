@@ -9,6 +9,7 @@ use samplers::disk::DiskConfig;
 use samplers::ext4::Ext4Config;
 use samplers::http::HttpConfig;
 use samplers::interrupt::InterruptConfig;
+use samplers::krb5kdc::Krb5kdcConfig;
 use samplers::memcache::MemcacheConfig;
 use samplers::memory::MemoryConfig;
 use samplers::network::NetworkConfig;
@@ -37,7 +38,7 @@ pub struct Samplers {
     #[serde(default)]
     interrupt: InterruptConfig,
     #[serde(default)]
-    usercall: UsercallConfig,
+    krb5kdc: Krb5kdcConfig,
     #[serde(default)]
     memcache: MemcacheConfig,
     #[serde(default)]
@@ -60,6 +61,8 @@ pub struct Samplers {
     tcp: TcpConfig,
     #[serde(default)]
     udp: UdpConfig,
+    #[serde(default)]
+    usercall: UsercallConfig,
     #[serde(default)]
     xfs: XfsConfig,
 }
@@ -85,8 +88,8 @@ impl Samplers {
         &self.interrupt
     }
 
-    pub fn usercall(&self) -> &UsercallConfig {
-        &self.usercall
+    pub fn krb5kdc(&self) -> &Krb5kdcConfig {
+        &self.krb5kdc
     }
 
     pub fn memcache(&self) -> &MemcacheConfig {
@@ -131,6 +134,10 @@ impl Samplers {
 
     pub fn udp(&self) -> &UdpConfig {
         &self.udp
+    }
+
+    pub fn usercall(&self) -> &UsercallConfig {
+        &self.usercall
     }
 
     pub fn xfs(&self) -> &XfsConfig {
