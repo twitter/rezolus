@@ -7,6 +7,7 @@ use std::time::*;
 use tokio::fs::File;
 
 use async_trait::async_trait;
+use rustcommon_metrics::*;
 
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;
@@ -145,12 +146,34 @@ impl Tcp {
                     .function("tcp_v6_connect")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
+                    .handler("trace_finish_connect")
+                    .function("tcp_finish_connect")
+                    .attach(&mut bpf)?;
+                bcc::Kprobe::new()
                     .handler("trace_tcp_rcv_state_process")
                     .function("tcp_rcv_state_process")
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
                     .handler("trace_tcp_rcv")
                     .function("tcp_rcv_established")
+                    .attach(&mut bpf)?;
+
+                // probes at returns
+                bcc::Kretprobe::new()
+                    .handler("trace_connect_return")
+                    .function("tcp_v4_connect")
+                    .attach(&mut bpf)?;
+                bcc::Kretprobe::new()
+                    .handler("trace_connect_return")
+                    .function("tcp_v6_connect")
+                    .attach(&mut bpf)?;
+                bcc::Kretprobe::new()
+                    .handler("trace_tcp_set_state")
+                    .function("tcp_set_state")
+                    .attach(&mut bpf)?;
+                bcc::Kretprobe::new()
+                    .handler("trace_inet_socket_accept_return")
+                    .function("inet_csk_accept")
                     .attach(&mut bpf)?;
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
@@ -212,17 +235,29 @@ impl Tcp {
                 let bpf = bpf.lock().unwrap();
                 let time = Instant::now();
                 for statistic in self.statistics.iter().filter(|s| s.bpf_table().is_some()) {
-                    if let Ok(mut table) = (*bpf).inner.table(statistic.bpf_table().unwrap()) {
-                        for (&value, &count) in &map_from_table(&mut table) {
-                            if count > 0 {
-                                let _ = self.metrics().record_bucket(
-                                    statistic,
-                                    time,
-                                    value * 1000,
-                                    count,
-                                );
+                    // if statistic is Counter
+                    match statistic.source() {
+                        Source::Counter =>
+                            if let Ok(table) = &(*bpf).inner.table(statistic.bpf_table().unwrap()) {
+                                let count = crate::common::bpf::parse_u64(table.iter().next().unwrap().value);
+                                let _ = self.metrics().record_counter(statistic, time, count);
                             }
-                        }
+                        // if it's distribution
+                        Source::Distribution =>
+                            if let Ok(mut table) = (*bpf).inner.table(statistic.bpf_table().unwrap()) {
+                                for (&value, &count) in &map_from_table(&mut table) {
+                                    if count > 0 {
+                                        let _ = self.metrics().record_bucket(
+                                            statistic,
+                                            time,
+                                            // in bpf everything is in micro, we convert it back to nano for alignment.
+                                            value * 1000,
+                                            count,
+                                        );
+                                    }
+                                }
+                            }
+                        _ => () // we do not support other types
                     }
                 }
             }
