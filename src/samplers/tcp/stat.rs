@@ -130,7 +130,7 @@ impl Statistic<AtomicU64, AtomicU32> for TcpStatistic {
     fn source(&self) -> Source {
         match self.bpf_table() {
             Some("connlat") | Some("srtt") | Some("jitter") => Source::Distribution,
-            _ => Source::Counter
+            _ => Source::Counter,
         }
     }
 }

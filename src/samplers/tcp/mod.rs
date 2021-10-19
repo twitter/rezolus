@@ -237,14 +237,19 @@ impl Tcp {
                 for statistic in self.statistics.iter().filter(|s| s.bpf_table().is_some()) {
                     // if statistic is Counter
                     match statistic.source() {
-                        Source::Counter =>
+                        Source::Counter => {
                             if let Ok(table) = &(*bpf).inner.table(statistic.bpf_table().unwrap()) {
-                                let count = crate::common::bpf::parse_u64(table.iter().next().unwrap().value);
+                                let count = crate::common::bpf::parse_u64(
+                                    table.iter().next().unwrap().value,
+                                );
                                 let _ = self.metrics().record_counter(statistic, time, count);
                             }
+                        }
                         // if it's distribution
-                        Source::Distribution =>
-                            if let Ok(mut table) = (*bpf).inner.table(statistic.bpf_table().unwrap()) {
+                        Source::Distribution => {
+                            if let Ok(mut table) =
+                                (*bpf).inner.table(statistic.bpf_table().unwrap())
+                            {
                                 for (&value, &count) in &map_from_table(&mut table) {
                                     if count > 0 {
                                         let _ = self.metrics().record_bucket(
@@ -257,7 +262,8 @@ impl Tcp {
                                     }
                                 }
                             }
-                        _ => () // we do not support other types
+                        }
+                        _ => (), // we do not support other types
                     }
                 }
             }
