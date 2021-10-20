@@ -9,103 +9,6 @@ env:
   cache: 0
 
 jobs:
-  xenial-llvm_8-bcc_v0_10_0:
-    name: xenial / llvm 8 / bcc 0.10.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.10.0"
-      DIST: xenial
-      FEATURES: bpf_v0_10_0
-      LLVM: 8
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_11_0:
-    name: xenial / llvm 8 / bcc 0.11.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.11.0"
-      DIST: xenial
-      FEATURES: bpf_v0_11_0
-      LLVM: 8
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_12_0:
-    name: xenial / llvm 8 / bcc 0.12.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.12.0"
-      DIST: xenial
-      FEATURES: bpf_v0_12_0
-      LLVM: 8
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_13_0:
-    name: xenial / llvm 8 / bcc 0.13.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.13.0"
-      DIST: xenial
-      FEATURES: bpf_v0_13_0
-      LLVM: 8
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_14_0:
-    name: xenial / llvm 8 / bcc 0.14.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.14.0"
-      DIST: xenial
-      FEATURES: bpf_v0_14_0
-      LLVM: 8
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_15_0:
-    name: xenial / llvm 8 / bcc 0.15.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.15.0"
-      DIST: xenial
-      FEATURES: bpf_v0_15_0
-      LLVM: 8
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_16_0:
-    name: xenial / llvm 8 / bcc 0.16.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.16.0"
-      DIST: xenial
-      FEATURES: bpf_v0_16_0
-      LLVM: 8
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_16_0-static:
-    name: xenial / llvm 8 / bcc 0.16.0 / static
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.16.0"
-      DIST: xenial
-      FEATURES: bpf_v0_16_0 bpf_static_llvm_8
-      LLVM: 8
-      STATIC: true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_12_0:
     name: focal / llvm 9 / bcc 0.12.0
     runs-on: ubuntu-20.04
@@ -236,12 +139,12 @@ jobs:
       run: rustup component add clippy
     - name: clippy
       run: cargo clippy || cargo clippy
-  audit:
-    name: audit
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: install
-      run: cargo install cargo-audit
-    - name: audit
-      run: cargo audit --ignore RUSTSEC-2020-0031
+  # audit:
+  #   name: audit
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - name: install
+  #     run: cargo install cargo-audit
+  #   - name: audit
+  #     run: cargo audit --ignore RUSTSEC-2020-0031
