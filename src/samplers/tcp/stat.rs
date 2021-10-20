@@ -74,7 +74,7 @@ pub enum TcpStatistic {
     #[strum(serialize = "tcp/srtt")]
     SmoothedRoundTripTime,
     #[strum(serialize = "tcp/jitter")]
-    MedianDevOfSmoothedRoundTripTime,
+    Jitter,
     #[strum(serialize = "tcp/connection/accepted")]
     ConnectionAccepted,
     #[strum(serialize = "tcp/connection/initiated")]
@@ -114,7 +114,7 @@ impl TcpStatistic {
         match self {
             Self::ConnectLatency => Some("connlat"),
             Self::SmoothedRoundTripTime => Some("srtt"),
-            Self::MedianDevOfSmoothedRoundTripTime => Some("jitter"),
+            Self::Jitter => Some("jitter"),
             Self::ConnectionAccepted => Some("conn_accepted"),
             Self::ConnectionInitiated => Some("conn_initiated"),
             _ => None,
