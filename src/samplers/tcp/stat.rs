@@ -73,6 +73,12 @@ pub enum TcpStatistic {
     AbortOnTimeout,
     #[strum(serialize = "tcp/srtt")]
     SmoothedRoundTripTime,
+    #[strum(serialize = "tcp/jitter")]
+    Jitter,
+    #[strum(serialize = "tcp/connection/accepted")]
+    ConnectionAccepted,
+    #[strum(serialize = "tcp/connection/initiated")]
+    ConnectionInitiated,
 }
 
 impl TcpStatistic {
@@ -108,6 +114,9 @@ impl TcpStatistic {
         match self {
             Self::ConnectLatency => Some("connlat"),
             Self::SmoothedRoundTripTime => Some("srtt"),
+            Self::Jitter => Some("jitter"),
+            Self::ConnectionAccepted => Some("conn_accepted"),
+            Self::ConnectionInitiated => Some("conn_initiated"),
             _ => None,
         }
     }
@@ -119,10 +128,9 @@ impl Statistic<AtomicU64, AtomicU32> for TcpStatistic {
     }
 
     fn source(&self) -> Source {
-        if self.bpf_table().is_some() {
-            Source::Distribution
-        } else {
-            Source::Counter
+        match self.bpf_table() {
+            Some("connlat") | Some("srtt") | Some("jitter") => Source::Distribution,
+            _ => Source::Counter,
         }
     }
 }

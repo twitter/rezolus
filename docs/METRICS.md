@@ -493,6 +493,10 @@ This sampler provides telemetry about TCP traffic and connections.
 
 * `tcp/connect/latency` - end-to-end latency, in nanoseconds, from an active
   outbound `connect()` until the socket is established
+* `tcp/srtt` - the smoothed round trip latency distribution, in nanoseconds
+* `tcp/jitter` - the median deviation of the smoothed round trip latency distribution, in nanoseconds
+* `tcp/connection/accepted` - number of connections accepted passively
+* `tcp/connection/initiated` - number of connections initiated actively
 
 ## UDP
 
