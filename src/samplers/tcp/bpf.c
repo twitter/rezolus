@@ -31,6 +31,7 @@ BPF_HISTOGRAM(jitter, int, 461);
 // counters
 BPF_ARRAY(conn_accepted, u64, 1);
 BPF_ARRAY(conn_initiated, u64, 1);
+BPF_ARRAY(drop, u64, 1);
 
 // store a pointer by the pid
 static void store_ptr(u64 pid, u64 ptr)
@@ -268,5 +269,14 @@ int trace_tcp_rcv(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb)
     srtt.increment(value_to_index2(get_srtt_us(ts)));
     jitter.increment(value_to_index2(get_jitter_us(ts)));
 
+    return 0;
+}
+
+int trace_tcp_drop(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb)
+{
+    if (sk == NULL)
+        return 0;
+    int loc = 0;
+    add_value(drop.lookup(&loc), 1);
     return 0;
 }

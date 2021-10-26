@@ -157,6 +157,10 @@ impl Tcp {
                     .handler("trace_tcp_rcv")
                     .function("tcp_rcv_established")
                     .attach(&mut bpf)?;
+                bcc::Kprobe::new()
+                    .handler("trace_tcp_drop")
+                    .function("tcp_drop")
+                    .attach(&mut bpf)?;
 
                 // probes at returns
                 bcc::Kretprobe::new()
