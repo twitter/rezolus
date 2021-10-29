@@ -15,6 +15,17 @@ impl MemcacheStatistic {
     pub fn new(name: String) -> Self {
         Self { inner: name }
     }
+
+    pub fn summary_type(&self) -> Option<Source> {
+        match self.inner.as_ref() {
+            "data_read" | "data_written" | "cmd_total" | "conn_total" | "conn_yield"
+            | "process_req" | "tcp_accept" | "tcp_recv_byte" | "tcp_send_byte" => {
+                Some(Source::Counter)
+            }
+            "hotkey_bw" | "hotkey_qps" => Some(Source::Gauge),
+            _ => None,
+        }
+    }
 }
 
 impl Statistic<AtomicU64, AtomicU32> for MemcacheStatistic {
@@ -23,11 +34,6 @@ impl Statistic<AtomicU64, AtomicU32> for MemcacheStatistic {
     }
 
     fn source(&self) -> Source {
-        match self.inner.as_ref() {
-            "data_read" | "data_written" | "cmd_total" | "conn_total" | "conn_yield"
-            | "process_req" | "tcp_accept" | "tcp_recv_byte" | "tcp_send_byte" => Source::Counter,
-            "hotkey_bw" | "hotkey_qps" => Source::Gauge,
-            _ => Source::Gauge,
-        }
+        self.summary_type().unwrap_or(Source::Gauge)
     }
 }

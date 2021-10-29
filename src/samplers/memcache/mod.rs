@@ -120,52 +120,47 @@ impl Sampler for Memcache {
                 for line in lines {
                     let parts: Vec<&str> = line.split_whitespace().collect();
                     if let Some(name) = parts.get(1) {
-                        if let Some(value) = parts.get(2) {
-                            match *name {
-                                "data_read" | "data_written" | "cmd_total" | "conn_total"
-                                | "conn_yield" | "hotkey_bw" | "hotkey_qps" => {
-                                    if let Ok(value) =
-                                        value.parse::<f64>().map(|v| v.floor() as u64)
-                                    {
-                                        let statistic = MemcacheStatistic::new((*name).to_string());
-                                        // these select metrics get histogram summaries and
-                                        // percentile output
-                                        self.common().metrics().register(&statistic);
-                                        self.common().metrics().add_summary(
-                                            &statistic,
-                                            Summary::stream(self.samples()),
-                                        );
-                                        self.common()
-                                            .metrics()
-                                            .add_output(&statistic, Output::Reading);
-                                        let _ = self
-                                            .common()
-                                            .metrics()
-                                            .record_counter(&statistic, time, value);
-                                        for percentile in self.sampler_config().percentiles() {
-                                            self.common().metrics().add_output(
-                                                &statistic,
-                                                Output::Percentile(*percentile),
-                                            );
-                                        }
-                                    }
+                        if let Some(Ok(value)) = parts
+                            .get(2)
+                            .map(|v| v.parse::<f64>().map(|v| v.floor() as u64))
+                        {
+                            let statistic = MemcacheStatistic::new((*name).to_string());
+
+                            // all statistics will be registered and have the
+                            // current value as an output
+                            self.common().metrics().register(&statistic);
+                            self.common()
+                                .metrics()
+                                .add_output(&statistic, Output::Reading);
+
+                            // for some statistics, we will export summary stats
+                            if statistic.summary_type().is_some() {
+                                self.common()
+                                    .metrics()
+                                    .add_summary(&statistic, Summary::stream(self.samples()));
+                                for percentile in self.sampler_config().percentiles() {
+                                    self.common()
+                                        .metrics()
+                                        .add_output(&statistic, Output::Percentile(*percentile));
                                 }
-                                _ => {
-                                    if let Ok(value) =
-                                        value.parse::<f64>().map(|v| v.floor() as u64)
-                                    {
-                                        let statistic = MemcacheStatistic::new((*name).to_string());
-                                        self.common().metrics().register(&statistic);
-                                        self.common()
-                                            .metrics()
-                                            .add_output(&statistic, Output::Reading);
-                                        // gauge type is used to pass-through raw metrics
-                                        let _ = self
-                                            .common()
-                                            .metrics()
-                                            .record_gauge(&statistic, time, value);
-                                    }
+                            }
+
+                            // all statistics should have their current value
+                            // recorded
+                            match statistic.source() {
+                                Source::Counter => {
+                                    let _ = self
+                                        .common()
+                                        .metrics()
+                                        .record_counter(&statistic, time, value);
                                 }
+                                Source::Gauge => {
+                                    let _ = self
+                                        .common()
+                                        .metrics()
+                                        .record_gauge(&statistic, time, value);
+                                }
+                                _ => {}
                             }
                         }
                     }
