@@ -497,7 +497,7 @@ This sampler provides telemetry about TCP traffic and connections.
 * `tcp/jitter` - the median deviation of the smoothed round trip latency distribution, in nanoseconds
 * `tcp/connection/accepted` - number of connections accepted passively
 * `tcp/connection/initiated` - number of connections initiated actively
-* `tcp/drop` - number of packet drops
+* `tcp/drop` - number of packets dropped in the kernel TCP stack
 
 ## UDP
 
