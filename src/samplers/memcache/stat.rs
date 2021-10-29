@@ -24,9 +24,8 @@ impl Statistic<AtomicU64, AtomicU32> for MemcacheStatistic {
 
     fn source(&self) -> Source {
         match self.inner.as_ref() {
-            "data_read" | "data_written" | "cmd_total" | "conn_total" | "conn_yield" => {
-                Source::Counter
-            }
+            "data_read" | "data_written" | "cmd_total" | "conn_total" | "conn_yield"
+            | "process_req" | "tcp_accept" | "tcp_recv_byte" | "tcp_send_byte" => Source::Counter,
             "hotkey_bw" | "hotkey_qps" => Source::Gauge,
             _ => Source::Gauge,
         }
