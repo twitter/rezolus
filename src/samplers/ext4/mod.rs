@@ -126,6 +126,7 @@ impl Ext4 {
                 let addr = "0x".to_string()
                     + &crate::common::bpf::symbol_lookup("ext4_file_operations").unwrap();
                 let code = code.replace("EXT4_FILE_OPERATIONS", &addr);
+                let code = code.replace("VALUE_TO_INDEX2_FUNC", include_str!("../../common/value_to_index2.c"));
                 let mut bpf = bcc::BPF::new(&code)?;
 
                 // load + attach kprobes!
