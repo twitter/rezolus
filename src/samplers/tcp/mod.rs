@@ -134,7 +134,11 @@ impl Tcp {
                 debug!("initializing bpf");
                 // load the code and compile
                 let code = include_str!("bpf.c");
-                let mut bpf = bcc::BPF::new(code)?;
+                let code = code.replace(
+                    "VALUE_TO_INDEX2_FUNC",
+                    include_str!("../../common/value_to_index2.c"),
+                );
+                let mut bpf = bcc::BPF::new(&code)?;
 
                 // load + attach kprobes!
                 bcc::Kprobe::new()
