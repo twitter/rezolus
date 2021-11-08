@@ -498,6 +498,7 @@ This sampler provides telemetry about TCP traffic and connections.
 * `tcp/connection/accepted` - number of connections accepted passively
 * `tcp/connection/initiated` - number of connections initiated actively
 * `tcp/drop` - number of packets dropped in the kernel TCP stack
+* `tcp/tlp` - number of Tail Loss Recovery Probes sent
 
 ## UDP
 

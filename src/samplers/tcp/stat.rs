@@ -81,6 +81,8 @@ pub enum TcpStatistic {
     ConnectionInitiated,
     #[strum(serialize = "tcp/drop")]
     Drop,
+    #[strum(serialize = "tcp/tlp")]
+    TailLossProbe,
 }
 
 impl TcpStatistic {
@@ -120,6 +122,7 @@ impl TcpStatistic {
             Self::ConnectionAccepted => Some("conn_accepted"),
             Self::ConnectionInitiated => Some("conn_initiated"),
             Self::Drop => Some("drop"),
+            Self::TailLossProbe => Some("tlp"),
             _ => None,
         }
     }
