@@ -83,6 +83,8 @@ pub enum TcpStatistic {
     Drop,
     #[strum(serialize = "tcp/tlp")]
     TailLossProbe,
+    #[strum(serialize = "tcp/retransmit_timeout")]
+    RetransmitTimeout,
 }
 
 impl TcpStatistic {
@@ -123,6 +125,7 @@ impl TcpStatistic {
             Self::ConnectionInitiated => Some("conn_initiated"),
             Self::Drop => Some("drop"),
             Self::TailLossProbe => Some("tlp"),
+            Self::RetransmitTimeout => Some("rto"),
             _ => None,
         }
     }

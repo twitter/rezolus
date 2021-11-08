@@ -33,6 +33,7 @@ BPF_ARRAY(conn_accepted, u64, 1);
 BPF_ARRAY(conn_initiated, u64, 1);
 BPF_ARRAY(drop, u64, 1);
 BPF_ARRAY(tlp, u64, 1);
+BPF_ARRAY(rto, u64, 1);
 
 // store a pointer by the pid
 static void store_ptr(u64 pid, u64 ptr)
@@ -259,5 +260,15 @@ int trace_tlp(struct pt_regs *ctx, struct sock *sk)
         return 0;
     int loc = 0;
     add_value(tlp.lookup(&loc), 1);
+    return 0;
+}
+
+// Count the amount of Retransmission Timeouts (RTO)
+int trace_rto(struct pt_regs *ctx, struct sock *sk) 
+{
+    if (sk == NULL)
+        return 0;
+    int loc = 0;
+    add_value(rto.lookup(&loc), 1);
     return 0;
 }
