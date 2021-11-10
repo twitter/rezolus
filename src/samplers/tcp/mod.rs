@@ -171,7 +171,7 @@ impl Tcp {
                     .attach(&mut bpf)?;
                 bcc::Kprobe::new()
                     .handler("trace_rto")
-                    .function("tcp_retransmit_skb")
+                    .function("tcp_retransmit_timer")
                     .attach(&mut bpf)?;
 
                 // probes at returns
