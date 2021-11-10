@@ -242,8 +242,6 @@ int trace_tcp_rcv(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb)
     return 0;
 }
 
-
-
 int trace_tcp_drop(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb)
 {
     if (sk == NULL)
