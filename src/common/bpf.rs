@@ -28,13 +28,13 @@ pub enum ProbeLocation {
 // Define a probe.
 #[cfg(feature = "bpf")]
 pub struct Probe<Statistic> {
-    pub func_name: String,              // name of the function to probe
-    pub func_type: FunctionType,        // function type, kernel, user or tracepoint.
-    pub handler: String,                // the handler function
-    pub location: ProbeLocation,        // probe location, at entry or at return.
-    pub statistics: Vec<Statistic>,     // statistics that require this probe.
-    pub binary_path: Option<String>,    // required for user probe only.
-    pub sub_system: Option<String>,     // required for tracepoint only.
+    pub func_name: String,           // name of the function to probe
+    pub func_type: FunctionType,     // function type, kernel, user or tracepoint.
+    pub handler: String,             // the handler function
+    pub location: ProbeLocation,     // probe location, at entry or at return.
+    pub statistics: Vec<Statistic>,  // statistics that require this probe.
+    pub binary_path: Option<String>, // required for user probe only.
+    pub sub_system: Option<String>,  // required for tracepoint only.
 }
 
 // A collection of probes.

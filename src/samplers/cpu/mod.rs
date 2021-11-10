@@ -192,7 +192,7 @@ impl Cpu {
                 }
             }
             debug!("attaching software event to drive perf counter sampling");
-            // if none of the perf array was attached, we don need to attach the perf event.
+            // if none of the perf array was attached, we do not need to attach the perf event.
             if perf_array_attached {
                 if PerfEvent::new()
                     .handler("do_count")
