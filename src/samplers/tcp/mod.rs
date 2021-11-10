@@ -29,17 +29,6 @@ pub struct Tcp {
     statistics: Vec<TcpStatistic>,
 }
 
-// define a kernel probe.
-// the function name, handler name, whether it's at the return of the function,
-// and the statistics that use the probe.
-#[allow(dead_code)]
-pub struct KernelProbe {
-    name: String,
-    handler: String,
-    is_return: bool,
-    statistics: Vec<TcpStatistic>,
-}
-
 #[async_trait]
 impl Sampler for Tcp {
     type Statistic = TcpStatistic;
@@ -151,108 +140,83 @@ impl Tcp {
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
 
-                // define the kernel probes and the statistics that require them here.
-                let mut kernel_probes = Vec::new();
-                kernel_probes.push(KernelProbe {
-                    name: String::from("tcp_v4_connect"),
-                    handler: String::from("trace_connect"),
-                    is_return: false,
-                    statistics: [
+                // define the kernel probes here.
+                let mut probes = Probes::new();
+                probes.add_kernel_probe(
+                    String::from("tcp_v4_connect"),
+                    String::from("trace_connect"),
+                    ProbeLocation::Entry,
+                    [
                         TcpStatistic::ConnectLatency,
                         TcpStatistic::ConnectionInitiated,
                     ]
                     .to_vec(),
-                });
-                kernel_probes.push(KernelProbe {
-                    name: String::from("tcp_v6_connect"),
-                    handler: String::from("trace_connect"),
-                    is_return: false,
-                    statistics: [
+                );
+                probes.add_kernel_probe(
+                    String::from("tcp_v6_connect"),
+                    String::from("trace_connect"),
+                    ProbeLocation::Entry,
+                    [
                         TcpStatistic::ConnectLatency,
                         TcpStatistic::ConnectionInitiated,
                     ]
                     .to_vec(),
-                });
-                kernel_probes.push(KernelProbe {
-                    name: String::from("tcp_v4_connect"),
-                    handler: String::from("trace_connect_return"),
-                    is_return: true,
-                    statistics: [TcpStatistic::ConnectionInitiated].to_vec(),
-                });
-                kernel_probes.push(KernelProbe {
-                    name: String::from("tcp_v6_connect"),
-                    handler: String::from("trace_connect_return"),
-                    is_return: true,
-                    statistics: [TcpStatistic::ConnectionInitiated].to_vec(),
-                });
-                kernel_probes.push(KernelProbe {
-                    name: String::from("tcp_finish_connect"),
-                    handler: String::from("trace_finish_connect"),
-                    is_return: false,
-                    statistics: [TcpStatistic::ConnectionInitiated].to_vec(),
-                });
-                kernel_probes.push(KernelProbe {
-                    name: String::from("tcp_rcv_state_process"),
-                    handler: String::from("trace_tcp_rcv_state_process"),
-                    is_return: false,
-                    statistics: [TcpStatistic::ConnectLatency].to_vec(),
-                });
-                kernel_probes.push(KernelProbe {
-                    name: String::from("tcp_rcv_established"),
-                    handler: String::from("trace_tcp_rcv"),
-                    is_return: false,
-                    statistics: [TcpStatistic::SmoothedRoundTripTime, TcpStatistic::Jitter]
-                        .to_vec(),
-                });
-                kernel_probes.push(KernelProbe {
-                    name: String::from("tcp_drop"),
-                    handler: String::from("trace_tcp_drop"),
-                    is_return: false,
-                    statistics: [TcpStatistic::Drop].to_vec(),
-                });
-                kernel_probes.push(KernelProbe {
-                    name: String::from("tcp_set_state"),
-                    handler: String::from("trace_tcp_set_state"),
-                    is_return: false,
-                    statistics: [
+                );
+                probes.add_kernel_probe(
+                    String::from("tcp_v4_connect"),
+                    String::from("trace_connect_return"),
+                    ProbeLocation::Return,
+                    [TcpStatistic::ConnectionInitiated].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("tcp_v6_connect"),
+                    String::from("trace_connect_return"),
+                    ProbeLocation::Return,
+                    [TcpStatistic::ConnectionInitiated].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("tcp_finish_connect"),
+                    String::from("trace_finish_connect"),
+                    ProbeLocation::Return,
+                    [TcpStatistic::ConnectionInitiated].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("tcp_rcv_state_process"),
+                    String::from("trace_tcp_rcv_state_process"),
+                    ProbeLocation::Entry,
+                    [TcpStatistic::ConnectLatency].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("tcp_rcv_established"),
+                    String::from("trace_tcp_rcv"),
+                    ProbeLocation::Entry,
+                    [TcpStatistic::SmoothedRoundTripTime, TcpStatistic::Jitter].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("tcp_drop"),
+                    String::from("trace_tcp_drop"),
+                    ProbeLocation::Entry,
+                    [TcpStatistic::Drop].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("tcp_set_state"),
+                    String::from("trace_tcp_set_state"),
+                    ProbeLocation::Entry,
+                    [
                         TcpStatistic::ConnectionInitiated,
                         TcpStatistic::ConnectionAccepted,
                     ]
                     .to_vec(),
-                });
-                kernel_probes.push(KernelProbe {
-                    name: String::from("inet_csk_accept"),
-                    handler: String::from("trace_inet_socket_accept_return"),
-                    is_return: true,
-                    statistics: [TcpStatistic::ConnectionAccepted].to_vec(),
-                });
+                );
+                probes.add_kernel_probe(
+                    String::from("inet_csk_accept"),
+                    String::from("trace_inet_socket_accept_return"),
+                    ProbeLocation::Return,
+                    [TcpStatistic::ConnectionAccepted].to_vec(),
+                );
 
-                // load + attach the kernel probes that are required.
-                for kernel_probe in &kernel_probes {
-                    // Check if a kernel probe should be attached.
-                    // It should only be attached if at least one of statistic that requires it is enabled.
-                    let mut probe_required = false;
-                    for stat in &kernel_probe.statistics {
-                        if self.statistics.contains(&stat) {
-                            probe_required = true;
-                            break;
-                        }
-                    }
-
-                    if probe_required {
-                        if kernel_probe.is_return {
-                            bcc::Kretprobe::new()
-                                .handler(&kernel_probe.handler[..])
-                                .function(&kernel_probe.name[..])
-                                .attach(&mut bpf)?;
-                        } else {
-                            bcc::Kprobe::new()
-                                .handler(&kernel_probe.handler[..])
-                                .function(&kernel_probe.name[..])
-                                .attach(&mut bpf)?;
-                        }
-                    }
-                }
+                // load + attach the kernel probes that are required to the bpf instance.
+                probes.try_attach_to_bpf(&mut bpf, self.statistics.as_slice(), None)?;
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
             }

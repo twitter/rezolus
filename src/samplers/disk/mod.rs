@@ -139,36 +139,75 @@ impl Disk {
                     include_str!("../../common/value_to_index2.c"),
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
-                // load + attach kprobes!
-                bcc::Kprobe::new()
-                    .handler("trace_pid_start")
-                    .function("blk_account_io_start")
-                    .attach(&mut bpf)?;
+                // define kernel probes
+                let mut probes = Probes::new();
+                probes.add_kernel_probe(
+                    String::from("blk_account_io_start"),
+                    String::from("trace_pid_start"),
+                    ProbeLocation::Entry,
+                    [
+                        DiskStatistic::LatencyRead,
+                        DiskStatistic::LatencyWrite,
+                        DiskStatistic::QueueLatencyRead,
+                        DiskStatistic::QueueLatencyWrite,
+                        DiskStatistic::IoSizeRead,
+                        DiskStatistic::IoSizeWrite,
+                    ]
+                    .to_vec(),
+                );
+
                 if let Ok(results) = bpf.get_kprobe_functions("blk_start_request") {
                     if !results.is_empty() {
-                        bcc::Kprobe::new()
-                            .handler("trace_req_start")
-                            .function("blk_start_request")
-                            .attach(&mut bpf)?;
+                        probes.add_kernel_probe(
+                            String::from("blk_start_request"),
+                            String::from("trace_req_start"),
+                            ProbeLocation::Entry,
+                            [
+                                DiskStatistic::DeviceLatencyRead,
+                                DiskStatistic::DeviceLatencyWrite,
+                                DiskStatistic::QueueLatencyRead,
+                                DiskStatistic::QueueLatencyWrite,
+                            ]
+                            .to_vec(),
+                        );
                     }
                 }
-                bcc::Kprobe::new()
-                    .handler("trace_req_start")
-                    .function("blk_mq_start_request")
-                    .attach(&mut bpf)?;
-                if let Ok(results) = bpf.get_kprobe_functions("blk_account_io_completion") {
-                    if !results.is_empty() {
-                        bcc::Kprobe::new()
-                            .handler("do_count")
-                            .function("blk_account_io_completion")
-                            .attach(&mut bpf)?;
-                    } else {
-                        bcc::Kprobe::new()
-                            .handler("do_count")
-                            .function("blk_account_io_done")
-                            .attach(&mut bpf)?;
+                probes.add_kernel_probe(
+                    String::from("blk_mq_start_request"),
+                    String::from("trace_req_start"),
+                    ProbeLocation::Entry,
+                    [
+                        DiskStatistic::DeviceLatencyRead,
+                        DiskStatistic::DeviceLatencyWrite,
+                        DiskStatistic::QueueLatencyRead,
+                        DiskStatistic::QueueLatencyWrite,
+                    ]
+                    .to_vec(),
+                );
+
+                let mut func_name = String::from("blk_account_io_completion");
+                if let Ok(results) = bpf.get_kprobe_functions(func_name.as_str()) {
+                    // attach to 'blk_account_io_done' if 'blk_account_io_completion' does not exist.
+                    if results.is_empty() {
+                        func_name = String::from("blk_account_io_done");
                     }
+                    probes.add_kernel_probe(
+                        func_name,
+                        String::from("do_count"),
+                        ProbeLocation::Entry,
+                        [
+                            DiskStatistic::LatencyRead,
+                            DiskStatistic::LatencyWrite,
+                            DiskStatistic::DeviceLatencyRead,
+                            DiskStatistic::DeviceLatencyWrite,
+                            DiskStatistic::IoSizeRead,
+                            DiskStatistic::IoSizeWrite,
+                        ]
+                        .to_vec(),
+                    );
                 }
+                // load + attach the kernel probes that are required to the bpf instance.
+                probes.try_attach_to_bpf(&mut bpf, self.statistics.as_slice(), None)?;
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }

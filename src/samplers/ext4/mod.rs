@@ -132,40 +132,59 @@ impl Ext4 {
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
 
-                // load + attach kprobes!
-                bcc::Kprobe::new()
-                    .handler("trace_read_entry")
-                    .function("generic_file_read_iter")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_entry")
-                    .function("ext4_file_write_iter")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_entry")
-                    .function("ext4_file_open")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_entry")
-                    .function("ext4_sync_file")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("trace_read_return")
-                    .function("generic_file_read_iter")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("trace_write_return")
-                    .function("ext4_file_write_iter")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("trace_open_return")
-                    .function("ext4_file_open")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("trace_fsync_return")
-                    .function("ext4_sync_file")
-                    .attach(&mut bpf)?;
+                // define the kernel probes here.
+                let mut probes = Probes::new();
+                probes.add_kernel_probe(
+                    String::from("generic_file_read_iter"),
+                    String::from("trace_read_entry"),
+                    ProbeLocation::Entry,
+                    [Ext4Statistic::ReadLatency].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("ext4_file_write_iter"),
+                    String::from("trace_entry"),
+                    ProbeLocation::Entry,
+                    [Ext4Statistic::WriteLatency].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("ext4_file_open"),
+                    String::from("trace_entry"),
+                    ProbeLocation::Entry,
+                    [Ext4Statistic::OpenLatency].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("ext4_sync_file"),
+                    String::from("trace_entry"),
+                    ProbeLocation::Entry,
+                    [Ext4Statistic::FsyncLatency].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("generic_file_read_iter"),
+                    String::from("trace_read_return"),
+                    ProbeLocation::Return,
+                    [Ext4Statistic::ReadLatency].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("ext4_file_write_iter"),
+                    String::from("trace_write_return"),
+                    ProbeLocation::Return,
+                    [Ext4Statistic::WriteLatency].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("ext4_file_open"),
+                    String::from("trace_open_return"),
+                    ProbeLocation::Return,
+                    [Ext4Statistic::OpenLatency].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("ext4_sync_file"),
+                    String::from("trace_fsync_return"),
+                    ProbeLocation::Return,
+                    [Ext4Statistic::FsyncLatency].to_vec(),
+                );
 
+                // load + attach the kernel probes that are required to the bpf instance.
+                probes.try_attach_to_bpf(&mut bpf, self.statistics.as_slice(), None)?;
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }

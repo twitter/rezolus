@@ -136,24 +136,59 @@ impl Interrupt {
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
 
-                bcc::Kprobe::new()
-                    .handler("hardirq_entry")
-                    .function("handle_irq_event_percpu")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("hardirq_exit")
-                    .function("handle_irq_event_percpu")
-                    .attach(&mut bpf)?;
-                bcc::Tracepoint::new()
-                    .handler("softirq_entry")
-                    .subsystem("irq")
-                    .tracepoint("softirq_entry")
-                    .attach(&mut bpf)?;
-                bcc::Tracepoint::new()
-                    .handler("softirq_exit")
-                    .subsystem("irq")
-                    .tracepoint("softirq_exit")
-                    .attach(&mut bpf)?;
+                // define the kernel probes here.
+                let mut probes = Probes::new();
+                probes.add_kernel_probe(
+                    String::from("handle_irq_event_percpu"),
+                    String::from("hardirq_entry"),
+                    ProbeLocation::Entry,
+                    [InterruptStatistic::HardIrq].to_vec(),
+                );
+                probes.add_kernel_probe(
+                    String::from("handle_irq_event_percpu"),
+                    String::from("hardirq_exit"),
+                    ProbeLocation::Return,
+                    [InterruptStatistic::HardIrq].to_vec(),
+                );
+                probes.add_tracepoint_probe(
+                    String::from("softirq_entry"),
+                    String::from("softirq_entry"),
+                    String::from("irq"),
+                    [
+                        InterruptStatistic::SoftIrqTimer,
+                        InterruptStatistic::SoftIrqNetRx,
+                        InterruptStatistic::SoftIrqNetTx,
+                        InterruptStatistic::SoftIrqBlock,
+                        InterruptStatistic::SoftIrqPoll,
+                        InterruptStatistic::SoftIrqTasklet,
+                        InterruptStatistic::SoftIrqSched,
+                        InterruptStatistic::SoftIrqHRTimer,
+                        InterruptStatistic::SoftIrqRCU,
+                        InterruptStatistic::SoftIrqUnknown,
+                    ]
+                    .to_vec(),
+                );
+                probes.add_tracepoint_probe(
+                    String::from("softirq_exit"),
+                    String::from("softirq_exit"),
+                    String::from("irq"),
+                    [
+                        InterruptStatistic::SoftIrqTimer,
+                        InterruptStatistic::SoftIrqNetRx,
+                        InterruptStatistic::SoftIrqNetTx,
+                        InterruptStatistic::SoftIrqBlock,
+                        InterruptStatistic::SoftIrqPoll,
+                        InterruptStatistic::SoftIrqTasklet,
+                        InterruptStatistic::SoftIrqSched,
+                        InterruptStatistic::SoftIrqHRTimer,
+                        InterruptStatistic::SoftIrqRCU,
+                        InterruptStatistic::SoftIrqUnknown,
+                    ]
+                    .to_vec(),
+                );
+
+                // load + attach the probes that are required to the bpf instance.
+                probes.try_attach_to_bpf(&mut bpf, self.statistics.as_slice(), None)?;
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
             }

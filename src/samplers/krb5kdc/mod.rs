@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
-use crate::common::bpf::BPF;
+use crate::common::bpf::*;
 use crate::config::SamplerConfig;
 use crate::samplers::{Common, Sampler};
 
@@ -38,44 +38,176 @@ impl Krb5kdc {
             let code = include_str!("bpf.c");
             let mut bpf = bcc::BPF::new(code)?;
 
-            if let Err(err) = bcc::Uprobe::new()
-                .handler("count_finish_process_as_req")
-                .binary(self.path.clone())
-                .symbol("finish_process_as_req")
-                .attach(&mut bpf)
-            {
-                if self.common.config().fault_tolerant() {
-                    warn!("krb5kdc unable to attach probe to function finish_process_as_req");
-                } else {
-                    Err(err)?;
-                }
-            }
+            // define the kernel probes here.
+            let mut probes = Probes::new();
+            probes.add_user_probe(
+                String::from("finish_process_as_req"),
+                String::from("count_finish_process_as_req"),
+                ProbeLocation::Entry,
+                self.path.clone(),
+                [
+                    Krb5kdcStatistic::FinishProcessAsReqUnknown,
+                    Krb5kdcStatistic::FinishProcessAsReqNone,
+                    Krb5kdcStatistic::FinishProcessAsReqNameExp,
+                    Krb5kdcStatistic::FinishProcessAsReqServiceExp,
+                    Krb5kdcStatistic::FinishProcessAsReqBadPvno,
+                    Krb5kdcStatistic::FinishProcessAsReqCOldMastKvno,
+                    Krb5kdcStatistic::FinishProcessAsReqSOldMastKvno,
+                    Krb5kdcStatistic::FinishProcessAsReqCPrincipalUnknown,
+                    Krb5kdcStatistic::FinishProcessAsReqSPrincipalUnknown,
+                    Krb5kdcStatistic::FinishProcessAsReqPrincipalNotUnique,
+                    Krb5kdcStatistic::FinishProcessAsReqNullKey,
+                    Krb5kdcStatistic::FinishProcessAsReqCannotPostdate,
+                    Krb5kdcStatistic::FinishProcessAsReqNeverValid,
+                    Krb5kdcStatistic::FinishProcessAsReqPolicy,
+                    Krb5kdcStatistic::FinishProcessAsReqBadoption,
+                    Krb5kdcStatistic::FinishProcessAsReqEtypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqSumtypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqPadataTypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqTrtypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqClientRevoked,
+                    Krb5kdcStatistic::FinishProcessAsReqServiceRevoked,
+                    Krb5kdcStatistic::FinishProcessAsReqTgtRevoked,
+                    Krb5kdcStatistic::FinishProcessAsReqClientNotyet,
+                    Krb5kdcStatistic::FinishProcessAsReqServiceNotyet,
+                    Krb5kdcStatistic::FinishProcessAsReqKeyExp,
+                    Krb5kdcStatistic::FinishProcessAsReqPreauthFailed,
+                    Krb5kdcStatistic::FinishProcessAsReqPreauthRequired,
+                    Krb5kdcStatistic::FinishProcessAsReqServerNomatch,
+                    Krb5kdcStatistic::FinishProcessAsReqMustUseUser2user,
+                    Krb5kdcStatistic::FinishProcessAsReqPathNotAccepted,
+                    Krb5kdcStatistic::FinishProcessAsReqSvcUnavailable,
+                ]
+                .to_vec(),
+            );
 
-            if let Err(err) = bcc::Uprobe::new()
-                .handler("count_finish_dispatch_cache")
-                .binary(self.path.clone())
-                .symbol("finish_dispatch_cache")
-                .attach(&mut bpf)
-            {
-                if self.common.config().fault_tolerant() {
-                    warn!("krb5kdc unable to attach probe to function finish_dispatch_cache");
-                } else {
-                    Err(err)?;
-                }
-            }
+            probes.add_user_probe(
+                String::from("finish_dispatch_cache"),
+                String::from("count_finish_dispatch_cache"),
+                ProbeLocation::Entry,
+                self.path.clone(),
+                [
+                    Krb5kdcStatistic::FinishProcessAsReqUnknown,
+                    Krb5kdcStatistic::FinishProcessAsReqNone,
+                    Krb5kdcStatistic::FinishProcessAsReqNameExp,
+                    Krb5kdcStatistic::FinishProcessAsReqServiceExp,
+                    Krb5kdcStatistic::FinishProcessAsReqBadPvno,
+                    Krb5kdcStatistic::FinishProcessAsReqCOldMastKvno,
+                    Krb5kdcStatistic::FinishProcessAsReqSOldMastKvno,
+                    Krb5kdcStatistic::FinishProcessAsReqCPrincipalUnknown,
+                    Krb5kdcStatistic::FinishProcessAsReqSPrincipalUnknown,
+                    Krb5kdcStatistic::FinishProcessAsReqPrincipalNotUnique,
+                    Krb5kdcStatistic::FinishProcessAsReqNullKey,
+                    Krb5kdcStatistic::FinishProcessAsReqCannotPostdate,
+                    Krb5kdcStatistic::FinishProcessAsReqNeverValid,
+                    Krb5kdcStatistic::FinishProcessAsReqPolicy,
+                    Krb5kdcStatistic::FinishProcessAsReqBadoption,
+                    Krb5kdcStatistic::FinishProcessAsReqEtypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqSumtypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqPadataTypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqTrtypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqClientRevoked,
+                    Krb5kdcStatistic::FinishProcessAsReqServiceRevoked,
+                    Krb5kdcStatistic::FinishProcessAsReqTgtRevoked,
+                    Krb5kdcStatistic::FinishProcessAsReqClientNotyet,
+                    Krb5kdcStatistic::FinishProcessAsReqServiceNotyet,
+                    Krb5kdcStatistic::FinishProcessAsReqKeyExp,
+                    Krb5kdcStatistic::FinishProcessAsReqPreauthFailed,
+                    Krb5kdcStatistic::FinishProcessAsReqPreauthRequired,
+                    Krb5kdcStatistic::FinishProcessAsReqServerNomatch,
+                    Krb5kdcStatistic::FinishProcessAsReqMustUseUser2user,
+                    Krb5kdcStatistic::FinishProcessAsReqPathNotAccepted,
+                    Krb5kdcStatistic::FinishProcessAsReqSvcUnavailable,
+                ]
+                .to_vec(),
+            );
 
-            if let Err(err) = bcc::Uretprobe::new()
-                .handler("count_process_tgs_req")
-                .binary(self.path.clone())
-                .symbol("process_tgs_req")
-                .attach(&mut bpf)
-            {
-                if self.common.config().fault_tolerant() {
-                    warn!("krb5kdc unable to attach probe to function process_tgs_req");
-                } else {
-                    Err(err)?;
-                }
-            }
+            probes.add_user_probe(
+                String::from("process_tgs_req"),
+                String::from("count_process_tgs_req"),
+                ProbeLocation::Return,
+                self.path.clone(),
+                [
+                    Krb5kdcStatistic::FinishProcessAsReqUnknown,
+                    Krb5kdcStatistic::FinishProcessAsReqNone,
+                    Krb5kdcStatistic::FinishProcessAsReqNameExp,
+                    Krb5kdcStatistic::FinishProcessAsReqServiceExp,
+                    Krb5kdcStatistic::FinishProcessAsReqBadPvno,
+                    Krb5kdcStatistic::FinishProcessAsReqCOldMastKvno,
+                    Krb5kdcStatistic::FinishProcessAsReqSOldMastKvno,
+                    Krb5kdcStatistic::FinishProcessAsReqCPrincipalUnknown,
+                    Krb5kdcStatistic::FinishProcessAsReqSPrincipalUnknown,
+                    Krb5kdcStatistic::FinishProcessAsReqPrincipalNotUnique,
+                    Krb5kdcStatistic::FinishProcessAsReqNullKey,
+                    Krb5kdcStatistic::FinishProcessAsReqCannotPostdate,
+                    Krb5kdcStatistic::FinishProcessAsReqNeverValid,
+                    Krb5kdcStatistic::FinishProcessAsReqPolicy,
+                    Krb5kdcStatistic::FinishProcessAsReqBadoption,
+                    Krb5kdcStatistic::FinishProcessAsReqEtypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqSumtypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqPadataTypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqTrtypeNosupp,
+                    Krb5kdcStatistic::FinishProcessAsReqClientRevoked,
+                    Krb5kdcStatistic::FinishProcessAsReqServiceRevoked,
+                    Krb5kdcStatistic::FinishProcessAsReqTgtRevoked,
+                    Krb5kdcStatistic::FinishProcessAsReqClientNotyet,
+                    Krb5kdcStatistic::FinishProcessAsReqServiceNotyet,
+                    Krb5kdcStatistic::FinishProcessAsReqKeyExp,
+                    Krb5kdcStatistic::FinishProcessAsReqPreauthFailed,
+                    Krb5kdcStatistic::FinishProcessAsReqPreauthRequired,
+                    Krb5kdcStatistic::FinishProcessAsReqServerNomatch,
+                    Krb5kdcStatistic::FinishProcessAsReqMustUseUser2user,
+                    Krb5kdcStatistic::FinishProcessAsReqPathNotAccepted,
+                    Krb5kdcStatistic::FinishProcessAsReqSvcUnavailable,
+                ]
+                .to_vec(),
+            );
+
+            // if let Err(err) = bcc::Uprobe::new()
+            //     .handler("count_finish_process_as_req")
+            //     .binary(self.path.clone())
+            //     .symbol("finish_process_as_req")
+            //     .attach(&mut bpf)
+            // {
+            //     if self.common.config().fault_tolerant() {
+            //         warn!("krb5kdc unable to attach probe to function finish_process_as_req");
+            //     } else {
+            //         Err(err)?;
+            //     }
+            // }
+
+            // if let Err(err) = bcc::Uprobe::new()
+            //     .handler("count_finish_dispatch_cache")
+            //     .binary(self.path.clone())
+            //     .symbol("finish_dispatch_cache")
+            //     .attach(&mut bpf)
+            // {
+            //     if self.common.config().fault_tolerant() {
+            //         warn!("krb5kdc unable to attach probe to function finish_dispatch_cache");
+            //     } else {
+            //         Err(err)?;
+            //     }
+            // }
+
+            // if let Err(err) = bcc::Uretprobe::new()
+            //     .handler("count_process_tgs_req")
+            //     .binary(self.path.clone())
+            //     .symbol("process_tgs_req")
+            //     .attach(&mut bpf)
+            // {
+            //     if self.common.config().fault_tolerant() {
+            //         warn!("krb5kdc unable to attach probe to function process_tgs_req");
+            //     } else {
+            //         Err(err)?;
+            //     }
+            // }
+
+            // load + attach the user probes that are required to the bpf instance.
+            probes.try_attach_to_bpf(
+                &mut bpf,
+                self.statistics.as_slice(),
+                Some(self.common.config().fault_tolerant()),
+            )?;
 
             self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
         }
