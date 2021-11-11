@@ -499,7 +499,7 @@ This sampler provides telemetry about TCP traffic and connections.
 * `tcp/connection/initiated` - number of connections initiated actively
 * `tcp/drop` - number of packets dropped in the kernel TCP stack
 * `tcp/tlp` - number of Tail Loss Recovery Probes sent
-* `tcp/retransmit_timeout` - number of retransmit timeouts
+* `tcp/transmit/retransmit_timeout` - number of retransmit timeouts
 
 ## UDP
 

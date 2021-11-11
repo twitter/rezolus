@@ -83,7 +83,7 @@ pub enum TcpStatistic {
     Drop,
     #[strum(serialize = "tcp/tlp")]
     TailLossProbe,
-    #[strum(serialize = "tcp/retransmit_timeout")]
+    #[strum(serialize = "tcp/transmit/retransmit_timeout")]
     RetransmitTimeout,
 }
 
