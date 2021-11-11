@@ -107,7 +107,7 @@ impl Ext4Statistic {
             sub_system: None,
         };
         let ext4_sync_file_ret_probe = FunctionProbe {
-            name: String::from("trace_fsync_return"),
+            name: String::from("ext4_sync_file"),
             handler: String::from("trace_fsync_return"),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Return,

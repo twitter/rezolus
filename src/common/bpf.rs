@@ -10,7 +10,6 @@ pub struct BPF {
 #[cfg(not(feature = "bpf"))]
 pub struct BPF {}
 
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 #[cfg(feature = "bpf")]
 pub enum ProbeType {

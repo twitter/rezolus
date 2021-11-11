@@ -49,7 +49,16 @@ impl Krb5kdc {
 
             // load + attach the kernel probes that are required to the bpf instance.
             for probe in probes {
-                probe.try_attach_to_bpf(&mut bpf)?;
+                if let Err(err) = probe.try_attach_to_bpf(&mut bpf) {
+                    if self.common.config().fault_tolerant() {
+                        warn!(
+                            "krb5kdc unable to attach probe to function {}",
+                            probe.name.as_str()
+                        );
+                    } else {
+                        Err(err)?;
+                    }
+                }
             }
 
             self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
