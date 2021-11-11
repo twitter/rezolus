@@ -10,6 +10,7 @@ use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
+#[cfg(feature = "bpf")]
 use crate::common::bpf::*;
 
 #[derive(
@@ -72,6 +73,7 @@ impl DiskStatistic {
         }
     }
 
+    #[cfg(feature = "bpf")]
     pub fn bpf_probes_required(self) -> Vec<FunctionProbe> {
         // define the unique probes below.
         let pid_start_probe = FunctionProbe {

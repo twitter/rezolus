@@ -10,6 +10,7 @@ use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
+#[cfg(feature = "bpf")]
 use crate::common::bpf::*;
 
 #[derive(
@@ -508,6 +509,7 @@ impl Krb5kdcStatistic {
         }
     }
 
+    #[cfg(feature = "bpf")]
     pub fn bpf_probes_required(self, binary_path: String) -> Vec<FunctionProbe> {
         // define the unique probes below.
         let process_probe = FunctionProbe {

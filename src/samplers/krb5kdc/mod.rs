@@ -4,6 +4,7 @@
 
 use async_trait::async_trait;
 
+#[cfg(feature = "bpf")]
 use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
