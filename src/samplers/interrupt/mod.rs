@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use std::time::*;
 use tokio::io::SeekFrom;
@@ -136,60 +136,18 @@ impl Interrupt {
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
 
-                // define the kernel probes here.
-                let mut probes = Probes::new();
-                probes.add_kernel_probe(
-                    String::from("handle_irq_event_percpu"),
-                    String::from("hardirq_entry"),
-                    ProbeLocation::Entry,
-                    [InterruptStatistic::HardIrq].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("handle_irq_event_percpu"),
-                    String::from("hardirq_exit"),
-                    ProbeLocation::Return,
-                    [InterruptStatistic::HardIrq].to_vec(),
-                );
-                probes.add_tracepoint_probe(
-                    String::from("softirq_entry"),
-                    String::from("softirq_entry"),
-                    String::from("irq"),
-                    [
-                        InterruptStatistic::SoftIrqTimer,
-                        InterruptStatistic::SoftIrqNetRx,
-                        InterruptStatistic::SoftIrqNetTx,
-                        InterruptStatistic::SoftIrqBlock,
-                        InterruptStatistic::SoftIrqPoll,
-                        InterruptStatistic::SoftIrqTasklet,
-                        InterruptStatistic::SoftIrqSched,
-                        InterruptStatistic::SoftIrqHRTimer,
-                        InterruptStatistic::SoftIrqRCU,
-                        InterruptStatistic::SoftIrqUnknown,
-                    ]
-                    .to_vec(),
-                );
-                probes.add_tracepoint_probe(
-                    String::from("softirq_exit"),
-                    String::from("softirq_exit"),
-                    String::from("irq"),
-                    [
-                        InterruptStatistic::SoftIrqTimer,
-                        InterruptStatistic::SoftIrqNetRx,
-                        InterruptStatistic::SoftIrqNetTx,
-                        InterruptStatistic::SoftIrqBlock,
-                        InterruptStatistic::SoftIrqPoll,
-                        InterruptStatistic::SoftIrqTasklet,
-                        InterruptStatistic::SoftIrqSched,
-                        InterruptStatistic::SoftIrqHRTimer,
-                        InterruptStatistic::SoftIrqRCU,
-                        InterruptStatistic::SoftIrqUnknown,
-                    ]
-                    .to_vec(),
-                );
+                // collect the set of probes required from the statistics enabled.
+                let mut probes = HashSet::new();
+                for statistic in &self.statistics {
+                    for probe in statistic.bpf_probes_required() {
+                        probes.insert(probe);
+                    }
+                }
 
-                // load + attach the probes that are required to the bpf instance.
-                probes.try_attach_to_bpf(&mut bpf, self.statistics.as_slice(), None)?;
-
+                // load + attach the kernel probes that are required to the bpf instance.
+                for probe in probes {
+                    probe.try_attach_to_bpf(&mut bpf)?;
+                }
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
             }
         }

@@ -10,6 +10,8 @@ use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
+use crate::common::bpf::*;
+
 #[derive(
     Clone,
     Copy,
@@ -43,6 +45,82 @@ impl Ext4Statistic {
             Self::WriteLatency => Some("write"),
             Self::OpenLatency => Some("open"),
             Self::FsyncLatency => Some("fsync"),
+        }
+    }
+
+    pub fn bpf_probes_required(self) -> Vec<FunctionProbe> {
+        // define the unique probes below.
+        let generic_file_read_probe = FunctionProbe {
+            name: String::from("generic_file_read_iter"),
+            handler: String::from("trace_read_entry"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let ext4_file_write_probe = FunctionProbe {
+            name: String::from("ext4_file_write_iter"),
+            handler: String::from("trace_entry"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let ext4_file_open_probe = FunctionProbe {
+            name: String::from("ext4_file_open"),
+            handler: String::from("trace_entry"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let ext4_sync_file_probe = FunctionProbe {
+            name: String::from("ext4_sync_file"),
+            handler: String::from("trace_entry"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let generic_file_read_ret_probe = FunctionProbe {
+            name: String::from("generic_file_read_iter"),
+            handler: String::from("trace_read_return"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Return,
+            binary_path: None,
+            sub_system: None,
+        };
+        let ext4_file_write_ret_probe = FunctionProbe {
+            name: String::from("ext4_file_write_iter"),
+            handler: String::from("trace_write_return"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Return,
+            binary_path: None,
+            sub_system: None,
+        };
+        let ext4_file_open_ret_probe = FunctionProbe {
+            name: String::from("ext4_file_open"),
+            handler: String::from("trace_open_return"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Return,
+            binary_path: None,
+            sub_system: None,
+        };
+        let ext4_sync_file_ret_probe = FunctionProbe {
+            name: String::from("trace_fsync_return"),
+            handler: String::from("trace_fsync_return"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Return,
+            binary_path: None,
+            sub_system: None,
+        };
+
+        // specify what probes are required for each telemtry.
+        match self {
+            Self::ReadLatency => [generic_file_read_probe, generic_file_read_ret_probe].to_vec(),
+            Self::WriteLatency => [ext4_file_write_probe, ext4_file_write_ret_probe].to_vec(),
+            Self::OpenLatency => [ext4_file_open_probe, ext4_file_open_ret_probe].to_vec(),
+            Self::FsyncLatency => [ext4_sync_file_probe, ext4_sync_file_ret_probe].to_vec(),
         }
     }
 }

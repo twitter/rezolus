@@ -10,6 +10,8 @@ use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
+use crate::common::bpf::*;
+
 #[derive(
     Clone,
     Copy,
@@ -107,6 +109,59 @@ impl InterruptStatistic {
             Self::SoftIrqUnknown => Some("unknown"),
             Self::HardIrq => Some("hardirq_total"),
             _ => None,
+        }
+    }
+
+    pub fn bpf_probes_required(self) -> Vec<FunctionProbe> {
+        // define the unique probes below.
+        let irq_event_percpu_probe = FunctionProbe {
+            name: String::from("handle_irq_event_percpu"),
+            handler: String::from("hardirq_entry"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let irq_event_percpu_ret_probe = FunctionProbe {
+            name: String::from("handle_irq_event_percpu"),
+            handler: String::from("hardirq_exit"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Return,
+            binary_path: None,
+            sub_system: None,
+        };
+        let softirq_entry_tracepoint = FunctionProbe {
+            name: String::from("softirq_entry"),
+            handler: String::from("softirq_entry"),
+            probe_type: ProbeType::Tracepoint,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: Some(String::from("irq")),
+        };
+        let softirq_exit_tracepoint = FunctionProbe {
+            name: String::from("softirq_exit"),
+            handler: String::from("softirq_exit"),
+            probe_type: ProbeType::Tracepoint,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: Some(String::from("irq")),
+        };
+
+        // specify what probes are required for each telemtry.
+        match self {
+            Self::SoftIrqHI
+            | Self::SoftIrqTimer
+            | Self::SoftIrqNetRx
+            | Self::SoftIrqNetTx
+            | Self::SoftIrqBlock
+            | Self::SoftIrqPoll
+            | Self::SoftIrqTasklet
+            | Self::SoftIrqSched
+            | Self::SoftIrqHRTimer
+            | Self::SoftIrqRCU
+            | Self::SoftIrqUnknown => [softirq_entry_tracepoint, softirq_exit_tracepoint].to_vec(),
+            Self::HardIrq => [irq_event_percpu_probe, irq_event_percpu_ret_probe].to_vec(),
+            _ => Vec::new(),
         }
     }
 }

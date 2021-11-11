@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::SeekFrom;
 use std::sync::{Arc, Mutex};
 use std::time::*;
@@ -139,75 +139,51 @@ impl Disk {
                     include_str!("../../common/value_to_index2.c"),
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
-                // define kernel probes
-                let mut probes = Probes::new();
-                probes.add_kernel_probe(
-                    String::from("blk_account_io_start"),
-                    String::from("trace_pid_start"),
-                    ProbeLocation::Entry,
-                    [
-                        DiskStatistic::LatencyRead,
-                        DiskStatistic::LatencyWrite,
-                        DiskStatistic::QueueLatencyRead,
-                        DiskStatistic::QueueLatencyWrite,
-                        DiskStatistic::IoSizeRead,
-                        DiskStatistic::IoSizeWrite,
-                    ]
-                    .to_vec(),
-                );
-
-                if let Ok(results) = bpf.get_kprobe_functions("blk_start_request") {
-                    if !results.is_empty() {
-                        probes.add_kernel_probe(
-                            String::from("blk_start_request"),
-                            String::from("trace_req_start"),
-                            ProbeLocation::Entry,
-                            [
-                                DiskStatistic::DeviceLatencyRead,
-                                DiskStatistic::DeviceLatencyWrite,
-                                DiskStatistic::QueueLatencyRead,
-                                DiskStatistic::QueueLatencyWrite,
-                            ]
-                            .to_vec(),
-                        );
+                // collect the set of probes required from the statistics enabled.
+                let mut probes = HashSet::new();
+                for statistic in &self.statistics {
+                    for probe in statistic.bpf_probes_required() {
+                        probes.insert(probe);
                     }
                 }
-                probes.add_kernel_probe(
-                    String::from("blk_mq_start_request"),
-                    String::from("trace_req_start"),
-                    ProbeLocation::Entry,
-                    [
-                        DiskStatistic::DeviceLatencyRead,
-                        DiskStatistic::DeviceLatencyWrite,
-                        DiskStatistic::QueueLatencyRead,
-                        DiskStatistic::QueueLatencyWrite,
-                    ]
-                    .to_vec(),
-                );
 
-                let mut func_name = String::from("blk_account_io_completion");
-                if let Ok(results) = bpf.get_kprobe_functions(func_name.as_str()) {
-                    // attach to 'blk_account_io_done' if 'blk_account_io_completion' does not exist.
-                    if results.is_empty() {
-                        func_name = String::from("blk_account_io_done");
-                    }
-                    probes.add_kernel_probe(
-                        func_name,
-                        String::from("do_count"),
-                        ProbeLocation::Entry,
-                        [
-                            DiskStatistic::LatencyRead,
-                            DiskStatistic::LatencyWrite,
-                            DiskStatistic::DeviceLatencyRead,
-                            DiskStatistic::DeviceLatencyWrite,
-                            DiskStatistic::IoSizeRead,
-                            DiskStatistic::IoSizeWrite,
-                        ]
-                        .to_vec(),
-                    );
-                }
                 // load + attach the kernel probes that are required to the bpf instance.
-                probes.try_attach_to_bpf(&mut bpf, self.statistics.as_slice(), None)?;
+                for probe in probes {
+                    match probe.name.as_str() {
+                        "blk_start_request" => {
+                            // respect the current logic, attach only if 'blk_start_request' can be found.
+                            if let Ok(results) = bpf.get_kprobe_functions("blk_start_request") {
+                                if !results.is_empty() {
+                                    probe.try_attach_to_bpf(&mut bpf)?
+                                }
+                            }
+                        }
+                        "blk_account_io_completion" =>
+                        // respect the current logic, if 'blk_account_io_completion' exists, we attach this probe.
+                        {
+                            if let Ok(results) =
+                                bpf.get_kprobe_functions("blk_account_io_completion")
+                            {
+                                if !results.is_empty() {
+                                    probe.try_attach_to_bpf(&mut bpf)?
+                                }
+                            }
+                        }
+                        "blk_account_io_done" =>
+                        // respect the current logic, if 'blk_account_io_completion' does exist, we attach blk_account_io_done.
+                        {
+                            if let Ok(results) =
+                                bpf.get_kprobe_functions("blk_account_io_completion")
+                            {
+                                if results.is_empty() {
+                                    probe.try_attach_to_bpf(&mut bpf)?
+                                }
+                            }
+                        }
+                        _ => probe.try_attach_to_bpf(&mut bpf)?,
+                    }
+                }
+
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }

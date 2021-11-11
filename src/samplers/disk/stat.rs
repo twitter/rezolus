@@ -10,6 +10,8 @@ use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
+use crate::common::bpf::*;
+
 #[derive(
     Clone,
     Copy,
@@ -67,6 +69,71 @@ impl DiskStatistic {
             Self::IoSizeRead => Some("io_size_read"),
             Self::IoSizeWrite => Some("io_size_write"),
             _ => None,
+        }
+    }
+
+    pub fn bpf_probes_required(self) -> Vec<FunctionProbe> {
+        // define the unique probes below.
+        let pid_start_probe = FunctionProbe {
+            name: String::from("blk_account_io_start"),
+            handler: String::from("trace_pid_start"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let request_start_probe = FunctionProbe {
+            name: String::from("blk_start_request"),
+            handler: String::from("trace_req_start"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let request_mq_start_request_probe = FunctionProbe {
+            name: String::from("blk_mq_start_request"),
+            handler: String::from("trace_req_start"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let pid_done_probe = FunctionProbe {
+            name: String::from("blk_account_io_done"),
+            handler: String::from("do_count"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Return,
+            binary_path: None,
+            sub_system: None,
+        };
+        let pid_completion_probe = FunctionProbe {
+            name: String::from("blk_account_io_completion"),
+            handler: String::from("do_count"),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+
+        // specify what probes are required for each telemtry.
+        match self {
+            Self::LatencyRead | Self::LatencyWrite | Self::IoSizeRead | Self::IoSizeWrite => {
+                [pid_start_probe, pid_done_probe, pid_completion_probe].to_vec()
+            }
+            Self::DeviceLatencyRead | Self::DeviceLatencyWrite => [
+                request_start_probe,
+                request_mq_start_request_probe,
+                pid_done_probe,
+                pid_completion_probe,
+            ]
+            .to_vec(),
+            Self::QueueLatencyRead | Self::QueueLatencyWrite => [
+                pid_start_probe,
+                request_start_probe,
+                request_mq_start_request_probe,
+            ]
+            .to_vec(),
+            _ => Vec::new(),
         }
     }
 }

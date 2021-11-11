@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use std::time::*;
 
@@ -132,59 +133,19 @@ impl Ext4 {
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
 
-                // define the kernel probes here.
-                let mut probes = Probes::new();
-                probes.add_kernel_probe(
-                    String::from("generic_file_read_iter"),
-                    String::from("trace_read_entry"),
-                    ProbeLocation::Entry,
-                    [Ext4Statistic::ReadLatency].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("ext4_file_write_iter"),
-                    String::from("trace_entry"),
-                    ProbeLocation::Entry,
-                    [Ext4Statistic::WriteLatency].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("ext4_file_open"),
-                    String::from("trace_entry"),
-                    ProbeLocation::Entry,
-                    [Ext4Statistic::OpenLatency].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("ext4_sync_file"),
-                    String::from("trace_entry"),
-                    ProbeLocation::Entry,
-                    [Ext4Statistic::FsyncLatency].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("generic_file_read_iter"),
-                    String::from("trace_read_return"),
-                    ProbeLocation::Return,
-                    [Ext4Statistic::ReadLatency].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("ext4_file_write_iter"),
-                    String::from("trace_write_return"),
-                    ProbeLocation::Return,
-                    [Ext4Statistic::WriteLatency].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("ext4_file_open"),
-                    String::from("trace_open_return"),
-                    ProbeLocation::Return,
-                    [Ext4Statistic::OpenLatency].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("ext4_sync_file"),
-                    String::from("trace_fsync_return"),
-                    ProbeLocation::Return,
-                    [Ext4Statistic::FsyncLatency].to_vec(),
-                );
+                // collect the set of probes required from the statistics enabled.
+                let mut probes = HashSet::new();
+                for statistic in &self.statistics {
+                    for probe in statistic.bpf_probes_required() {
+                        probes.insert(probe);
+                    }
+                }
 
                 // load + attach the kernel probes that are required to the bpf instance.
-                probes.try_attach_to_bpf(&mut bpf, self.statistics.as_slice(), None)?;
+                for probe in probes {
+                    probe.try_attach_to_bpf(&mut bpf)?;
+                }
+
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
         }

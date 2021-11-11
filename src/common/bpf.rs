@@ -10,9 +10,10 @@ pub struct BPF {
 #[cfg(not(feature = "bpf"))]
 pub struct BPF {}
 
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 #[cfg(feature = "bpf")]
-pub enum FunctionType {
+pub enum ProbeType {
     Kernel,
     User,
     Tracepoint,
@@ -26,152 +27,51 @@ pub enum ProbeLocation {
 }
 
 // Define a probe.
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 #[cfg(feature = "bpf")]
-pub struct Probe<Statistic> {
-    pub func_name: String,           // name of the function to probe
-    pub func_type: FunctionType,     // function type, kernel, user or tracepoint.
-    pub handler: String,             // the handler function
-    pub location: ProbeLocation,     // probe location, at entry or at return.
-    pub statistics: Vec<Statistic>,  // statistics that require this probe.
-    pub binary_path: Option<String>, // required for user probe only.
-    pub sub_system: Option<String>,  // required for tracepoint only.
-}
-
-// A collection of probes.
-#[cfg(feature = "bpf")]
-pub struct Probes<Statistic> {
-    pub probes: Vec<Probe<Statistic>>,
+pub struct FunctionProbe {
+    pub name: String,                  // name of the function to probe
+    pub handler: String,               // name of the probe handler
+    pub probe_type: ProbeType,         // function type, kernel, user or tracepoint.
+    pub probe_location: ProbeLocation, // probe location, at entry or at return.
+    pub binary_path: Option<String>,   // required for user probe only.
+    pub sub_system: Option<String>,    // required for tracepoint only.
 }
 
 #[cfg(feature = "bpf")]
-impl<Statistic: std::cmp::PartialEq> Probes<Statistic> {
-    pub fn new() -> Self {
-        Probes { probes: Vec::new() }
-    }
-
-    pub fn add_kernel_probe(
-        &mut self,
-        func_name: String,
-        handler: String,
-        location: ProbeLocation,
-        statistics: Vec<Statistic>,
-    ) {
-        self.probes.push(Probe {
-            func_name,
-            func_type: FunctionType::Kernel,
-            handler,
-            location,
-            statistics,
-            binary_path: None,
-            sub_system: None,
-        });
-    }
-
-    pub fn add_user_probe(
-        &mut self,
-        func_name: String,
-        handler: String,
-        location: ProbeLocation,
-        binary_path: String,
-        statistics: Vec<Statistic>,
-    ) {
-        self.probes.push(Probe {
-            func_name,
-            func_type: FunctionType::User,
-            handler,
-            location,
-            statistics,
-            binary_path: Some(binary_path),
-            sub_system: None,
-        });
-    }
-
-    pub fn add_tracepoint_probe(
-        &mut self,
-        func_name: String,
-        handler: String,
-        sub_system: String,
-        statistics: Vec<Statistic>,
-    ) {
-        self.probes.push(Probe {
-            func_name,
-            func_type: FunctionType::Tracepoint,
-            handler,
-            location: ProbeLocation::Entry,
-            statistics,
-            binary_path: None,
-            sub_system: Some(sub_system),
-        });
-    }
-
+impl FunctionProbe {
     // try attach all probes to a bpf instance.
     #[allow(unused_assignments)]
-    pub fn try_attach_to_bpf(
-        &self,
-        bpf: &mut bcc::BPF,
-        enabled_statistic: &[Statistic],
-        fault_tolerant: Option<bool>,
-    ) -> Result<(), anyhow::Error> {
-        // we decide whether or not to attach a probe based on what statistics are enabled.
-        for probe in &self.probes {
-            // It should only be attached if at least one of statistic that requires it is enabled.
-            let mut required = false;
-            for stat in &probe.statistics {
-                if enabled_statistic.contains(&stat) {
-                    required = true;
-                    break;
-                }
-            }
-
-            // Keep the current behaviour consistent for now (which is always just attach)
-            // as we move code of samplers batch by batch.
-            // TODO: once all probes in all samplers are taken care of, activate the filtering behaviour.
-            required = true;
-
-            if required {
-                let result = match probe.func_type {
-                    FunctionType::Kernel => match probe.location {
-                        ProbeLocation::Entry => bcc::Kprobe::new()
-                            .handler(probe.handler.as_str())
-                            .function(probe.func_name.as_str())
-                            .attach(bpf),
-                        ProbeLocation::Return => bcc::Kretprobe::new()
-                            .handler(probe.handler.as_str())
-                            .function(probe.func_name.as_str())
-                            .attach(bpf),
-                    },
-                    FunctionType::User => match probe.location {
-                        ProbeLocation::Entry => bcc::Uprobe::new()
-                            .handler(probe.handler.as_str())
-                            .binary(probe.binary_path.as_ref().unwrap().as_str())
-                            .symbol(probe.func_name.as_str())
-                            .attach(bpf),
-                        ProbeLocation::Return => bcc::Uretprobe::new()
-                            .handler(probe.handler.as_str())
-                            .binary(probe.binary_path.as_ref().unwrap().as_str())
-                            .symbol(probe.func_name.as_str())
-                            .attach(bpf),
-                    },
-                    FunctionType::Tracepoint => bcc::Tracepoint::new()
-                        .handler(probe.handler.as_str())
-                        .subsystem(probe.sub_system.as_ref().unwrap().as_str())
-                        .tracepoint(probe.func_name.as_str())
-                        .attach(bpf),
-                };
-                // when there's an error, check fault_tolerance.
-                if let Err(_) = &result {
-                    if fault_tolerant.is_some() && fault_tolerant.unwrap() {
-                        warn!(
-                            "unable to attach probe to function {}",
-                            probe.func_name.as_str()
-                        );
-                    } else {
-                        // if fault_tolerant is not specified or it's false, return error here.
-                        result?
-                    }
-                }
-            }
-        }
+    pub fn try_attach_to_bpf(&self, bpf: &mut bcc::BPF) -> Result<(), anyhow::Error> {
+        match self.probe_type {
+            ProbeType::Kernel => match self.probe_location {
+                ProbeLocation::Entry => bcc::Kprobe::new()
+                    .handler(self.handler.as_str())
+                    .function(self.name.as_str())
+                    .attach(bpf)?,
+                ProbeLocation::Return => bcc::Kretprobe::new()
+                    .handler(self.handler.as_str())
+                    .function(self.name.as_str())
+                    .attach(bpf)?,
+            },
+            ProbeType::User => match self.probe_location {
+                ProbeLocation::Entry => bcc::Uprobe::new()
+                    .handler(self.handler.as_str())
+                    .binary(self.binary_path.as_ref().unwrap().as_str())
+                    .symbol(self.name.as_str())
+                    .attach(bpf)?,
+                ProbeLocation::Return => bcc::Uretprobe::new()
+                    .handler(self.handler.as_str())
+                    .binary(self.binary_path.as_ref().unwrap().as_str())
+                    .symbol(self.name.as_str())
+                    .attach(bpf)?,
+            },
+            ProbeType::Tracepoint => bcc::Tracepoint::new()
+                .handler(self.handler.as_str())
+                .subsystem(self.sub_system.as_ref().unwrap().as_str())
+                .tracepoint(self.name.as_str())
+                .attach(bpf)?,
+        };
         Ok(())
     }
 }

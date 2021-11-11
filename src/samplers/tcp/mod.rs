@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use std::time::*;
 use tokio::fs::File;
@@ -140,83 +141,18 @@ impl Tcp {
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
 
-                // define the kernel probes here.
-                let mut probes = Probes::new();
-                probes.add_kernel_probe(
-                    String::from("tcp_v4_connect"),
-                    String::from("trace_connect"),
-                    ProbeLocation::Entry,
-                    [
-                        TcpStatistic::ConnectLatency,
-                        TcpStatistic::ConnectionInitiated,
-                    ]
-                    .to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("tcp_v6_connect"),
-                    String::from("trace_connect"),
-                    ProbeLocation::Entry,
-                    [
-                        TcpStatistic::ConnectLatency,
-                        TcpStatistic::ConnectionInitiated,
-                    ]
-                    .to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("tcp_v4_connect"),
-                    String::from("trace_connect_return"),
-                    ProbeLocation::Return,
-                    [TcpStatistic::ConnectionInitiated].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("tcp_v6_connect"),
-                    String::from("trace_connect_return"),
-                    ProbeLocation::Return,
-                    [TcpStatistic::ConnectionInitiated].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("tcp_finish_connect"),
-                    String::from("trace_finish_connect"),
-                    ProbeLocation::Return,
-                    [TcpStatistic::ConnectionInitiated].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("tcp_rcv_state_process"),
-                    String::from("trace_tcp_rcv_state_process"),
-                    ProbeLocation::Entry,
-                    [TcpStatistic::ConnectLatency].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("tcp_rcv_established"),
-                    String::from("trace_tcp_rcv"),
-                    ProbeLocation::Entry,
-                    [TcpStatistic::SmoothedRoundTripTime, TcpStatistic::Jitter].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("tcp_drop"),
-                    String::from("trace_tcp_drop"),
-                    ProbeLocation::Entry,
-                    [TcpStatistic::Drop].to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("tcp_set_state"),
-                    String::from("trace_tcp_set_state"),
-                    ProbeLocation::Entry,
-                    [
-                        TcpStatistic::ConnectionInitiated,
-                        TcpStatistic::ConnectionAccepted,
-                    ]
-                    .to_vec(),
-                );
-                probes.add_kernel_probe(
-                    String::from("inet_csk_accept"),
-                    String::from("trace_inet_socket_accept_return"),
-                    ProbeLocation::Return,
-                    [TcpStatistic::ConnectionAccepted].to_vec(),
-                );
+                // collect the set of probes required from the statistics enabled.
+                let mut probes = HashSet::new();
+                for statistic in &self.statistics {
+                    for probe in statistic.bpf_probes_required() {
+                        probes.insert(probe);
+                    }
+                }
 
                 // load + attach the kernel probes that are required to the bpf instance.
-                probes.try_attach_to_bpf(&mut bpf, self.statistics.as_slice(), None)?;
+                for probe in probes {
+                    probe.try_attach_to_bpf(&mut bpf)?;
+                }
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
             }
