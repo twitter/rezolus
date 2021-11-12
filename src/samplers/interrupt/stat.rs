@@ -149,7 +149,7 @@ impl InterruptStatistic {
             sub_system: Some(String::from("irq")),
         };
 
-        // specify what probes are required for each telemtry.
+        // specify what probes are required for each telemetry.
         match self {
             Self::SoftIrqHI
             | Self::SoftIrqTimer

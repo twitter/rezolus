@@ -210,7 +210,7 @@ impl TcpStatistic {
             binary_path: None,
             sub_system: None,
         };
-        // specify what probes are required for each telemtry.
+        // specify what probes are required for each telemetry.
         match self {
             Self::ConnectLatency => [
                 tcp_connect_v4_probe,

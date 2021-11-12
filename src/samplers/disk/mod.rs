@@ -153,7 +153,7 @@ impl Disk {
                 for probe in probes {
                     match probe.name.as_str() {
                         "blk_start_request" => {
-                            // respect the current logic, attach only if 'blk_start_request' can be found.
+                            // attach only if 'blk_start_request' can be found.
                             if let Ok(results) = bpf.get_kprobe_functions("blk_start_request") {
                                 if !results.is_empty() {
                                     probe.try_attach_to_bpf(&mut bpf)?
@@ -161,7 +161,7 @@ impl Disk {
                             }
                         }
                         "blk_account_io_completion" =>
-                        // respect the current logic, if 'blk_account_io_completion' exists, we attach this probe.
+                        // if 'blk_account_io_completion' exists, we attach this probe.
                         {
                             if let Ok(results) =
                                 bpf.get_kprobe_functions("blk_account_io_completion")
@@ -172,7 +172,7 @@ impl Disk {
                             }
                         }
                         "blk_account_io_done" =>
-                        // respect the current logic, if 'blk_account_io_completion' does exist, we attach blk_account_io_done.
+                        // if 'blk_account_io_completion' does exist, we attach blk_account_io_done.
                         {
                             if let Ok(results) =
                                 bpf.get_kprobe_functions("blk_account_io_completion")

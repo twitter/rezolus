@@ -117,7 +117,7 @@ impl DiskStatistic {
             sub_system: None,
         };
 
-        // specify what probes are required for each telemtry.
+        // specify what probes are required for each telemetry.
         match self {
             Self::LatencyRead | Self::LatencyWrite | Self::IoSizeRead | Self::IoSizeWrite => {
                 [pid_start_probe, pid_done_probe, pid_completion_probe].to_vec()

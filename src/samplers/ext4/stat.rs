@@ -117,7 +117,7 @@ impl Ext4Statistic {
             sub_system: None,
         };
 
-        // specify what probes are required for each telemtry.
+        // specify what probes are required for each telemetry.
         match self {
             Self::ReadLatency => [generic_file_read_probe, generic_file_read_ret_probe].to_vec(),
             Self::WriteLatency => [ext4_file_write_probe, ext4_file_write_ret_probe].to_vec(),

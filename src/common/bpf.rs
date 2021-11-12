@@ -39,7 +39,7 @@ pub struct FunctionProbe {
 
 #[cfg(feature = "bpf")]
 impl FunctionProbe {
-    // try attach all probes to a bpf instance.
+    // try to attach to a bpf instance.
     #[allow(unused_assignments)]
     pub fn try_attach_to_bpf(&self, bpf: &mut bcc::BPF) -> Result<(), anyhow::Error> {
         match self.probe_type {
