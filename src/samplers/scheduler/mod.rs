@@ -3,6 +3,8 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
+#[cfg(feature = "bpf")]
+use std::collections::HashSet;
 use std::io::SeekFrom;
 use std::sync::{Arc, Mutex};
 use std::time::*;
@@ -158,10 +160,12 @@ impl Scheduler {
             format!("#define NUM_CPU {}", cpus),
             include_str!("perf.c").to_string()
         );
+        let mut perf_array_attached = false;
         if let Ok(mut bpf) = bcc::BPF::new(&code) {
             for statistic in &self.statistics {
                 if let Some(table) = statistic.perf_table() {
                     if let Some(event) = statistic.event() {
+                        perf_array_attached = true;
                         if PerfEventArray::new()
                             .table(&format!("{}_array", table))
                             .event(event)
@@ -178,19 +182,22 @@ impl Scheduler {
                 }
             }
             debug!("attaching software event to drive perf counter sampling");
-            if PerfEvent::new()
-                .handler("do_count")
-                .event(Event::Software(SoftwareEvent::CpuClock))
-                .sample_frequency(Some(frequency))
-                .attach(&mut bpf)
-                .is_err()
-            {
-                if !self.common().config().general().fault_tolerant() {
-                    fatal!("failed to initialize perf bpf for cpu");
-                } else {
-                    error!("failed to initialize perf bpf for cpu");
+            if perf_array_attached {
+                if PerfEvent::new()
+                    .handler("do_count")
+                    .event(Event::Software(SoftwareEvent::CpuClock))
+                    .sample_frequency(Some(frequency))
+                    .attach(&mut bpf)
+                    .is_err()
+                {
+                    if !self.common().config().general().fault_tolerant() {
+                        fatal!("failed to initialize perf bpf for cpu");
+                    } else {
+                        error!("failed to initialize perf bpf for cpu");
+                    }
                 }
             }
+
             self.perf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
         } else if !self.common().config().general().fault_tolerant() {
             fatal!("failed to initialize perf bpf");
@@ -327,19 +334,18 @@ impl Scheduler {
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
 
-                // load + attach kprobes!
-                bcc::Kprobe::new()
-                    .handler("trace_run")
-                    .function("finish_task_switch")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_ttwu_do_wakeup")
-                    .function("ttwu_do_wakeup")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_wake_up_new_task")
-                    .function("wake_up_new_task")
-                    .attach(&mut bpf)?;
+                // collect the set of probes required from the statistics enabled.
+                let mut probes = HashSet::new();
+                for statistic in &self.statistics {
+                    for probe in statistic.bpf_probes_required() {
+                        probes.insert(probe);
+                    }
+                }
+
+                // load + attach the kernel probes that are required to the bpf instance.
+                for probe in probes {
+                    probe.try_attach_to_bpf(&mut bpf)?;
+                }
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
