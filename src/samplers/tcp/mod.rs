@@ -165,6 +165,14 @@ impl Tcp {
                     .handler("trace_tcp_drop")
                     .function("tcp_drop")
                     .attach(&mut bpf)?;
+                bcc::Kprobe::new()
+                    .handler("trace_tlp")
+                    .function("tcp_send_loss_probe")
+                    .attach(&mut bpf)?;
+                bcc::Kprobe::new()
+                    .handler("trace_rto")
+                    .function("tcp_retransmit_timer")
+                    .attach(&mut bpf)?;
 
                 // probes at returns
                 bcc::Kretprobe::new()
