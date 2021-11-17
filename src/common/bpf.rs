@@ -79,7 +79,7 @@ impl Probe {
                     .tracepoint(&self.name)
                     .attach(bpf)?,
                 None => {
-                    info!("failed to create user probe due to unspecified binrary path");
+                    info!("failed to create tracepoint due to unspecified sub system");
                 }
             },
         };
