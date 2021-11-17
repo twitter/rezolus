@@ -28,7 +28,7 @@ pub enum ProbeLocation {
 // Define a probe.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 #[cfg(feature = "bpf")]
-pub struct FunctionProbe {
+pub struct Probe {
     pub name: String,                  // name of the function to probe
     pub handler: String,               // name of the probe handler
     pub probe_type: ProbeType,         // function type, kernel, user or tracepoint.
@@ -38,38 +38,50 @@ pub struct FunctionProbe {
 }
 
 #[cfg(feature = "bpf")]
-impl FunctionProbe {
+impl Probe {
     // try to attach to a bpf instance.
     #[allow(unused_assignments)]
     pub fn try_attach_to_bpf(&self, bpf: &mut bcc::BPF) -> Result<(), anyhow::Error> {
         match self.probe_type {
             ProbeType::Kernel => match self.probe_location {
                 ProbeLocation::Entry => bcc::Kprobe::new()
-                    .handler(self.handler.as_str())
-                    .function(self.name.as_str())
+                    .handler(&self.handler)
+                    .function(&self.name)
                     .attach(bpf)?,
                 ProbeLocation::Return => bcc::Kretprobe::new()
-                    .handler(self.handler.as_str())
-                    .function(self.name.as_str())
+                    .handler(&self.handler)
+                    .function(&self.name)
                     .attach(bpf)?,
             },
-            ProbeType::User => match self.probe_location {
-                ProbeLocation::Entry => bcc::Uprobe::new()
-                    .handler(self.handler.as_str())
-                    .binary(self.binary_path.as_ref().unwrap().as_str())
-                    .symbol(self.name.as_str())
+            ProbeType::User => {
+                match &self.binary_path {
+                    Some(path) => match self.probe_location {
+                        ProbeLocation::Entry => bcc::Uprobe::new()
+                            .handler(&self.handler)
+                            .binary(&path)
+                            .symbol(&self.name)
+                            .attach(bpf)?,
+                        ProbeLocation::Return => bcc::Uretprobe::new()
+                            .handler(&self.handler)
+                            .binary(&path)
+                            .symbol(&self.name)
+                            .attach(bpf)?,
+                    },
+                    None => {
+                        info!("failed to create user probe due to unspecified binrary path");
+                    }
+                };
+            }
+            ProbeType::Tracepoint => match &self.sub_system {
+                Some(sb_system) => bcc::Tracepoint::new()
+                    .handler(&self.handler)
+                    .subsystem(&sb_system)
+                    .tracepoint(&self.name)
                     .attach(bpf)?,
-                ProbeLocation::Return => bcc::Uretprobe::new()
-                    .handler(self.handler.as_str())
-                    .binary(self.binary_path.as_ref().unwrap().as_str())
-                    .symbol(self.name.as_str())
-                    .attach(bpf)?,
+                None => {
+                    info!("failed to create user probe due to unspecified binrary path");
+                }
             },
-            ProbeType::Tracepoint => bcc::Tracepoint::new()
-                .handler(self.handler.as_str())
-                .subsystem(self.sub_system.as_ref().unwrap().as_str())
-                .tracepoint(self.name.as_str())
-                .attach(bpf)?,
         };
         Ok(())
     }
