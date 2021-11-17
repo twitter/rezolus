@@ -68,7 +68,10 @@ impl Probe {
                             .attach(bpf)?,
                     },
                     None => {
-                        info!("failed to create user probe due to unspecified binrary path");
+                        return Err(anyhow!(
+                            "failed to attach {}, binary_path is required for user probe",
+                            &self.name
+                        ));
                     }
                 };
             }
@@ -79,7 +82,10 @@ impl Probe {
                     .tracepoint(&self.name)
                     .attach(bpf)?,
                 None => {
-                    info!("failed to create tracepoint due to unspecified sub system");
+                    return Err(anyhow!(
+                        "failed to attach {}, sub_system is required for tracepoint",
+                        &self.name
+                    ));
                 }
             },
         };

@@ -52,10 +52,7 @@ impl Krb5kdc {
             for probe in probes {
                 if let Err(err) = probe.try_attach_to_bpf(&mut bpf) {
                     if self.common.config().fault_tolerant() {
-                        warn!(
-                            "krb5kdc unable to attach probe to function {}",
-                            probe.name.as_str()
-                        );
+                        warn!("krb5kdc unable to attach probe to function {}", &probe.name);
                     } else {
                         Err(err)?;
                     }
