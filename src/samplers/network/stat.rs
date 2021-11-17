@@ -98,28 +98,28 @@ impl NetworkStatistic {
     }
 
     #[cfg(feature = "bpf")]
-    pub fn bpf_probes_required(self) -> Vec<FunctionProbe> {
+    pub fn bpf_probes_required(self) -> Vec<Probe> {
         // define the unique probes below.
-        let tx_tracepoint = FunctionProbe {
-            name: String::from("net_dev_queue"),
-            handler: String::from("trace_transmit"),
+        let tx_tracepoint = Probe {
+            name: "net_dev_queue".to_string(),
+            handler: "trace_transmit".to_string(),
             probe_type: ProbeType::Tracepoint,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
-            sub_system: Some(String::from("net")),
+            sub_system: Some("net".to_string()),
         };
-        let rx_tracepoint = FunctionProbe {
-            name: String::from("netif_rx"),
-            handler: String::from("trace_receive"),
+        let rx_tracepoint = Probe {
+            name: "netif_rx".to_string(),
+            handler: "trace_receive".to_string(),
             probe_type: ProbeType::Tracepoint,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
-            sub_system: Some(String::from("net")),
+            sub_system: Some("net".to_string()),
         };
 
         match self {
-            Self::ReceiveSize => [rx_tracepoint].to_vec(),
-            Self::TransmitSize => [tx_tracepoint].to_vec(),
+            Self::ReceiveSize => vec![rx_tracepoint],
+            Self::TransmitSize => vec![tx_tracepoint],
             _ => Vec::new(),
         }
     }

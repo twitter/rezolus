@@ -128,108 +128,125 @@ impl TcpStatistic {
     }
 
     #[cfg(feature = "bpf")]
-    pub fn bpf_probes_required(self) -> Vec<FunctionProbe> {
+    pub fn bpf_probes_required(self) -> Vec<Probe> {
         // define the unique probes below.
-        let tcp_connect_v4_probe = FunctionProbe {
-            name: String::from("tcp_v4_connect"),
-            handler: String::from("trace_connect"),
+        let tcp_connect_v4_probe = Probe {
+            name: "tcp_v4_connect".to_string(),
+            handler: "trace_connect".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let tcp_connect_v6_probe = FunctionProbe {
-            name: String::from("tcp_v6_connect"),
-            handler: String::from("trace_connect"),
+        let tcp_connect_v6_probe = Probe {
+            name: "tcp_v6_connect".to_string(),
+            handler: "trace_connect".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let tcp_connect_v4_ret_probe = FunctionProbe {
-            name: String::from("tcp_v4_connect"),
-            handler: String::from("trace_connect_return"),
+        let tcp_connect_v4_ret_probe = Probe {
+            name: "tcp_v4_connect".to_string(),
+            handler: "trace_connect_return".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Return,
             binary_path: None,
             sub_system: None,
         };
-        let tcp_connect_v6_ret_probe = FunctionProbe {
-            name: String::from("tcp_v6_connect"),
-            handler: String::from("trace_connect_return"),
+        let tcp_connect_v6_ret_probe = Probe {
+            name: "tcp_v6_connect".to_string(),
+            handler: "trace_connect_return".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Return,
             binary_path: None,
             sub_system: None,
         };
-        let tcp_rcv_state_process_probe = FunctionProbe {
-            name: String::from("tcp_rcv_state_process"),
-            handler: String::from("trace_tcp_rcv_state_process"),
+        let tcp_rcv_state_process_probe = Probe {
+            name: "tcp_rcv_state_process".to_string(),
+            handler: "trace_tcp_rcv_state_process".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let tcp_rcv_established_probe = FunctionProbe {
-            name: String::from("tcp_rcv_established"),
-            handler: String::from("trace_tcp_rcv"),
+        let tcp_rcv_established_probe = Probe {
+            name: "tcp_rcv_established".to_string(),
+            handler: "trace_tcp_rcv".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let inet_csk_accept_ret_probe = FunctionProbe {
-            name: String::from("inet_csk_accept"),
-            handler: String::from("trace_inet_socket_accept_return"),
+        let inet_csk_accept_ret_probe = Probe {
+            name: "inet_csk_accept".to_string(),
+            handler: "trace_inet_socket_accept_return".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Return,
             binary_path: None,
             sub_system: None,
         };
-        let tcp_set_state_probe = FunctionProbe {
-            name: String::from("tcp_set_state"),
-            handler: String::from("trace_tcp_set_state"),
+        let tcp_set_state_probe = Probe {
+            name: "tcp_set_state".to_string(),
+            handler: "trace_tcp_set_state".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let tcp_finish_connect_ret_probe = FunctionProbe {
-            name: String::from("tcp_finish_connect"),
-            handler: String::from("trace_finish_connect"),
+        let tcp_finish_connect_ret_probe = Probe {
+            name: "tcp_finish_connect".to_string(),
+            handler: "trace_finish_connect".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Return,
             binary_path: None,
             sub_system: None,
         };
-        let tcp_drop_probe = FunctionProbe {
-            name: String::from("tcp_drop"),
-            handler: String::from("trace_tcp_drop"),
+        let tcp_drop_probe = Probe {
+            name: "tcp_drop".to_string(),
+            handler: "trace_tcp_drop".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
+        let tcp_tlp_probe = Probe {
+            name: "tcp_send_loss_probe".to_string(),
+            handler: "trace_tlp".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let tcp_rto_probe = Probe {
+            name: "tcp_retransmit_timer".to_string(),
+            handler: "trace_rto".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+
         // specify what probes are required for each telemetry.
         match self {
-            Self::ConnectLatency => [
+            Self::ConnectLatency => vec![
                 tcp_connect_v4_probe,
                 tcp_connect_v6_probe,
                 tcp_rcv_state_process_probe,
-            ]
-            .to_vec(),
-            Self::SmoothedRoundTripTime | Self::Jitter => [tcp_rcv_established_probe].to_vec(),
-            Self::ConnectionAccepted => [inet_csk_accept_ret_probe, tcp_set_state_probe].to_vec(),
-            Self::ConnectionInitiated => [
+            ],
+            Self::SmoothedRoundTripTime | Self::Jitter => vec![tcp_rcv_established_probe],
+            Self::ConnectionAccepted => vec![inet_csk_accept_ret_probe, tcp_set_state_probe],
+            Self::ConnectionInitiated => vec![
                 tcp_connect_v4_probe,
                 tcp_connect_v6_probe,
                 tcp_connect_v4_ret_probe,
                 tcp_connect_v6_ret_probe,
                 tcp_finish_connect_ret_probe,
                 tcp_set_state_probe,
-            ]
-            .to_vec(),
-            Self::Drop => [tcp_drop_probe].to_vec(),
+            ],
+            Self::Drop => vec![tcp_drop_probe],
+            Self::TailLossProbe => vec![tcp_tlp_probe],
+            Self::RetransmitTimeout => vec![tcp_rto_probe],
             _ => Vec::new(),
         }
     }

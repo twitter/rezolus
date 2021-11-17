@@ -151,7 +151,7 @@ impl Disk {
 
                 // load + attach the kernel probes that are required to the bpf instance.
                 for probe in probes {
-                    match probe.name.as_str() {
+                    match &probe.name[..] {
                         "blk_start_request" => {
                             // attach only if 'blk_start_request' can be found.
                             if let Ok(results) = bpf.get_kprobe_functions("blk_start_request") {

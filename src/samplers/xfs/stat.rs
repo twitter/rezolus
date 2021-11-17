@@ -50,67 +50,67 @@ impl XfsStatistic {
     }
 
     #[cfg(feature = "bpf")]
-    pub fn bpf_probes_required(self) -> Vec<FunctionProbe> {
+    pub fn bpf_probes_required(self) -> Vec<Probe> {
         // define the unique probes below.
-        let file_read_probe = FunctionProbe {
-            name: String::from("xfs_file_read_iter"),
-            handler: String::from("trace_entry"),
+        let file_read_probe = Probe {
+            name: "xfs_file_read_iter".to_string(),
+            handler: "trace_entry".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let file_write_probe = FunctionProbe {
-            name: String::from("xfs_file_write_iter"),
-            handler: String::from("trace_entry"),
+        let file_write_probe = Probe {
+            name: "xfs_file_write_iter".to_string(),
+            handler: "trace_entry".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let file_open_probe = FunctionProbe {
-            name: String::from("xfs_file_open"),
-            handler: String::from("trace_entry"),
+        let file_open_probe = Probe {
+            name: "xfs_file_open".to_string(),
+            handler: "trace_entry".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let file_sync_probe = FunctionProbe {
-            name: String::from("xfs_file_fsync"),
-            handler: String::from("trace_entry"),
+        let file_sync_probe = Probe {
+            name: "xfs_file_fsync".to_string(),
+            handler: "trace_entry".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let file_read_ret_probe = FunctionProbe {
-            name: String::from("xfs_file_read_iter"),
-            handler: String::from("trace_read_return"),
+        let file_read_ret_probe = Probe {
+            name: "xfs_file_read_iter".to_string(),
+            handler: "trace_read_return".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Return,
             binary_path: None,
             sub_system: None,
         };
-        let file_write_ret_probe = FunctionProbe {
-            name: String::from("xfs_file_write_iter"),
-            handler: String::from("trace_write_return"),
+        let file_write_ret_probe = Probe {
+            name: "xfs_file_write_iter".to_string(),
+            handler: "trace_write_return".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Return,
             binary_path: None,
             sub_system: None,
         };
-        let file_open_ret_probe = FunctionProbe {
-            name: String::from("xfs_file_open"),
-            handler: String::from("trace_open_return"),
+        let file_open_ret_probe = Probe {
+            name: "xfs_file_open".to_string(),
+            handler: "trace_open_return".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Return,
             binary_path: None,
             sub_system: None,
         };
-        let file_sync_ret_probe = FunctionProbe {
-            name: String::from("xfs_file_fsync"),
-            handler: String::from("trace_fsync_return"),
+        let file_sync_ret_probe = Probe {
+            name: "xfs_file_fsync".to_string(),
+            handler: "trace_fsync_return".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Return,
             binary_path: None,
@@ -119,10 +119,10 @@ impl XfsStatistic {
 
         // specify what probes are required for each telemetry.
         match self {
-            Self::ReadLatency => [file_read_probe, file_read_ret_probe].to_vec(),
-            Self::WriteLatency => [file_write_probe, file_write_ret_probe].to_vec(),
-            Self::OpenLatency => [file_open_probe, file_open_ret_probe].to_vec(),
-            Self::FsyncLatency => [file_sync_probe, file_sync_ret_probe].to_vec(),
+            Self::ReadLatency => vec![file_read_probe, file_read_ret_probe],
+            Self::WriteLatency => vec![file_write_probe, file_write_ret_probe],
+            Self::OpenLatency => vec![file_open_probe, file_open_ret_probe],
+            Self::FsyncLatency => vec![file_sync_probe, file_sync_ret_probe],
         }
     }
 }

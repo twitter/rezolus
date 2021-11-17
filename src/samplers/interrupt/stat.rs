@@ -114,39 +114,39 @@ impl InterruptStatistic {
     }
 
     #[cfg(feature = "bpf")]
-    pub fn bpf_probes_required(self) -> Vec<FunctionProbe> {
+    pub fn bpf_probes_required(self) -> Vec<Probe> {
         // define the unique probes below.
-        let irq_event_percpu_probe = FunctionProbe {
-            name: String::from("handle_irq_event_percpu"),
-            handler: String::from("hardirq_entry"),
+        let irq_event_percpu_probe = Probe {
+            name: "handle_irq_event_percpu".to_string(),
+            handler: "hardirq_entry".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let irq_event_percpu_ret_probe = FunctionProbe {
-            name: String::from("handle_irq_event_percpu"),
-            handler: String::from("hardirq_exit"),
+        let irq_event_percpu_ret_probe = Probe {
+            name: "handle_irq_event_percpu".to_string(),
+            handler: "hardirq_exit".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Return,
             binary_path: None,
             sub_system: None,
         };
-        let softirq_entry_tracepoint = FunctionProbe {
-            name: String::from("softirq_entry"),
-            handler: String::from("softirq_entry"),
+        let softirq_entry_tracepoint = Probe {
+            name: "softirq_entry".to_string(),
+            handler: "softirq_entry".to_string(),
             probe_type: ProbeType::Tracepoint,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
-            sub_system: Some(String::from("irq")),
+            sub_system: Some("irq".to_string()),
         };
-        let softirq_exit_tracepoint = FunctionProbe {
-            name: String::from("softirq_exit"),
-            handler: String::from("softirq_exit"),
+        let softirq_exit_tracepoint = Probe {
+            name: "softirq_exit".to_string(),
+            handler: "softirq_exit".to_string(),
             probe_type: ProbeType::Tracepoint,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
-            sub_system: Some(String::from("irq")),
+            sub_system: Some("irq".to_string()),
         };
 
         // specify what probes are required for each telemetry.
@@ -161,8 +161,8 @@ impl InterruptStatistic {
             | Self::SoftIrqSched
             | Self::SoftIrqHRTimer
             | Self::SoftIrqRCU
-            | Self::SoftIrqUnknown => [softirq_entry_tracepoint, softirq_exit_tracepoint].to_vec(),
-            Self::HardIrq => [irq_event_percpu_probe, irq_event_percpu_ret_probe].to_vec(),
+            | Self::SoftIrqUnknown => vec![softirq_entry_tracepoint, softirq_exit_tracepoint],
+            Self::HardIrq => vec![irq_event_percpu_probe, irq_event_percpu_ret_probe],
             _ => Vec::new(),
         }
     }
