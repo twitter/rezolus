@@ -10,6 +10,9 @@ use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
+#[cfg(feature = "bpf")]
+use crate::common::bpf::*;
+
 #[derive(
     Clone,
     Copy,
@@ -127,6 +130,130 @@ impl TcpStatistic {
             Self::TailLossProbe => Some("tlp"),
             Self::RetransmitTimeout => Some("rto"),
             _ => None,
+        }
+    }
+
+    #[cfg(feature = "bpf")]
+    pub fn bpf_probes_required(self) -> Vec<Probe> {
+        // define the unique probes below.
+        let tcp_connect_v4_probe = Probe {
+            name: "tcp_v4_connect".to_string(),
+            handler: "trace_connect".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let tcp_connect_v6_probe = Probe {
+            name: "tcp_v6_connect".to_string(),
+            handler: "trace_connect".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let tcp_connect_v4_ret_probe = Probe {
+            name: "tcp_v4_connect".to_string(),
+            handler: "trace_connect_return".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Return,
+            binary_path: None,
+            sub_system: None,
+        };
+        let tcp_connect_v6_ret_probe = Probe {
+            name: "tcp_v6_connect".to_string(),
+            handler: "trace_connect_return".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Return,
+            binary_path: None,
+            sub_system: None,
+        };
+        let tcp_rcv_state_process_probe = Probe {
+            name: "tcp_rcv_state_process".to_string(),
+            handler: "trace_tcp_rcv_state_process".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let tcp_rcv_established_probe = Probe {
+            name: "tcp_rcv_established".to_string(),
+            handler: "trace_tcp_rcv".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let inet_csk_accept_ret_probe = Probe {
+            name: "inet_csk_accept".to_string(),
+            handler: "trace_inet_socket_accept_return".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Return,
+            binary_path: None,
+            sub_system: None,
+        };
+        let tcp_set_state_probe = Probe {
+            name: "tcp_set_state".to_string(),
+            handler: "trace_tcp_set_state".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let tcp_finish_connect_ret_probe = Probe {
+            name: "tcp_finish_connect".to_string(),
+            handler: "trace_finish_connect".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Return,
+            binary_path: None,
+            sub_system: None,
+        };
+        let tcp_drop_probe = Probe {
+            name: "tcp_drop".to_string(),
+            handler: "trace_tcp_drop".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let tcp_tlp_probe = Probe {
+            name: "tcp_send_loss_probe".to_string(),
+            handler: "trace_tlp".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let tcp_rto_probe = Probe {
+            name: "tcp_retransmit_timer".to_string(),
+            handler: "trace_rto".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+
+        // specify what probes are required for each telemetry.
+        match self {
+            Self::ConnectLatency => vec![
+                tcp_connect_v4_probe,
+                tcp_connect_v6_probe,
+                tcp_rcv_state_process_probe,
+            ],
+            Self::SmoothedRoundTripTime | Self::Jitter => vec![tcp_rcv_established_probe],
+            Self::ConnectionAccepted => vec![inet_csk_accept_ret_probe, tcp_set_state_probe],
+            Self::ConnectionInitiated => vec![
+                tcp_connect_v4_probe,
+                tcp_connect_v6_probe,
+                tcp_connect_v4_ret_probe,
+                tcp_connect_v6_ret_probe,
+                tcp_finish_connect_ret_probe,
+                tcp_set_state_probe,
+            ],
+            Self::Drop => vec![tcp_drop_probe],
+            Self::TailLossProbe => vec![tcp_tlp_probe],
+            Self::RetransmitTimeout => vec![tcp_rto_probe],
+            _ => Vec::new(),
         }
     }
 }

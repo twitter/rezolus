@@ -4,10 +4,12 @@
 
 use async_trait::async_trait;
 
+#[cfg(feature = "bpf")]
+use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
-use crate::common::bpf::BPF;
+use crate::common::bpf::*;
 use crate::config::SamplerConfig;
 use crate::samplers::{Common, Sampler};
 
@@ -38,42 +40,22 @@ impl Krb5kdc {
             let code = include_str!("bpf.c");
             let mut bpf = bcc::BPF::new(code)?;
 
-            if let Err(err) = bcc::Uprobe::new()
-                .handler("count_finish_process_as_req")
-                .binary(self.path.clone())
-                .symbol("finish_process_as_req")
-                .attach(&mut bpf)
-            {
-                if self.common.config().fault_tolerant() {
-                    warn!("krb5kdc unable to attach probe to function finish_process_as_req");
-                } else {
-                    Err(err)?;
+            // collect the set of probes required from the statistics enabled.
+            let mut probes = HashSet::new();
+            for statistic in &self.statistics {
+                for probe in statistic.bpf_probes_required(self.path.clone()) {
+                    probes.insert(probe);
                 }
             }
 
-            if let Err(err) = bcc::Uprobe::new()
-                .handler("count_finish_dispatch_cache")
-                .binary(self.path.clone())
-                .symbol("finish_dispatch_cache")
-                .attach(&mut bpf)
-            {
-                if self.common.config().fault_tolerant() {
-                    warn!("krb5kdc unable to attach probe to function finish_dispatch_cache");
-                } else {
-                    Err(err)?;
-                }
-            }
-
-            if let Err(err) = bcc::Uretprobe::new()
-                .handler("count_process_tgs_req")
-                .binary(self.path.clone())
-                .symbol("process_tgs_req")
-                .attach(&mut bpf)
-            {
-                if self.common.config().fault_tolerant() {
-                    warn!("krb5kdc unable to attach probe to function process_tgs_req");
-                } else {
-                    Err(err)?;
+            // load + attach the kernel probes that are required to the bpf instance.
+            for probe in probes {
+                if let Err(err) = probe.try_attach_to_bpf(&mut bpf) {
+                    if self.common.config().fault_tolerant() {
+                        warn!("krb5kdc unable to attach probe to function {}", &probe.name);
+                    } else {
+                        Err(err)?;
+                    }
                 }
             }
 

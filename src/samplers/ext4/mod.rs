@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+#[cfg(feature = "bpf")]
+use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use std::time::*;
 
@@ -132,39 +134,18 @@ impl Ext4 {
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
 
-                // load + attach kprobes!
-                bcc::Kprobe::new()
-                    .handler("trace_read_entry")
-                    .function("generic_file_read_iter")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_entry")
-                    .function("ext4_file_write_iter")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_entry")
-                    .function("ext4_file_open")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_entry")
-                    .function("ext4_sync_file")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("trace_read_return")
-                    .function("generic_file_read_iter")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("trace_write_return")
-                    .function("ext4_file_write_iter")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("trace_open_return")
-                    .function("ext4_file_open")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("trace_fsync_return")
-                    .function("ext4_sync_file")
-                    .attach(&mut bpf)?;
+                // collect the set of probes required from the statistics enabled.
+                let mut probes = HashSet::new();
+                for statistic in &self.statistics {
+                    for probe in statistic.bpf_probes_required() {
+                        probes.insert(probe);
+                    }
+                }
+
+                // load + attach the kernel probes that are required to the bpf instance.
+                for probe in probes {
+                    probe.try_attach_to_bpf(&mut bpf)?;
+                }
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }
