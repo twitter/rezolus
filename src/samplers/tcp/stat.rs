@@ -133,7 +133,7 @@ impl TcpStatistic {
             Self::Drop => Some("drop"),
             Self::TailLossProbe => Some("tlp"),
             Self::RetransmitTimeout => Some("rto"),
-            Self::Duplicate => Some("duplicate_packet"),
+            Self::Duplicate => Some("duplicate"),
             Self::OutOfOrder => Some("ooo"),
             _ => None,
         }

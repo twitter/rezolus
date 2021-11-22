@@ -35,7 +35,7 @@ BPF_ARRAY(conn_initiated, u64, 1);
 BPF_ARRAY(drop, u64, 1);
 BPF_ARRAY(tlp, u64, 1);
 BPF_ARRAY(rto, u64, 1);
-BPF_ARRAY(duplicate_packet, u64, 1);
+BPF_ARRAY(duplicate, u64, 1);
 BPF_ARRAY(ooo, u64, 1);
 
 // store a pointer by the pid
@@ -283,15 +283,15 @@ int trace_validate_incoming(struct pt_regs *ctx, struct sock *sk, struct sk_buff
     u32 end_seq = TCP_SKB_CB(skb)->end_seq;
 
     // Segment sequence before the expected one
-    // which means this was a duplicated packet
+    // which means this was a duplicated segment
     if ((end_seq - tp->rcv_wup) < 0) {
         // Increment duplicate counter
         int loc = 0;
-        add_value(duplicate_packet.lookup(&loc), 1);
+        add_value(duplicate.lookup(&loc), 1);
     }
     
     // Segment sequence after the expected receive window
-    // which means this packet was received out of order
+    // which means this segment was received out of order
     u32 window_end = tp->rcv_nxt + tcp_receive_window(tp);
     if ((window_end - seq) < 0) {
         // Increment out of order counter
