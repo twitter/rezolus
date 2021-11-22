@@ -276,7 +276,7 @@ impl TcpStatistic {
             Self::TailLossProbe => vec![tcp_tlp_probe],
             Self::RetransmitTimeout => vec![tcp_rto_probe],
             Self::Duplicate => vec![tcp_duplicate_probe],
-            Self::OutOfOrder => vec![tcp_ooo_probe],            
+            Self::OutOfOrder => vec![tcp_ooo_probe],
             _ => Vec::new(),
         }
     }
