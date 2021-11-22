@@ -173,6 +173,10 @@ impl Tcp {
                     .handler("trace_rto")
                     .function("tcp_retransmit_timer")
                     .attach(&mut bpf)?;
+                bcc::Kprobe::new()
+                    .handler("trace_validate_incoming")
+                    .function("tcp_validate_incoming")
+                    .attach(&mut bpf)?;
 
                 // probes at returns
                 bcc::Kretprobe::new()

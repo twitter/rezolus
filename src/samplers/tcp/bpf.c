@@ -10,6 +10,7 @@
 #include <net/inet_sock.h>
 #include <bcc/proto.h>
 #include <linux/tcp.h>
+#include <net/tcp.h>
 
 // stores the stats of a connection.
 struct sock_stats_t {
@@ -34,6 +35,8 @@ BPF_ARRAY(conn_initiated, u64, 1);
 BPF_ARRAY(drop, u64, 1);
 BPF_ARRAY(tlp, u64, 1);
 BPF_ARRAY(rto, u64, 1);
+BPF_ARRAY(duplicate_packet, u64, 1);
+BPF_ARRAY(ooo, u64, 1);
 
 // store a pointer by the pid
 static void store_ptr(u64 pid, u64 ptr)
@@ -268,5 +271,33 @@ int trace_rto(struct pt_regs *ctx, struct sock *sk)
         return 0;
     int loc = 0;
     add_value(rto.lookup(&loc), 1);
+    return 0;
+}
+
+// Run on incoming package validation
+int trace_validate_incoming(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb) {
+    if (sk == NULL || skb == NULL)
+        return 0;
+
+    struct tcp_sock *tp = tcp_sk(sk);
+    u32 seq = TCP_SKB_CB(skb)->seq;
+    u32 end_seq = TCP_SKB_CB(skb)->end_seq;
+
+    // Segment sequence before the expected one
+    // which means this was a duplicated packet
+    if ((end_seq - tp->rcv_wup) < 0) {
+        // Increment duplicate counter
+        int loc = 0;
+        add_value(duplicate_packet.lookup(&loc), 1);
+    }
+    
+    // Segment sequence after the expected receive window
+    // which means this packet was received out of order
+    u32 window_end = tp->rcv_nxt + tcp_receive_window(tp);
+    if ((window_end - seq) < 0) {
+        // Increment out of order counter
+        int loc = 0;
+        add_value(ooo.lookup(&loc), 1);    
+    }
     return 0;
 }
