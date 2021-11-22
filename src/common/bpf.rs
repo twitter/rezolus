@@ -10,6 +10,89 @@ pub struct BPF {
 #[cfg(not(feature = "bpf"))]
 pub struct BPF {}
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+#[cfg(feature = "bpf")]
+pub enum ProbeType {
+    Kernel,
+    User,
+    Tracepoint,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+#[cfg(feature = "bpf")]
+pub enum ProbeLocation {
+    Entry,
+    Return,
+}
+
+// Define a probe.
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[cfg(feature = "bpf")]
+pub struct Probe {
+    pub name: String,                  // name of the function to probe
+    pub handler: String,               // name of the probe handler
+    pub probe_type: ProbeType,         // function type, kernel, user or tracepoint.
+    pub probe_location: ProbeLocation, // probe location, at entry or at return.
+    pub binary_path: Option<String>,   // required for user probe only.
+    pub sub_system: Option<String>,    // required for tracepoint only.
+}
+
+#[cfg(feature = "bpf")]
+impl Probe {
+    // try to attach to a bpf instance.
+    #[allow(unused_assignments)]
+    pub fn try_attach_to_bpf(&self, bpf: &mut bcc::BPF) -> Result<(), anyhow::Error> {
+        match self.probe_type {
+            ProbeType::Kernel => match self.probe_location {
+                ProbeLocation::Entry => bcc::Kprobe::new()
+                    .handler(&self.handler)
+                    .function(&self.name)
+                    .attach(bpf)?,
+                ProbeLocation::Return => bcc::Kretprobe::new()
+                    .handler(&self.handler)
+                    .function(&self.name)
+                    .attach(bpf)?,
+            },
+            ProbeType::User => {
+                match &self.binary_path {
+                    Some(path) => match self.probe_location {
+                        ProbeLocation::Entry => bcc::Uprobe::new()
+                            .handler(&self.handler)
+                            .binary(&path)
+                            .symbol(&self.name)
+                            .attach(bpf)?,
+                        ProbeLocation::Return => bcc::Uretprobe::new()
+                            .handler(&self.handler)
+                            .binary(&path)
+                            .symbol(&self.name)
+                            .attach(bpf)?,
+                    },
+                    None => {
+                        return Err(anyhow!(
+                            "failed to attach {}, binary_path is required for user probe",
+                            &self.name
+                        ));
+                    }
+                };
+            }
+            ProbeType::Tracepoint => match &self.sub_system {
+                Some(sb_system) => bcc::Tracepoint::new()
+                    .handler(&self.handler)
+                    .subsystem(&sb_system)
+                    .tracepoint(&self.name)
+                    .attach(bpf)?,
+                None => {
+                    return Err(anyhow!(
+                        "failed to attach {}, sub_system is required for tracepoint",
+                        &self.name
+                    ));
+                }
+            },
+        };
+        Ok(())
+    }
+}
+
 #[cfg(feature = "bpf")]
 pub fn key_to_value(index: u64) -> Option<u64> {
     let index = index;

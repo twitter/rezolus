@@ -170,10 +170,12 @@ impl Cpu {
             format!("#define NUM_CPU {}", cpus),
             include_str!("perf.c").to_string()
         );
+        let mut perf_array_attached = false;
         if let Ok(mut bpf) = bcc::BPF::new(&code) {
             for statistic in &self.statistics {
                 if let Some(table) = statistic.table() {
                     if let Some(event) = statistic.event() {
+                        perf_array_attached = true;
                         if PerfEventArray::new()
                             .table(&format!("{}_array", table))
                             .event(event)
@@ -190,17 +192,20 @@ impl Cpu {
                 }
             }
             debug!("attaching software event to drive perf counter sampling");
-            if PerfEvent::new()
-                .handler("do_count")
-                .event(Event::Software(SoftwareEvent::CpuClock))
-                .sample_frequency(Some(frequency))
-                .attach(&mut bpf)
-                .is_err()
-            {
-                if !self.common().config().general().fault_tolerant() {
-                    fatal!("failed to initialize perf bpf for cpu");
-                } else {
-                    error!("failed to initialize perf bpf for cpu");
+            // if none of the perf array was attached, we do not need to attach the perf event.
+            if perf_array_attached {
+                if PerfEvent::new()
+                    .handler("do_count")
+                    .event(Event::Software(SoftwareEvent::CpuClock))
+                    .sample_frequency(Some(frequency))
+                    .attach(&mut bpf)
+                    .is_err()
+                {
+                    if !self.common().config().general().fault_tolerant() {
+                        fatal!("failed to initialize perf bpf for cpu");
+                    } else {
+                        error!("failed to initialize perf bpf for cpu");
+                    }
                 }
             }
             self.perf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));

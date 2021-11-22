@@ -233,9 +233,8 @@ int trace_tcp_rcv_state_process(struct pt_regs *ctx, struct sock *skp)
 // this is actually the fast path, we need to watch out for the overhead added here.
 int trace_tcp_rcv(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb)
 {
-    struct sock_stats_t *stats = sock_stats_map.lookup(&sk);
-    if (!stats)
-        return 0; // missed entry or filtered
+    if (sk == NULL)
+        return 0;
 
     struct tcp_sock *ts = tcp_sk(sk);
     // update srtt and jitter.

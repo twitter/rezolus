@@ -3,6 +3,8 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::collections::HashMap;
+#[cfg(feature = "bpf")]
+use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use std::time::*;
 use tokio::io::SeekFrom;
@@ -138,16 +140,18 @@ impl Network {
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
 
-                bcc::Tracepoint::new()
-                    .handler("trace_transmit")
-                    .subsystem("net")
-                    .tracepoint("net_dev_queue")
-                    .attach(&mut bpf)?;
-                bcc::Tracepoint::new()
-                    .handler("trace_receive")
-                    .subsystem("net")
-                    .tracepoint("netif_rx")
-                    .attach(&mut bpf)?;
+                // collect the set of probes required from the statistics enabled.
+                let mut probes = HashSet::new();
+                for statistic in &self.statistics {
+                    for probe in statistic.bpf_probes_required() {
+                        probes.insert(probe);
+                    }
+                }
+
+                // load + attach the kernel probes that are required to the bpf instance.
+                for probe in probes {
+                    probe.try_attach_to_bpf(&mut bpf)?;
+                }
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));
             }

@@ -14,6 +14,9 @@ use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
+#[cfg(feature = "bpf")]
+use crate::common::bpf::*;
+
 #[derive(
     Clone,
     Copy,
@@ -57,6 +60,40 @@ impl SchedulerStatistic {
         match self {
             Self::CpuMigrations => Some("cpu_migrations"),
             _ => None,
+        }
+    }
+
+    #[cfg(feature = "bpf")]
+    pub fn bpf_probes_required(self) -> Vec<Probe> {
+        // define the unique probes below.
+        let finish_task_probe = Probe {
+            name: "finish_task_switch".to_string(),
+            handler: "trace_run".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let wakeup_probe = Probe {
+            name: "ttwu_do_wakeup".to_string(),
+            handler: "trace_ttwu_do_wakeup".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+        let new_task_probe = Probe {
+            name: "wake_up_new_task".to_string(),
+            handler: "trace_wake_up_new_task".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
+
+        match self {
+            Self::RunqueueLatency => vec![finish_task_probe, wakeup_probe, new_task_probe],
+            _ => Vec::new(),
         }
     }
 

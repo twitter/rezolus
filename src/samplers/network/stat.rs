@@ -10,6 +10,9 @@ use serde_derive::{Deserialize, Serialize};
 use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
+#[cfg(feature = "bpf")]
+use crate::common::bpf::*;
+
 #[derive(
     Clone,
     Copy,
@@ -91,6 +94,33 @@ impl NetworkStatistic {
             Self::ReceiveSize => Some("rx_size"),
             Self::TransmitSize => Some("tx_size"),
             _ => None,
+        }
+    }
+
+    #[cfg(feature = "bpf")]
+    pub fn bpf_probes_required(self) -> Vec<Probe> {
+        // define the unique probes below.
+        let tx_tracepoint = Probe {
+            name: "net_dev_queue".to_string(),
+            handler: "trace_transmit".to_string(),
+            probe_type: ProbeType::Tracepoint,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: Some("net".to_string()),
+        };
+        let rx_tracepoint = Probe {
+            name: "netif_rx".to_string(),
+            handler: "trace_receive".to_string(),
+            probe_type: ProbeType::Tracepoint,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: Some("net".to_string()),
+        };
+
+        match self {
+            Self::ReceiveSize => vec![rx_tracepoint],
+            Self::TransmitSize => vec![tx_tracepoint],
+            _ => Vec::new(),
         }
     }
 }
