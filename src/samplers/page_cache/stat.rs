@@ -40,35 +40,35 @@ impl PageCacheStatistic {
     }
 
     #[cfg(feature = "bpf")]
-    pub fn bpf_probes_required(self) -> Vec<FunctionProbe> {
+    pub fn bpf_probes_required(self) -> Vec<Probe> {
         // define the unique probes below.
-        let page_accessed_probe = FunctionProbe {
-            name: String::from("mark_page_accessed"),
-            handler: String::from("trace_mark_page_accessed"),
+        let page_accessed_probe = Probe {
+            name: "mark_page_accessed".to_string(),
+            handler: "trace_mark_page_accessed".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let buffer_dirty_probe = FunctionProbe {
-            name: String::from("mark_buffer_dirty"),
-            handler: String::from("trace_mark_buffer_dirty"),
+        let buffer_dirty_probe = Probe {
+            name: "mark_buffer_dirty".to_string(),
+            handler: "trace_mark_buffer_dirty".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let page_cache_lru_probe = FunctionProbe {
-            name: String::from("add_to_page_cache_lru"),
-            handler: String::from("trace_add_to_page_cache_lru"),
+        let page_cache_lru_probe = Probe {
+            name: "add_to_page_cache_lru".to_string(),
+            handler: "trace_add_to_page_cache_lru".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let page_dirtied_probe = FunctionProbe {
-            name: String::from("account_page_dirtied"),
-            handler: String::from("trace_account_page_dirtied"),
+        let page_dirtied_probe = Probe {
+            name: "account_page_dirtied".to_string(),
+            handler: "trace_account_page_dirtied".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
@@ -76,13 +76,12 @@ impl PageCacheStatistic {
         };
 
         match self {
-            Self::Hit | Self::Miss => [
+            Self::Hit | Self::Miss => vec![
                 page_accessed_probe,
                 buffer_dirty_probe,
                 page_cache_lru_probe,
                 page_dirtied_probe,
-            ]
-            .to_vec(),
+            ],
         }
     }
 }

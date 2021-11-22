@@ -64,27 +64,27 @@ impl SchedulerStatistic {
     }
 
     #[cfg(feature = "bpf")]
-    pub fn bpf_probes_required(self) -> Vec<FunctionProbe> {
+    pub fn bpf_probes_required(self) -> Vec<Probe> {
         // define the unique probes below.
-        let finish_task_probe = FunctionProbe {
-            name: String::from("finish_task_switch"),
-            handler: String::from("trace_run"),
+        let finish_task_probe = Probe {
+            name: "finish_task_switch".to_string(),
+            handler: "trace_run".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let wakeup_probe = FunctionProbe {
-            name: String::from("ttwu_do_wakeup"),
-            handler: String::from("trace_ttwu_do_wakeup"),
+        let wakeup_probe = Probe {
+            name: "ttwu_do_wakeup".to_string(),
+            handler: "trace_ttwu_do_wakeup".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
-        let new_task_probe = FunctionProbe {
-            name: String::from("wake_up_new_task"),
-            handler: String::from("trace_wake_up_new_task"),
+        let new_task_probe = Probe {
+            name: "wake_up_new_task".to_string(),
+            handler: "trace_wake_up_new_task".to_string(),
             probe_type: ProbeType::Kernel,
             probe_location: ProbeLocation::Entry,
             binary_path: None,
@@ -92,7 +92,7 @@ impl SchedulerStatistic {
         };
 
         match self {
-            Self::RunqueueLatency => [finish_task_probe, wakeup_probe, new_task_probe].to_vec(),
+            Self::RunqueueLatency => vec![finish_task_probe, wakeup_probe, new_task_probe],
             _ => Vec::new(),
         }
     }

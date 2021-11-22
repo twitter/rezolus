@@ -144,57 +144,18 @@ impl Tcp {
                 );
                 let mut bpf = bcc::BPF::new(&code)?;
 
-                // load + attach kprobes!
-                bcc::Kprobe::new()
-                    .handler("trace_connect")
-                    .function("tcp_v4_connect")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_connect")
-                    .function("tcp_v6_connect")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_finish_connect")
-                    .function("tcp_finish_connect")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_tcp_rcv_state_process")
-                    .function("tcp_rcv_state_process")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_tcp_rcv")
-                    .function("tcp_rcv_established")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_tcp_drop")
-                    .function("tcp_drop")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_tlp")
-                    .function("tcp_send_loss_probe")
-                    .attach(&mut bpf)?;
-                bcc::Kprobe::new()
-                    .handler("trace_rto")
-                    .function("tcp_retransmit_timer")
-                    .attach(&mut bpf)?;
+                // collect the set of probes required from the statistics enabled.
+                let mut probes = HashSet::new();
+                for statistic in &self.statistics {
+                    for probe in statistic.bpf_probes_required() {
+                        probes.insert(probe);
+                    }
+                }
 
-                // probes at returns
-                bcc::Kretprobe::new()
-                    .handler("trace_connect_return")
-                    .function("tcp_v4_connect")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("trace_connect_return")
-                    .function("tcp_v6_connect")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("trace_tcp_set_state")
-                    .function("tcp_set_state")
-                    .attach(&mut bpf)?;
-                bcc::Kretprobe::new()
-                    .handler("trace_inet_socket_accept_return")
-                    .function("inet_csk_accept")
-                    .attach(&mut bpf)?;
+                // load + attach the kernel probes that are required to the bpf instance.
+                for probe in probes {
+                    probe.try_attach_to_bpf(&mut bpf)?;
+                }
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })))
             }
