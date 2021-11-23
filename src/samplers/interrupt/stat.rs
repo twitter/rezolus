@@ -2,12 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use core::convert::TryFrom;
-use core::str::FromStr;
-
 use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
-use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
 #[cfg(feature = "bpf")]
