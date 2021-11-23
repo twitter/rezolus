@@ -361,7 +361,7 @@ impl Cpu {
                         let mut reader = BufReader::new(file);
                         if let Ok(time) = reader.read_u64().await {
                             if let Some(state) = state.split('-').next() {
-                                let metric = match CState::from_str(&state) {
+                                let metric = match CState::from_str(state) {
                                     Ok(CState::C0) => CpuStatistic::CstateC0Time,
                                     Ok(CState::C1) => CpuStatistic::CstateC1Time,
                                     Ok(CState::C1E) => CpuStatistic::CstateC1ETime,

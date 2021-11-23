@@ -139,7 +139,7 @@ impl Nvidia {
                                 let _ = self.metrics().record_counter(
                                     &NvidiaStatistic::MemoryEccSbe(id),
                                     time,
-                                    value.into(),
+                                    value,
                                 );
                             }
                         }
@@ -150,7 +150,7 @@ impl Nvidia {
                                 let _ = self.metrics().record_counter(
                                     &NvidiaStatistic::MemoryEccDbe(id),
                                     time,
-                                    value.into(),
+                                    value,
                                 );
                             }
                         }
@@ -272,7 +272,7 @@ impl Nvidia {
                                 let _ = self.metrics().record_gauge(
                                     &NvidiaStatistic::MemoryFbFree(id),
                                     time,
-                                    value.free.into(),
+                                    value.free,
                                 );
                             }
                         }
@@ -281,7 +281,7 @@ impl Nvidia {
                                 let _ = self.metrics().record_gauge(
                                     &NvidiaStatistic::MemoryFbTotal(id),
                                     time,
-                                    value.total.into(),
+                                    value.total,
                                 );
                             }
                         }
@@ -290,7 +290,7 @@ impl Nvidia {
                                 let _ = self.metrics().record_gauge(
                                     &NvidiaStatistic::MemoryFbUsed(id),
                                     time,
-                                    value.used.into(),
+                                    value.used,
                                 );
                             }
                         }
