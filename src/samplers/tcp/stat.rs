@@ -238,15 +238,7 @@ impl TcpStatistic {
             binary_path: None,
             sub_system: None,
         };
-        let tcp_duplicate_probe = Probe {
-            name: "tcp_validate_incoming".to_string(),
-            handler: "trace_validate_incoming".to_string(),
-            probe_type: ProbeType::Kernel,
-            probe_location: ProbeLocation::Entry,
-            binary_path: None,
-            sub_system: None,
-        };
-        let tcp_ooo_probe = Probe {
+        let tcp_validate_incoming_probe = Probe {
             name: "tcp_validate_incoming".to_string(),
             handler: "trace_validate_incoming".to_string(),
             probe_type: ProbeType::Kernel,
@@ -275,8 +267,8 @@ impl TcpStatistic {
             Self::Drop => vec![tcp_drop_probe],
             Self::TailLossProbe => vec![tcp_tlp_probe],
             Self::RetransmitTimeout => vec![tcp_rto_probe],
-            Self::Duplicate => vec![tcp_duplicate_probe],
-            Self::OutOfOrder => vec![tcp_ooo_probe],
+            Self::Duplicate => vec![tcp_validate_incoming_probe],
+            Self::OutOfOrder => vec![tcp_validate_incoming_probe],
             _ => Vec::new(),
         }
     }
