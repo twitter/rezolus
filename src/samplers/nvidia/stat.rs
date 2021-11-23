@@ -73,14 +73,6 @@ pub enum NvidiaConfigStatistic {
     ProcessesCompute,
 }
 
-impl TryFrom<&str> for NvidiaConfigStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        NvidiaConfigStatistic::from_str(s)
-    }
-}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum NvidiaStatistic {
     GpuTemperature(u32),

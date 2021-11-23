@@ -47,11 +47,3 @@ impl Statistic<AtomicU64, AtomicU32> for RezolusStatistic {
         }
     }
 }
-
-impl TryFrom<&str> for RezolusStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        RezolusStatistic::from_str(s)
-    }
-}

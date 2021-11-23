@@ -136,11 +136,3 @@ impl Statistic<AtomicU64, AtomicU32> for XfsStatistic {
         Source::Distribution
     }
 }
-
-impl TryFrom<&str> for XfsStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        XfsStatistic::from_str(s)
-    }
-}

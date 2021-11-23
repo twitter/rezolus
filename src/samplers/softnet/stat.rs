@@ -50,11 +50,3 @@ impl Statistic<AtomicU64, AtomicU32> for SoftnetStatistic {
         Source::Counter
     }
 }
-
-impl TryFrom<&str> for SoftnetStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        SoftnetStatistic::from_str(s)
-    }
-}

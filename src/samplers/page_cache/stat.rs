@@ -86,14 +86,6 @@ impl PageCacheStatistic {
     }
 }
 
-impl TryFrom<&str> for PageCacheStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        PageCacheStatistic::from_str(s)
-    }
-}
-
 impl Statistic<AtomicU64, AtomicU32> for PageCacheStatistic {
     fn name(&self) -> &str {
         (*self).into()

@@ -126,11 +126,3 @@ impl Statistic<AtomicU64, AtomicU32> for SchedulerStatistic {
         }
     }
 }
-
-impl TryFrom<&str> for SchedulerStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        SchedulerStatistic::from_str(s)
-    }
-}

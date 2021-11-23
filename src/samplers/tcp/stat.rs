@@ -270,11 +270,3 @@ impl Statistic<AtomicU64, AtomicU32> for TcpStatistic {
         }
     }
 }
-
-impl TryFrom<&str> for TcpStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        TcpStatistic::from_str(s)
-    }
-}

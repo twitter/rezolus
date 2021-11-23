@@ -645,11 +645,3 @@ impl Statistic<AtomicU64, AtomicU32> for Krb5kdcStatistic {
         Source::Counter
     }
 }
-
-impl TryFrom<&str> for Krb5kdcStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        Krb5kdcStatistic::from_str(s)
-    }
-}

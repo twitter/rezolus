@@ -168,14 +168,6 @@ impl InterruptStatistic {
     }
 }
 
-impl TryFrom<&str> for InterruptStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        InterruptStatistic::from_str(s)
-    }
-}
-
 impl Statistic<AtomicU64, AtomicU32> for InterruptStatistic {
     fn name(&self) -> &str {
         (*self).into()

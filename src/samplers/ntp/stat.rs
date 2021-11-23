@@ -31,14 +31,6 @@ pub enum NtpStatistic {
     MaximumError,
 }
 
-impl TryFrom<&str> for NtpStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        NtpStatistic::from_str(s)
-    }
-}
-
 impl Statistic<AtomicU64, AtomicU32> for NtpStatistic {
     fn name(&self) -> &str {
         (*self).into()

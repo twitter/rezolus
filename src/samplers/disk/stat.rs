@@ -151,11 +151,3 @@ impl Statistic<AtomicU64, AtomicU32> for DiskStatistic {
         }
     }
 }
-
-impl TryFrom<&str> for DiskStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        DiskStatistic::from_str(s)
-    }
-}

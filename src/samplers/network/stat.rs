@@ -138,11 +138,3 @@ impl Statistic<AtomicU64, AtomicU32> for NetworkStatistic {
         }
     }
 }
-
-impl TryFrom<&str> for NetworkStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        NetworkStatistic::from_str(s)
-    }
-}

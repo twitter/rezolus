@@ -207,14 +207,6 @@ impl MemoryStatistic {
     }
 }
 
-impl TryFrom<&str> for MemoryStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        MemoryStatistic::from_str(s)
-    }
-}
-
 impl Statistic<AtomicU64, AtomicU32> for MemoryStatistic {
     fn name(&self) -> &str {
         (*self).into()

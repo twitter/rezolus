@@ -52,11 +52,3 @@ impl Statistic<AtomicU64, AtomicU32> for UdpStatistic {
         Source::Counter
     }
 }
-
-impl TryFrom<&str> for UdpStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        UdpStatistic::from_str(s)
-    }
-}

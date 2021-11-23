@@ -136,11 +136,3 @@ impl Statistic<AtomicU64, AtomicU32> for Ext4Statistic {
         Source::Distribution
     }
 }
-
-impl TryFrom<&str> for Ext4Statistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        Ext4Statistic::from_str(s)
-    }
-}
