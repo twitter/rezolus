@@ -81,7 +81,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Run CI
       run: bash -e build/ci.sh
-  focal-llvm_9-bcc_v0_14_0:
+  focal-llvm_9-bcc_v0_21_0:
     name: focal / llvm 9 / bcc 0.21.0
     runs-on: ubuntu-20.04
     env:
@@ -105,7 +105,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Run CI
       run: bash -e build/ci.sh
-  focal-llvm_9-bcc_v0_16_0:
+  focal-llvm_9-bcc_v0_23_0:
     name: focal / llvm 9 / bcc 0.23.0
     runs-on: ubuntu-20.04
     env:
@@ -117,7 +117,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Run CI
       run: bash -e build/ci.sh
-  focal-llvm_9-bcc_v0_16_0-static:
+  focal-llvm_9-bcc_v0_23_0-static:
     name: focal / llvm 9 / bcc 0.23.0 / static
     runs-on: ubuntu-20.04
     env:
