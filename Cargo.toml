@@ -11,7 +11,7 @@ description = "High resolution systems performance telemetry agent"
 [dependencies]
 anyhow = "1.0.48"
 async-trait = "0.1.51"
-bcc = { version = "0.0.31", optional = true }
+bcc = { version = "0.0.32", optional = true }
 clap = "2.33.3"
 ctrlc = { version = "3.2.1", features = ["termination"] }
 dashmap = "4.0.2"
@@ -57,11 +57,11 @@ bpf_v0_15_0 = ["bpf", "bcc/v0_15_0"]
 bpf_v0_16_0 = ["bpf", "bcc/v0_16_0"]
 bpf_v0_17_0 = ["bpf", "bcc/v0_17_0"]
 bpf_v0_18_0 = ["bpf", "bcc/v0_18_0"]
-#bpf_v0_19_0 = ["bpf", "bcc/v0_19_0"]
-#bpf_v0_20_0 = ["bpf", "bcc/v0_20_0"]
-#bpf_v0_21_0 = ["bpf", "bcc/v0_21_0"]
-#bpf_v0_22_0 = ["bpf", "bcc/v0_22_0"]
-#bpf_v0_23_0 = ["bpf", "bcc/v0_23_0"]
+bpf_v0_19_0 = ["bpf", "bcc/v0_19_0"]
+bpf_v0_20_0 = ["bpf", "bcc/v0_20_0"]
+bpf_v0_21_0 = ["bpf", "bcc/v0_21_0"]
+bpf_v0_22_0 = ["bpf", "bcc/v0_22_0"]
+bpf_v0_23_0 = ["bpf", "bcc/v0_23_0"]
 push_kafka = ["kafka"]
 
 [profile.bench]
