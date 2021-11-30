@@ -500,6 +500,8 @@ This sampler provides telemetry about TCP traffic and connections.
 * `tcp/drop` - number of packets dropped in the kernel TCP stack
 * `tcp/tlp` - number of Tail Loss Recovery Probes sent
 * `tcp/transmit/retransmit_timeout` - number of retransmit timeouts
+* `tcp/receive/duplicate` - number of duplicate TCP segments received.
+* `tcp/receive/out_of_order` - number of out of order TCP segments received.
 
 ## UDP
 

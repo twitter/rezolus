@@ -84,6 +84,10 @@ pub enum TcpStatistic {
     TailLossProbe,
     #[strum(serialize = "tcp/transmit/retransmit_timeout")]
     RetransmitTimeout,
+    #[strum(serialize = "tcp/receive/duplicate")]
+    Duplicate,
+    #[strum(serialize = "tcp/receive/out_of_order")]
+    OutOfOrder,
 }
 
 impl TcpStatistic {
@@ -125,6 +129,8 @@ impl TcpStatistic {
             Self::Drop => Some("drop"),
             Self::TailLossProbe => Some("tlp"),
             Self::RetransmitTimeout => Some("rto"),
+            Self::Duplicate => Some("duplicate"),
+            Self::OutOfOrder => Some("ooo"),
             _ => None,
         }
     }
@@ -228,6 +234,14 @@ impl TcpStatistic {
             binary_path: None,
             sub_system: None,
         };
+        let tcp_validate_incoming_probe = Probe {
+            name: "tcp_validate_incoming".to_string(),
+            handler: "trace_validate_incoming".to_string(),
+            probe_type: ProbeType::Kernel,
+            probe_location: ProbeLocation::Entry,
+            binary_path: None,
+            sub_system: None,
+        };
 
         // specify what probes are required for each telemetry.
         match self {
@@ -249,6 +263,8 @@ impl TcpStatistic {
             Self::Drop => vec![tcp_drop_probe],
             Self::TailLossProbe => vec![tcp_tlp_probe],
             Self::RetransmitTimeout => vec![tcp_rto_probe],
+            Self::Duplicate => vec![tcp_validate_incoming_probe],
+            Self::OutOfOrder => vec![tcp_validate_incoming_probe],
             _ => Vec::new(),
         }
     }
