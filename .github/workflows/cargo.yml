@@ -20,8 +20,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-rust
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_16_0:
@@ -35,8 +33,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-rust
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_17_0:
@@ -50,8 +46,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-rust
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_18_0:
@@ -65,8 +59,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-rust
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_19_0:
@@ -80,8 +72,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-rust
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_20_0:
@@ -95,8 +85,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-rust
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_21_0:
@@ -110,8 +98,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-rust
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_22_0:
@@ -125,8 +111,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-rust
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_23_0:
@@ -140,8 +124,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-rust
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_23_0-static:
@@ -156,8 +138,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-rust-static
     - name: Run CI
       run: bash -e build/ci.sh
   memcache-smoketest:
@@ -176,8 +156,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-rust-memcache
       - name: Build
         run: bash build/ci.sh
       - name: Smoketest
@@ -188,8 +166,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: Swatinem/rust-cache@v1
-        with:
-          key: macos-rust
       - name: Build
         run: cargo build --release
       - name: Smoketest
@@ -200,8 +176,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: Swatinem/rust-cache@v1
-        with:
-          key: musl-rust
       - name: install rust musl toolchain
         run: rustup target add x86_64-unknown-linux-musl
       - name: update apt
