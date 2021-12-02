@@ -150,7 +150,7 @@ impl Network {
 
                 // load + attach the kernel probes that are required to the bpf instance.
                 for probe in probes {
-                    if self.common.config.fault_tolerant {
+                    if self.common.config.fault_tolerant() {
                         let _ = probe.try_attach_to_bpf(&mut bpf);
                     } else {
                         probe.try_attach_to_bpf(&mut bpf)?;
