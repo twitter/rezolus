@@ -11,64 +11,105 @@ sudo apt-get remove *llvm* *clang* *gtk* mono*
 sudo apt-get --yes install clang-"${LLVM}" libclang-"${LLVM}"-dev libelf-dev \
     libfl-dev llvm-"${LLVM}"-dev libz-dev llvm-"${LLVM}"
 
+mkdir -p deps
+cd deps
+
 # For static builds, we need to compile the following
 if [[ $STATIC == true ]]; then
+    ## Installing make dependencies
+    sudo apt-get --yes install autoconf libtool pkg-config >/dev/null 2>&1
+
     export CPPFLAGS="-P"
     export CFLAGS="-fPIC"
 
+    BINUTILS_VERSION="2.34.90"
+    ZLIB_VERSION="1.2.11"
+    XZ_VERSION="5.2.5"
+    NCURSES_VERSION="6.2"
+    LIBXML2_SHA="41a34e1f4ffae2ce401600dbb5fe43f8fe402641"
+    ELFUTILS_VERSION="0.180"
+
     echo "build binutils"
-    curl -L -O ftp://sourceware.org/pub/binutils/snapshots/binutils-2.34.90.tar.xz
-    tar xf binutils-2.34.90.tar.xz
-    cd binutils-2.34.90
-    ./configure --prefix=/usr
-    make -j2
-    sudo make install
+    date -u
+    if [ ! -d binutils-${BINUTILS_VERSION} ]; then
+        curl -L -O ftp://sourceware.org/pub/binutils/snapshots/binutils-${BINUTILS_VERSION}.tar.xz
+        tar xf binutils-${BINUTILS_VERSION}.tar.xz
+    fi
+    cd binutils-${BINUTILS_VERSION}
+    if [ ! -f Makefile ]; then
+        ./configure --prefix=/usr >/dev/null 2>&1
+    fi
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 
     echo "build zlib"
-    curl -L -O https://zlib.net/zlib-1.2.11.tar.gz
-    tar xzf zlib-1.2.11.tar.gz
-    cd zlib-1.2.11
-    ./configure --prefix=/usr
-    make -j2
-    sudo make install
+    date -u
+    if [ ! -d zlib-${ZLIB_VERSION} ]; then
+        curl -L -O https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz
+        tar xzf zlib-${ZLIB_VERSION}.tar.gz
+    fi
+    cd zlib-${ZLIB_VERSION}
+    ./configure --prefix=/usr >/dev/null 2>&1
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 
     echo "build xz"
-    curl -L -O https://tukaani.org/xz/xz-5.2.5.tar.gz
-    tar xzf xz-5.2.5.tar.gz
-    cd xz-5.2.5
-    ./configure --prefix=/usr
-    make -j2
-    sudo make install
+    date -u
+    if [ ! -d xz-${XZ_VERSION} ]; then
+        curl -L -O https://tukaani.org/xz/xz-${XZ_VERSION}.tar.gz
+        tar xzf xz-${XZ_VERSION}.tar.gz
+    fi
+    cd xz-${XZ_VERSION}
+    if [ ! -f Makefile ]; then
+        ./configure --prefix=/usr >/dev/null 2>&1
+    fi
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 
     echo "build ncurses"
-    curl -L -O ftp://ftp.invisible-island.net/ncurses/ncurses-6.2.tar.gz
-    tar xzf ncurses-6.2.tar.gz
-    cd ncurses-6.2
-    ./configure --prefix=/usr --with-termlib
-    make -j2
-    sudo make install
+    date -u
+    if [ ! -d ncurses-${NCURSES_VERSION} ]; then
+        curl -L -O ftp://ftp.invisible-island.net/ncurses/ncurses-${NCURSES_VERSION}.tar.gz
+        tar xzf ncurses-${NCURSES_VERSION}.tar.gz
+    fi
+    cd ncurses-${NCURSES_VERSION}
+    if [ ! -f Makefile ]; then
+        ./configure --prefix=/usr --with-termlib >/dev/null 2>&1
+    fi
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 
     echo "build libxml2"
-    git clone https://gitlab.gnome.org/GNOME/libxml2
+    date -u
+    if [ ! -d libxml2 ]; then
+        git clone https://gitlab.gnome.org/GNOME/libxml2
+    fi
     cd libxml2
-    git checkout 41a34e1f4ffae2ce401600dbb5fe43f8fe402641
-    autoreconf -fvi
-    ./configure --prefix=/usr --without-python
-    make -j2
-    sudo make install
+    git checkout ${LIBXML2_SHA}
+    if [ ! -f Makefile ]; then
+        autoreconf -fvi >/dev/null 2>&1
+        ./configure --prefix=/usr --without-python >/dev/null 2>&1
+    fi
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 
     echo "build elfutils"
-    curl -L -O ftp://sourceware.org/pub/elfutils/0.180/elfutils-0.180.tar.bz2
-    tar xjf elfutils-0.180.tar.bz2
-    cd elfutils-0.180
-    ./configure --prefix=/usr --disable-debuginfod
-    make -j2
-    sudo make install
+    date -u
+    if [ ! -d elfutils-${ELFUTILS_VERSION} ]; then
+        curl -L -O ftp://sourceware.org/pub/elfutils/0.180/elfutils-${ELFUTILS_VERSION}.tar.bz2
+        tar xjf elfutils-${ELFUTILS_VERSION}.tar.bz2
+    fi
+    cd elfutils-${ELFUTILS_VERSION}
+    if [ ! -f Makefile ]; then
+        ./configure --prefix=/usr --disable-debuginfod >/dev/null 2>&1
+    fi
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 fi
 
@@ -129,7 +170,10 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/usr
 make
 sudo make install
 find . -name "*.a" -exec sudo cp -v {} /usr/lib/ \;
-cd ../..
+cd ../../..
+
+echo "prerequisite build complete"
+date -u
 
 ## Build and test
 if [ -n "${FEATURES}" ]; then
