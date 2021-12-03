@@ -1,5 +1,23 @@
 # [Unreleased]
 
+# [2.15.0] - 2020-12-03
+## Changed
+- Allow selective enablement of various BPF metrics. (#254)
+- Support up to BCC 0.23.0 and makes it the new default version. (#256)
+- Removed ssl support in http sampler to remove dependency on openssl. (#257)
+
+## Added
+- Adds TCP jitter and connections accepted and initiated using BPF. (#247)
+- Adds TCP packet drops counter using BPF. (#250)
+- Adds Pelikan specific stats to memcache sampled. (#249)
+- Adds TCP tail loss recovery and retransmit timeout using BPF. (#253)
+- Adds TCP duplicate segment and out-of-order segment counters using BPF. (#255)
+
+## Fixed
+- Improved handling of BPF initialization errors so that samplers will continue
+  to initialize remaining BPF probes if fault tolerant error handling is
+  enabled. (#259)
+
 # [2.14.0] - 2020-09-16
 ## Added
 - Adds new `SRTT` metric for TCP sampler using BPF. (#238)
@@ -192,7 +210,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.14.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.15.0...HEAD
+[2.15.0]: https://github.com/twitter/rezolus/compare/v2.14.0...v2.15.0
 [2.14.0]: https://github.com/twitter/rezolus/compare/v2.13.0...v2.14.0
 [2.13.0]: https://github.com/twitter/rezolus/compare/v2.12.0...v2.13.0
 [2.12.0]: https://github.com/twitter/rezolus/compare/v2.11.1...v2.12.0
