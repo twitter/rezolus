@@ -156,7 +156,11 @@ impl Disk {
                             // attach only if 'blk_start_request' can be found.
                             if let Ok(results) = bpf.get_kprobe_functions("blk_start_request") {
                                 if !results.is_empty() {
-                                    probe.try_attach_to_bpf(&mut bpf)?
+                                    if self.common.config.fault_tolerant() {
+                                        let _ = probe.try_attach_to_bpf(&mut bpf);
+                                    } else {
+                                        probe.try_attach_to_bpf(&mut bpf)?;
+                                    }
                                 }
                             }
                         }
@@ -167,7 +171,11 @@ impl Disk {
                                 bpf.get_kprobe_functions("blk_account_io_completion")
                             {
                                 if !results.is_empty() {
-                                    probe.try_attach_to_bpf(&mut bpf)?
+                                    if self.common.config.fault_tolerant() {
+                                        let _ = probe.try_attach_to_bpf(&mut bpf);
+                                    } else {
+                                        probe.try_attach_to_bpf(&mut bpf)?;
+                                    }
                                 }
                             }
                         }
@@ -178,11 +186,22 @@ impl Disk {
                                 bpf.get_kprobe_functions("blk_account_io_completion")
                             {
                                 if results.is_empty() {
-                                    probe.try_attach_to_bpf(&mut bpf)?
+                                    if self.common.config.fault_tolerant() {
+                                        let _ = probe.try_attach_to_bpf(&mut bpf);
+                                    } else {
+                                        probe.try_attach_to_bpf(&mut bpf)?;
+                                    }
                                 }
                             }
                         }
-                        _ => probe.try_attach_to_bpf(&mut bpf)?,
+                        _ => {
+                            // load + attach the kernel probes that are required to the bpf instance.
+                            if self.common.config.fault_tolerant() {
+                                let _ = probe.try_attach_to_bpf(&mut bpf);
+                            } else {
+                                probe.try_attach_to_bpf(&mut bpf)?;
+                            }
+                        }
                     }
                 }
 
