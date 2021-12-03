@@ -19,6 +19,12 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
@@ -32,6 +38,12 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
@@ -45,6 +57,12 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
@@ -58,6 +76,12 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
@@ -71,6 +95,12 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
@@ -84,6 +114,12 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
@@ -97,6 +133,12 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
@@ -110,6 +152,12 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
@@ -123,6 +171,12 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
@@ -137,6 +191,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-static
     - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
