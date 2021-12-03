@@ -8,8 +8,8 @@
 
 ## Added
 - Adds TCP jitter and connections accepted and initiated using BPF. (#247)
+- Adds Pelikan specific stats to memcache sampler. (#249)
 - Adds TCP packet drops counter using BPF. (#250)
-- Adds Pelikan specific stats to memcache sampled. (#249)
 - Adds TCP tail loss recovery and retransmit timeout using BPF. (#253)
 - Adds TCP duplicate segment and out-of-order segment counters using BPF. (#255)
 
