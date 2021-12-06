@@ -9,21 +9,21 @@ edition = '2018'
 description = "High resolution systems performance telemetry agent"
 
 [dependencies]
-anyhow = "1.0.48"
+anyhow = "1.0.51"
 async-trait = "0.1.51"
 bcc = { version = "0.0.32", optional = true }
-clap = "2.33.3"
+clap = "2.34.0"
 ctrlc = { version = "3.2.1", features = ["termination"] }
 dashmap = "4.0.2"
 json = "0.12.4"
 kafka = { version = "0.8.0", optional = true }
-libc = "0.2.108"
+libc = "0.2.109"
 num = "0.4.0"
 num-derive = "0.3.3"
 num-traits = "0.2.14"
 nvml-wrapper = "0.7.0"
 regex = "1.5.4"
-reqwest = { version = "0.11.6", default-features = false, features = ["blocking"] }
+reqwest = { version = "0.11.7", default-features = false, features = ["blocking"] }
 rustcommon-atomics = { git = "https://github.com/twitter/rustcommon", branch = "master" }
 rustcommon-logger = { git = "https://github.com/twitter/rustcommon", branch = "master" }
 rustcommon-metrics = { git = "https://github.com/twitter/rustcommon", branch = "master" }
@@ -39,8 +39,8 @@ uuid = "0.8.2"
 walkdir = "2.3.2"
 
 [build-dependencies]
-anyhow = "1.0.48"
-vergen = "5.1.17"
+anyhow = "1.0.51"
+vergen = "5.2.0"
 
 [features]
 all = ["bpf", "push_kafka"]
