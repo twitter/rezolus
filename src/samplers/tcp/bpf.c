@@ -11,6 +11,7 @@
 #include <bcc/proto.h>
 #include <linux/tcp.h>
 #include <net/tcp.h>
+#include <linux/version.h>
 
 // stores the stats of a connection.
 struct sock_stats_t {
@@ -160,31 +161,36 @@ int trace_inet_socket_accept_return(struct pt_regs *ctx)
     u8 protocol = 0;
     // unfortunately, we need to have different handling for pre-4.10 and 4.10+
     // for pre-4.10, sk_wmem_queued is following sk_protocol field.
-    // for 4.10+, sk_gso_max_segs is following sk_protocol field.
-    // in order to be compatiable, we handle both cases.
-    // we calculate the offset between sk_lingertime_offset and gso_max_segs_offset
-    // and for 4.10+, the offset is 4, otherwise it's pre-4.10.
-    // see details in -> https://github.com/iovisor/bcc/blob/04893e3bb1c03a97f6ea3835986abe6608062f6a/tools/tcpaccept.py#L120
-    int gso_max_segs_offset = offsetof(struct sock, sk_gso_max_segs);
-    int sk_lingertime_offset = offsetof(struct sock, sk_lingertime);
-
-    // get the sk_protocol bitfield
-    if (sk_lingertime_offset - gso_max_segs_offset == 4)
-        // 4.10+ with little endian
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-        // get the sk_protocol bitfield, see https://elixir.bootlin.com/linux/v5.4/source/include/net/sock.h#L455.
-        protocol = *(u8 *)((u64)&sk->sk_gso_max_segs - 3); 
-    else
-        // pre-4.10 with little endian
-        protocol = *(u8 *)((u64)&sk->sk_wmem_queued - 3);
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-        // 4.10+ with big endian
+    // for 4.10+ to 5.5, sk_gso_max_segs is following sk_protocol field.
+    // for 5.6+, sk_gso_max_segs is following sk_protocol field, but the sk_protocol becomes regular member
+    // instead of bitfield.
+    // in order to be compatiable, we handle all cases.
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
+    // 5.6+, we can read sk_protocol as a regular field.
+    u16 p = 0;
+    bpf_probe_read_kernel(&p, sizeof(p), ((const char*)sk) +
+        offsetof(struct sock, sk_protocol));
+    protocol = (u8) p;
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4,10,0)
+    // from 4.10+ to 5.5, sk_protocol is a bit field
+    // see https://elixir.bootlin.com/linux/v5.4/source/include/net/sock.h#L455.
+    #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+        // get the sk_protocol bitfield
+        protocol = *(u8 *)((u64)&sk->sk_gso_max_segs - 3);
+    #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         protocol = *(u8 *)((u64)&sk->sk_gso_max_segs - 1);
-    else
-        // pre-4.10 with big endian
-        protocol = *(u8 *)((u64)&sk->sk_wmem_queued - 1);
+    #else
+    #error "Fix your compiler's __BYTE_ORDER__?!"
+    #endif
 #else
-#error "Fix your compiler's __BYTE_ORDER__?!"
+    // for pre-4.10, sk_protocol is also a bit field
+    #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+        protocol = *(u8 *)((u64)&sk->sk_wmem_queued - 3);
+    #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+        protocol = *(u8 *)((u64)&sk->sk_wmem_queued - 1);
+    #else
+    #error "Fix your compiler's __BYTE_ORDER__?!"
+    #endif
 #endif
 
     // if the sock is not TCP, igonre.

@@ -206,7 +206,7 @@ impl TcpStatistic {
             name: "tcp_finish_connect".to_string(),
             handler: "trace_finish_connect".to_string(),
             probe_type: ProbeType::Kernel,
-            probe_location: ProbeLocation::Return,
+            probe_location: ProbeLocation::Entry,
             binary_path: None,
             sub_system: None,
         };
