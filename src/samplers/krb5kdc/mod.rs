@@ -82,7 +82,7 @@ impl Sampler for Krb5kdc {
         };
 
         if let Err(e) = sampler.init_bpf() {
-            error!("{}", e);
+            error!("failed to initializing bpf: {}", e);
             if !fault_tolerant {
                 return Err(e);
             }
