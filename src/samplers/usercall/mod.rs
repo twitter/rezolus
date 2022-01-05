@@ -163,7 +163,7 @@ impl Usercall {
                     }
                     warn!("{}", err);
                 } else {
-                    Err(err)?;
+                    return Err(err.into());
                 }
             }
         }

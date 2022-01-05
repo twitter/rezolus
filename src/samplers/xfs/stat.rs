@@ -2,12 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use core::convert::TryFrom;
-use core::str::FromStr;
-
 use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
-use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
 #[cfg(feature = "bpf")]
@@ -27,6 +23,7 @@ use crate::common::bpf::*;
     Serialize,
 )]
 #[serde(deny_unknown_fields, try_from = "&str", into = "&str")]
+#[allow(clippy::enum_variant_names)]
 pub enum XfsStatistic {
     #[strum(serialize = "xfs/read/latency")]
     ReadLatency,
@@ -134,13 +131,5 @@ impl Statistic<AtomicU64, AtomicU32> for XfsStatistic {
 
     fn source(&self) -> Source {
         Source::Distribution
-    }
-}
-
-impl TryFrom<&str> for XfsStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        XfsStatistic::from_str(s)
     }
 }

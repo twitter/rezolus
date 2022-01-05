@@ -4,14 +4,10 @@
 
 use crate::common::SECOND;
 
-use core::convert::TryFrom;
-use core::str::FromStr;
-
 #[cfg(feature = "bpf")]
 use bcc::perf_event::*;
 use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
-use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
 #[cfg(feature = "bpf")]
@@ -124,13 +120,5 @@ impl Statistic<AtomicU64, AtomicU32> for SchedulerStatistic {
             Self::ProcessesRunning | Self::ProcessesBlocked => Source::Gauge,
             _ => Source::Counter,
         }
-    }
-}
-
-impl TryFrom<&str> for SchedulerStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        SchedulerStatistic::from_str(s)
     }
 }

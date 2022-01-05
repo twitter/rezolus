@@ -38,7 +38,7 @@ impl UsercallConfig {
         let mut lib_map: BTreeMap<String, BTreeMap<Option<String>, LibraryProbeConfig>> =
             BTreeMap::new();
         for lib_conf in self.libraries.iter() {
-            if lib_conf.name == "".to_string() {
+            if lib_conf.name.is_empty() {
                 warn!("Skipping library config without a name: {:?}", lib_conf);
                 continue;
             }
@@ -69,7 +69,7 @@ impl UsercallConfig {
             .values()
             .map(|m| m.values())
             .flatten()
-            .map(|x| x.clone())
+            .cloned()
             .collect()
     }
 }

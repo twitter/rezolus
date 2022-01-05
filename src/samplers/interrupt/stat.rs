@@ -2,12 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use core::convert::TryFrom;
-use core::str::FromStr;
-
 use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
-use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
 #[cfg(feature = "bpf")]
@@ -165,14 +161,6 @@ impl InterruptStatistic {
             Self::HardIrq => vec![irq_event_percpu_probe, irq_event_percpu_ret_probe],
             _ => Vec::new(),
         }
-    }
-}
-
-impl TryFrom<&str> for InterruptStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        InterruptStatistic::from_str(s)
     }
 }
 

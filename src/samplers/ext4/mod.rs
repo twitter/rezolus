@@ -144,7 +144,11 @@ impl Ext4 {
 
                 // load + attach the kernel probes that are required to the bpf instance.
                 for probe in probes {
-                    probe.try_attach_to_bpf(&mut bpf)?;
+                    if self.common.config.fault_tolerant() {
+                        let _ = probe.try_attach_to_bpf(&mut bpf);
+                    } else {
+                        probe.try_attach_to_bpf(&mut bpf)?;
+                    }
                 }
 
                 self.bpf = Some(Arc::new(Mutex::new(BPF { inner: bpf })));

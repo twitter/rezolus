@@ -3,11 +3,13 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 #[cfg(feature = "bpf")]
+#[allow(clippy::upper_case_acronyms)]
 pub struct BPF {
     pub inner: bcc::BPF,
 }
 
 #[cfg(not(feature = "bpf"))]
+#[allow(clippy::upper_case_acronyms)]
 pub struct BPF {}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]

@@ -2,12 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use core::convert::TryFrom;
-use core::str::FromStr;
-
 use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
-use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
 #[derive(
@@ -29,14 +25,6 @@ pub enum NtpStatistic {
     EstimatedError,
     #[strum(serialize = "ntp/maximum_error")]
     MaximumError,
-}
-
-impl TryFrom<&str> for NtpStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        NtpStatistic::from_str(s)
-    }
 }
 
 impl Statistic<AtomicU64, AtomicU32> for NtpStatistic {

@@ -9,42 +9,6 @@ env:
   cache: 0
 
 jobs:
-  focal-llvm_9-bcc_v0_12_0:
-    name: focal / llvm 9 / bcc 0.12.0
-    runs-on: ubuntu-20.04
-    env:
-      BCC: "0.12.0"
-      DIST: focal
-      FEATURES: bpf_v0_12_0
-      LLVM: 9
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  focal-llvm_9-bcc_v0_13_0:
-    name: focal / llvm 9 / bcc 0.13.0
-    runs-on: ubuntu-20.04
-    env:
-      BCC: "0.13.0"
-      DIST: focal
-      FEATURES: bpf_v0_13_0
-      LLVM: 9
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  focal-llvm_9-bcc_v0_14_0:
-    name: focal / llvm 9 / bcc 0.14.0
-    runs-on: ubuntu-20.04
-    env:
-      BCC: "0.14.0"
-      DIST: focal
-      FEATURES: bpf_v0_14_0
-      LLVM: 9
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_15_0:
     name: focal / llvm 9 / bcc 0.15.0
     runs-on: ubuntu-20.04
@@ -55,6 +19,13 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_16_0:
@@ -67,28 +38,175 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
-  focal-llvm_9-bcc_v0_16_0-static:
-    name: focal / llvm 9 / bcc 0.16.0 / static
+  focal-llvm_9-bcc_v0_17_0:
+    name: focal / llvm 9 / bcc 0.17.0
     runs-on: ubuntu-20.04
     env:
-      BCC: "0.16.0"
+      BCC: "0.17.0"
       DIST: focal
-      FEATURES: bpf_v0_16_0 bpf_static
+      FEATURES: bpf_v0_17_0
+      LLVM: 9
+    steps:
+    - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - uses: Swatinem/rust-cache@v1
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_18_0:
+    name: focal / llvm 9 / bcc 0.18.0
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.18.0"
+      DIST: focal
+      FEATURES: bpf_v0_18_0
+      LLVM: 9
+    steps:
+    - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - uses: Swatinem/rust-cache@v1
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_19_0:
+    name: focal / llvm 9 / bcc 0.19.0
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.19.0"
+      DIST: focal
+      FEATURES: bpf_v0_19_0
+      LLVM: 9
+    steps:
+    - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - uses: Swatinem/rust-cache@v1
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_20_0:
+    name: focal / llvm 9 / bcc 0.20.0
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.20.0"
+      DIST: focal
+      FEATURES: bpf_v0_20_0
+      LLVM: 9
+    steps:
+    - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - uses: Swatinem/rust-cache@v1
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_21_0:
+    name: focal / llvm 9 / bcc 0.21.0
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.21.0"
+      DIST: focal
+      FEATURES: bpf_v0_21_0
+      LLVM: 9
+    steps:
+    - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - uses: Swatinem/rust-cache@v1
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_22_0:
+    name: focal / llvm 9 / bcc 0.22.0
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.22.0"
+      DIST: focal
+      FEATURES: bpf_v0_22_0
+      LLVM: 9
+    steps:
+    - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - uses: Swatinem/rust-cache@v1
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_23_0:
+    name: focal / llvm 9 / bcc 0.23.0
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.23.0"
+      DIST: focal
+      FEATURES: bpf_v0_23_0
+      LLVM: 9
+    steps:
+    - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - uses: Swatinem/rust-cache@v1
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_23_0-static:
+    name: focal / llvm 9 / bcc 0.23.0 / static
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.23.0"
+      DIST: focal
+      FEATURES: bpf_v0_23_0 bpf_static
       LLVM: 9
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}-static
+    - uses: Swatinem/rust-cache@v1
     - name: Run CI
       run: bash -e build/ci.sh
   memcache-smoketest:
     name: memcache smoketest
     runs-on: ubuntu-20.04
     env:
-      BCC: "0.15.0"
+      BCC: "0.23.0"
       DIST: focal
-      FEATURES: bpf_v0_15_0
+      FEATURES: bpf_v0_23_0
       LLVM: 9
     services:
       memcached:
@@ -97,6 +215,7 @@ jobs:
           - 11211:11211
     steps:
       - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v1
       - name: Build
         run: bash build/ci.sh
       - name: Smoketest
@@ -106,6 +225,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v1
       - name: Build
         run: cargo build --release
       - name: Smoketest
@@ -115,6 +235,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v1
       - name: install rust musl toolchain
         run: rustup target add x86_64-unknown-linux-musl
       - name: update apt

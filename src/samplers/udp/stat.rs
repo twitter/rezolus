@@ -2,12 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use core::convert::TryFrom;
-use core::str::FromStr;
-
 use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
-use strum::ParseError;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
 #[derive(
@@ -50,13 +46,5 @@ impl Statistic<AtomicU64, AtomicU32> for UdpStatistic {
 
     fn source(&self) -> Source {
         Source::Counter
-    }
-}
-
-impl TryFrom<&str> for UdpStatistic {
-    type Error = ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        UdpStatistic::from_str(s)
     }
 }
