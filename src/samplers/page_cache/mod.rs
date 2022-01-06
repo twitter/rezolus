@@ -45,7 +45,7 @@ impl Sampler for PageCache {
         };
 
         if let Err(e) = sampler.initialize_bpf() {
-            error!("failed to initializing bpf: {}", e);
+            error!("failed to initialize bpf: {}", e);
             if !fault_tolerant {
                 return Err(e);
             }
