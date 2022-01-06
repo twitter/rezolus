@@ -1,6 +1,12 @@
 # [Unreleased]
 
-# [2.15.0] - 2020-12-03
+# [2.15.1] - 2022-01-06
+## Fixed
+- Fixes `tcp/connection/accepted` and `tcp/connection/initiated` metrics on
+  kernel 5.10. (#266)
+- Fixes `tcp/receive/duplicate` and `tcp/receive/out_of_order` metrics. (#267)
+
+# [2.15.0] - 2021-12-03
 ## Changed
 - Allow selective enablement of various BPF metrics. (#254)
 - Support up to BCC 0.23.0 and makes it the new default version. (#256)
@@ -18,12 +24,12 @@
   to initialize remaining BPF probes if fault tolerant error handling is
   enabled. (#259)
 
-# [2.14.0] - 2020-09-16
+# [2.14.0] - 2021-09-16
 ## Added
 - Adds new `SRTT` metric for TCP sampler using BPF. (#238)
 - Adds new `krb5kdc` sampler to get telemetry on MIT Kerberos. (#241)
 
-# [2.13.0] - 2020-07-12
+# [2.13.0] - 2021-07-12
 ## Fixed
 - Interrupt sampler failed to sample all interrupts if it encountered an
   unexpected keyword. (#225)
@@ -38,7 +44,7 @@
 ## Changed
 - Removed unused `interrupt/serial` metric from the interrupt sampler. (#228)
 
-# [2.12.0] - 2020-06-10
+# [2.12.0] - 2021-06-10
 ## Fixed
 - NTP sampler failed to build with musl toolchain. (#216)
 
@@ -210,7 +216,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.15.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.15.1...HEAD
+[2.15.1]: https://github.com/twitter/rezolus/compare/v2.15.0...v2.15.1
 [2.15.0]: https://github.com/twitter/rezolus/compare/v2.14.0...v2.15.0
 [2.14.0]: https://github.com/twitter/rezolus/compare/v2.13.0...v2.14.0
 [2.13.0]: https://github.com/twitter/rezolus/compare/v2.12.0...v2.13.0
