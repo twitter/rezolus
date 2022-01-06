@@ -54,7 +54,7 @@ impl Sampler for Disk {
         };
 
         if let Err(e) = sampler.initialize_bpf() {
-            error!("{}", e);
+            error!("failed to initialize bpf: {}", e);
             if !fault_tolerant {
                 return Err(e);
             }
@@ -172,7 +172,9 @@ impl Disk {
                             {
                                 if !results.is_empty() {
                                     if self.common.config.fault_tolerant() {
-                                        let _ = probe.try_attach_to_bpf(&mut bpf);
+                                        if let Err(e) = probe.try_attach_to_bpf(&mut bpf) {
+                                            warn!("skipping {} with error: {}", probe.name, e);
+                                        }
                                     } else {
                                         probe.try_attach_to_bpf(&mut bpf)?;
                                     }

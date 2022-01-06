@@ -51,7 +51,7 @@ impl Sampler for Tcp {
         };
 
         if let Err(e) = sampler.initialize_bpf() {
-            error!("{}", e);
+            error!("failed to initialize bpf: {}", e);
             if !fault_tolerant {
                 return Err(e);
             }
@@ -155,7 +155,9 @@ impl Tcp {
                 // load + attach the kernel probes that are required to the bpf instance.
                 for probe in probes {
                     if self.common.config.fault_tolerant() {
-                        let _ = probe.try_attach_to_bpf(&mut bpf);
+                        if let Err(e) = probe.try_attach_to_bpf(&mut bpf) {
+                            warn!("skipping {} with error: {}", probe.name, e);
+                        }
                     } else {
                         probe.try_attach_to_bpf(&mut bpf)?;
                     }

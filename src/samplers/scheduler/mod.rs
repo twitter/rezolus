@@ -61,7 +61,7 @@ impl Sampler for Scheduler {
         }
 
         if let Err(e) = sampler.initialize_bpf() {
-            error!("{}", e);
+            error!("failed to initialize bpf: {}", e);
             if !fault_tolerant {
                 return Err(e);
             }
@@ -72,7 +72,7 @@ impl Sampler for Scheduler {
             #[cfg(feature = "bpf")]
             {
                 if let Err(e) = sampler.initialize_bpf_perf() {
-                    error!("{}", e);
+                    error!("failed to initializing bpf perf: {}", e);
                     if !fault_tolerant {
                         return Err(format_err!("bpf perf init failure: {}", e));
                     }
@@ -345,7 +345,9 @@ impl Scheduler {
                 // load + attach the kernel probes that are required to the bpf instance.
                 for probe in probes {
                     if self.common.config.fault_tolerant() {
-                        let _ = probe.try_attach_to_bpf(&mut bpf);
+                        if let Err(e) = probe.try_attach_to_bpf(&mut bpf) {
+                            warn!("skipping {} with error: {}", probe.name, e);
+                        }
                     } else {
                         probe.try_attach_to_bpf(&mut bpf)?;
                     }
