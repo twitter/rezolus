@@ -284,23 +284,31 @@ int trace_validate_incoming(struct pt_regs *ctx, struct sock *sk, struct sk_buff
     if (sk == NULL || skb == NULL)
         return 0;
 
-    struct tcp_sock *tp = tcp_sk(sk);
-    u32 seq = TCP_SKB_CB(skb)->seq;
+    // read seq and rcv_nxt from kernel to bpf.
+    u32 seq = 0;
+    bpf_probe_read_kernel(&seq, sizeof(seq), ((const char *)skb) +
+               offsetof(struct sk_buff, cb) +
+               offsetof(struct tcp_skb_cb, seq));
+    u32 rcv_nxt = 0;
+    bpf_probe_read_kernel(&rcv_nxt, sizeof(rcv_nxt), ((const char *)sk) +
+               offsetof(struct tcp_sock, rcv_nxt));
+
+    int64_t distance = (int64_t)(seq) - (int64_t)(rcv_nxt);
 
     // Segment sequence before the expected one
     // which means this was a duplicated segment
-    if ((seq - tp->rcv_nxt) < 0) {
+    if (distance < 0) {
         // Increment duplicate counter
         int loc = 0;
         add_value(duplicate.lookup(&loc), 1);
     }
-    
+
     // Segment sequence after the expected one
     // which means this segment was received out of order
-    if ((tp->rcv_nxt - seq) < 0) {
+    if (distance > 0) {
         // Increment out of order counter
         int loc = 0;
-        add_value(ooo.lookup(&loc), 1);    
+        add_value(ooo.lookup(&loc), 1);
     }
     return 0;
 }
