@@ -6,11 +6,11 @@ use async_trait::async_trait;
 
 use std::path::Path;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
 
 use crate::common::bpf::BPF;
 use crate::config::SamplerConfig;
 use crate::samplers::{Common, Sampler};
+use crate::*;
 
 #[cfg(feature = "bpf")]
 use crate::common::bpf::bpf_hash_char_to_map;

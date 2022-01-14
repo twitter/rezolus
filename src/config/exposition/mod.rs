@@ -12,6 +12,7 @@ use self::kafka::*;
 #[serde(deny_unknown_fields)]
 pub struct Exposition {
     #[serde(default)]
+    #[allow(dead_code)]
     kafka: Kafka,
 }
 

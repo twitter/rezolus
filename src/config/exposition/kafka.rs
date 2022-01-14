@@ -7,6 +7,7 @@ use rustcommon_atomics::*;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
+#[allow(dead_code)]
 pub struct Kafka {
     #[serde(default = "default_enabled")]
     enabled: AtomicBool,

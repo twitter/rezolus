@@ -12,7 +12,7 @@ use async_trait::async_trait;
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
-use crate::Sampler;
+use crate::*;
 
 mod config;
 mod stat;

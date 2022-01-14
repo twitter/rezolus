@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 
-use rustcommon_metrics::*;
+use crate::*;
 
 mod http;
 #[cfg(feature = "push_kafka")]

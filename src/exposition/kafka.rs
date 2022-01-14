@@ -6,8 +6,8 @@ use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use crate::*;
 use kafka::producer::{Producer, Record};
-use rustcommon_metrics_legacy::*;
 
 use crate::config::Config;
 use crate::exposition::MetricsSnapshot;

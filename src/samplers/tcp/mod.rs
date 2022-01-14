@@ -6,7 +6,6 @@
 use std::collections::HashSet;
 
 use std::sync::{Arc, Mutex};
-use std::time::*;
 use tokio::fs::File;
 
 use async_trait::async_trait;
@@ -14,8 +13,7 @@ use async_trait::async_trait;
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;
 use crate::samplers::{Common, Sampler};
-#[cfg(feature = "bpf")]
-use rustcommon_metrics::*;
+use crate::*;
 
 mod config;
 mod stat;

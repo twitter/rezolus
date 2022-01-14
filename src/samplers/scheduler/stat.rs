@@ -4,9 +4,9 @@
 
 use crate::common::SECOND;
 
+use crate::metrics::*;
 #[cfg(feature = "bpf")]
 use bcc::perf_event::*;
-use rustcommon_metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 

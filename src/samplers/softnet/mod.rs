@@ -4,7 +4,6 @@
 
 use std::collections::HashMap;
 use std::io::SeekFrom;
-use std::time::*;
 
 use async_trait::async_trait;
 
@@ -13,7 +12,7 @@ use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
 
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
-use crate::Sampler;
+use crate::*;
 
 mod config;
 mod stat;

@@ -13,17 +13,21 @@ use std::sync::Arc;
 
 use rustcommon_atomics::AtomicBool;
 use rustcommon_logger::Logger;
-use rustcommon_metrics::*;
 use tokio::runtime::Builder;
 
 mod common;
 mod config;
 mod exposition;
+mod metrics;
 mod samplers;
 
 use common::*;
 use config::Config;
+use metrics::*;
 use samplers::*;
+
+pub type Instant = rustcommon_time::Instant<Nanoseconds<u64>>;
+pub type Duration = rustcommon_time::Duration<Nanoseconds<u64>>;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // get config
