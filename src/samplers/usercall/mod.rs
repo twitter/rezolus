@@ -106,6 +106,7 @@ impl Usercall {
         // Add probes that are linked to specific files in the config
         for probe_config in self.libraries.iter().filter(|x| x.path.is_some()) {
             for func in probe_config.functions.iter() {
+                #[allow(clippy::format_in_format_args)]
                 bpf_probes.push_str(&format!(
                     probe_template!(),
                     found_probes.len(),
@@ -136,6 +137,7 @@ impl Usercall {
             for entry in &entries {
                 if path_match(&probe_config.name, entry.path()) {
                     for func in probe_config.functions.iter() {
+                        #[allow(clippy::format_in_format_args)]
                         bpf_probes.push_str(&format!(
                             probe_template!(),
                             found_probes.len(),

@@ -39,7 +39,7 @@ impl Metrics {
 
     /// Begin tracking a new statistic without a corresponding output. Useful if
     /// metrics will be retrieved and reported manually in a command-line tool.
-    pub fn register<'a>(&self, statistic: &dyn Statistic) {
+    pub fn register(&self, statistic: &dyn Statistic) {
         if !self.channels.contains_key(statistic.name()) {
             let channel = Channel::new(statistic);
             self.channels.insert(statistic.name().to_string(), channel);
@@ -47,7 +47,7 @@ impl Metrics {
     }
 
     /// Stop tracking a statistics and any corresponding outputs.
-    pub fn deregister<'a>(&self, statistic: &dyn Statistic) {
+    pub fn deregister(&self, statistic: &dyn Statistic) {
         self.channels.remove(statistic.name());
     }
 
