@@ -10,7 +10,6 @@ use crate::metrics::*;
 use core::hash::{Hash, Hasher};
 
 use dashmap::DashMap;
-use rustcommon_atomics::*;
 use rustcommon_time::Instant;
 
 use std::collections::HashMap;
@@ -20,25 +19,11 @@ use std::collections::HashMap;
 /// producing aggregation structures. It is designed for concurrent access,
 /// making it useful for serving as a unified metrics library in multi-threaded
 /// applications.
-pub struct Metrics<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
-    channels: DashMap<String, Channel<Value, Count>>,
+pub struct Metrics {
+    channels: DashMap<String, Channel>,
 }
 
-impl<'a, Value: 'a, Count: 'a> Default for Metrics<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
+impl Default for Metrics {
     fn default() -> Self {
         Self {
             channels: DashMap::new(),
@@ -46,14 +31,7 @@ where
     }
 }
 
-impl<'a, Value: 'a, Count: 'a> Metrics<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
+impl Metrics {
     /// Create a new empty metrics registry
     pub fn new() -> Self {
         Default::default()
@@ -61,7 +39,7 @@ where
 
     /// Begin tracking a new statistic without a corresponding output. Useful if
     /// metrics will be retrieved and reported manually in a command-line tool.
-    pub fn register(&self, statistic: &'a (dyn Statistic<Value, Count> + 'a)) {
+    pub fn register<'a>(&self, statistic: &dyn Statistic) {
         if !self.channels.contains_key(statistic.name()) {
             let channel = Channel::new(statistic);
             self.channels.insert(statistic.name().to_string(), channel);
@@ -69,14 +47,14 @@ where
     }
 
     /// Stop tracking a statistics and any corresponding outputs.
-    pub fn deregister(&self, statistic: &'a (dyn Statistic<Value, Count> + 'a)) {
+    pub fn deregister<'a>(&self, statistic: &dyn Statistic) {
         self.channels.remove(statistic.name());
     }
 
     /// Adds a new output to the registry which will be included in future
     /// snapshots. If the statistic is not already tracked, it will be
     /// registered.
-    pub fn add_output(&self, statistic: &'a (dyn Statistic<Value, Count> + 'a), output: Output) {
+    pub fn add_output(&self, statistic: &dyn Statistic, output: Output) {
         self.register(statistic);
         if let Some(channel) = self.channels.get_mut(statistic.name()) {
             channel.add_output(output);
@@ -87,7 +65,7 @@ where
     /// future snapshots. This will not remove the related datastructures for
     /// the statistic even if no outputs remain. Use `deregister` method to stop
     /// tracking a statistic entirely.
-    pub fn remove_output(&self, statistic: &dyn Statistic<Value, Count>, output: Output) {
+    pub fn remove_output(&self, statistic: &dyn Statistic, output: Output) {
         if let Some(channel) = self.channels.get_mut(statistic.name()) {
             channel.remove_output(output);
         }
@@ -99,8 +77,8 @@ where
     /// may need to be higher for stream summaries.
     pub fn set_summary(
         &self,
-        statistic: &'a (dyn Statistic<Value, Count> + 'a),
-        summary: Summary<Value, Count>,
+        statistic: &dyn Statistic,
+        summary: Summary,
     ) {
         if let Some(mut channel) = self.channels.get_mut(statistic.name()) {
             channel.set_summary(summary);
@@ -112,8 +90,8 @@ where
     /// prevent clearing an existing summary.
     pub fn add_summary(
         &self,
-        statistic: &'a (dyn Statistic<Value, Count> + 'a),
-        summary: Summary<Value, Count>,
+        statistic: &dyn Statistic,
+        summary: Summary,
     ) {
         if let Some(mut channel) = self.channels.get_mut(statistic.name()) {
             channel.add_summary(summary);
@@ -130,10 +108,10 @@ where
     /// for the statistic is a heatmap.
     pub fn record_bucket(
         &self,
-        statistic: &'a (dyn Statistic<Value, Count> + 'a),
+        statistic: &dyn Statistic,
         time: Instant<Nanoseconds<u64>>,
-        value: <Value as Atomic>::Primitive,
-        count: <Count as Atomic>::Primitive,
+        value: u64,
+        count: u32,
     ) -> Result<(), MetricsError> {
         if statistic.source() == Source::Distribution {
             if let Some(channel) = self.channels.get(statistic.name()) {
@@ -153,9 +131,9 @@ where
     /// changes.
     pub fn record_counter(
         &self,
-        statistic: &'a (dyn Statistic<Value, Count> + 'a),
+        statistic: &dyn Statistic,
         time: Instant<Nanoseconds<u64>>,
-        value: <Value as Atomic>::Primitive,
+        value: u64,
     ) -> Result<(), MetricsError> {
         if statistic.source() == Source::Counter {
             if let Some(channel) = self.channels.get(statistic.name()) {
@@ -176,8 +154,8 @@ where
     /// with out-of-order increments.
     pub fn increment_counter(
         &self,
-        statistic: &'a (dyn Statistic<Value, Count> + 'a),
-        value: <Value as Atomic>::Primitive,
+        statistic: &dyn Statistic,
+        value: u64,
     ) -> Result<(), MetricsError> {
         if statistic.source() == Source::Counter {
             if let Some(channel) = self.channels.get(statistic.name()) {
@@ -197,9 +175,9 @@ where
     /// any summary type. Summary tracks instantaneous gauge readings.
     pub fn record_gauge(
         &self,
-        statistic: &'a (dyn Statistic<Value, Count> + 'a),
+        statistic: &dyn Statistic,
         time: Instant<Nanoseconds<u64>>,
-        value: <Value as Atomic>::Primitive,
+        value: u64,
     ) -> Result<(), MetricsError> {
         if statistic.source() == Source::Gauge {
             if let Some(channel) = self.channels.get(statistic.name()) {
@@ -221,9 +199,9 @@ where
     /// distributions it is the percentile across the configured summary.
     pub fn percentile(
         &self,
-        statistic: &'a (dyn Statistic<Value, Count> + 'a),
+        statistic: &dyn Statistic,
         percentile: f64,
-    ) -> Result<<Value as Atomic>::Primitive, MetricsError> {
+    ) -> Result<u64, MetricsError> {
         if let Some(channel) = self.channels.get(statistic.name()) {
             channel.percentile(percentile)
         } else {
@@ -236,8 +214,8 @@ where
     // TODO: decide on how to handle distribution channels
     pub fn reading(
         &self,
-        statistic: &'a (dyn Statistic<Value, Count> + 'a),
-    ) -> Result<<Value as Atomic>::Primitive, MetricsError> {
+        statistic: &dyn Statistic,
+    ) -> Result<u64, MetricsError> {
         if let Some(channel) = self.channels.get(statistic.name()) {
             channel.reading()
         } else {
@@ -246,7 +224,7 @@ where
     }
 
     /// Generates a point-in-time snapshot of metric and value pairs.
-    pub fn snapshot(&self) -> HashMap<Metric<Value, Count>, <Value as Atomic>::Primitive> {
+    pub fn snapshot(&self) -> HashMap<Metric, u64> {
         #[allow(unused_mut)]
         let mut result = HashMap::new();
         for entry in &self.channels {
@@ -254,7 +232,7 @@ where
             for output in channel.outputs() {
                 if let Ok(value) = match Output::from(output) {
                     Output::Reading => {
-                        self.reading(channel.statistic() as &dyn Statistic<Value, Count>)
+                        self.reading(channel.statistic() as &dyn Statistic)
                     }
                     Output::Percentile(percentile) => {
                         self.percentile(channel.statistic(), percentile)
@@ -276,66 +254,30 @@ where
 
 /// A statistic and output pair which has a corresponding value
 // #[derive(PartialEq, Eq, Hash)]
-pub struct Metric<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
-    statistic: Entry<Value, Count>,
+pub struct Metric {
+    statistic: Entry,
     output: ApproxOutput,
 }
 
-impl<Value, Count> Hash for Metric<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
+impl Hash for Metric {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.statistic.name().hash(state);
         self.output.hash(state);
     }
 }
 
-impl<Value, Count> PartialEq for Metric<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
+impl PartialEq for Metric {
     fn eq(&self, other: &Self) -> bool {
         self.statistic.name() == other.statistic.name() && self.output == other.output
     }
 }
 
-impl<Value, Count> Eq for Metric<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
-}
+impl Eq for Metric { }
 
-impl<Value, Count> Metric<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
+impl Metric {
     /// Get the statistic name for the metric
-    pub fn statistic(&self) -> &dyn Statistic<Value, Count> {
-        &self.statistic as &dyn Statistic<Value, Count>
+    pub fn statistic(&self) -> &dyn Statistic {
+        &self.statistic as &dyn Statistic
     }
 
     /// Get the output

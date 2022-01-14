@@ -270,7 +270,7 @@ impl TcpStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for TcpStatistic {
+impl Statistic for TcpStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

@@ -82,7 +82,7 @@ impl PageCacheStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for PageCacheStatistic {
+impl Statistic for PageCacheStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

@@ -134,7 +134,7 @@ impl DiskStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for DiskStatistic {
+impl Statistic for DiskStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

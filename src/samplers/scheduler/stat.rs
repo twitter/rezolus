@@ -109,7 +109,7 @@ impl SchedulerStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for SchedulerStatistic {
+impl Statistic for SchedulerStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

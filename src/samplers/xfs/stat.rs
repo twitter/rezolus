@@ -124,7 +124,7 @@ impl XfsStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for XfsStatistic {
+impl Statistic for XfsStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

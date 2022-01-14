@@ -17,14 +17,14 @@ pub use self::http::Http;
 pub use self::kafka::KafkaProducer;
 
 pub struct MetricsSnapshot {
-    metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
-    snapshot: HashMap<Metric<AtomicU64, AtomicU32>, u64>,
+    metrics: Arc<Metrics>,
+    snapshot: HashMap<Metric, u64>,
     refreshed: Instant,
     count_label: Option<String>,
 }
 
-impl MetricsSnapshot {
-    pub fn new(metrics: Arc<Metrics<AtomicU64, AtomicU32>>, count_label: Option<&str>) -> Self {
+impl<'a> MetricsSnapshot {
+    pub fn new(metrics: Arc<Metrics>, count_label: Option<&str>) -> Self {
         Self {
             metrics,
             snapshot: HashMap::new(),

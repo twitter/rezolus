@@ -4,37 +4,23 @@
 
 use crate::metrics::error::SummaryError;
 use crate::metrics::*;
-use core::marker::PhantomData;
 
-use rustcommon_atomics::Atomic;
 use rustcommon_heatmap::{AtomicHeatmap, Duration, Instant};
 use rustcommon_streamstats::AtomicStreamstats;
 
-pub(crate) enum SummaryStruct<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
+pub(crate) enum SummaryStruct
 {
-    Heatmap(AtomicHeatmap<<Value as Atomic>::Primitive, Count>),
-    Stream(AtomicStreamstats<Value>),
+    Heatmap(AtomicHeatmap<u64, AtomicU32>),
+    Stream(AtomicStreamstats<AtomicU64>),
 }
 
-impl<Value, Count> SummaryStruct<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
+impl SummaryStruct
 {
     pub fn increment(
         &self,
         time: Instant<Nanoseconds<u64>>,
-        value: <Value as Atomic>::Primitive,
-        count: <Count as Atomic>::Primitive,
+        value: u64,
+        count: u32,
     ) {
         match self {
             Self::Heatmap(heatmap) => heatmap.increment(time, value, count),
@@ -45,7 +31,7 @@ where
     pub fn percentile(
         &self,
         percentile: f64,
-    ) -> Result<<Value as Atomic>::Primitive, SummaryError> {
+    ) -> Result<u64, SummaryError> {
         match self {
             Self::Heatmap(heatmap) => heatmap.percentile(percentile).map_err(SummaryError::from),
             Self::Stream(stream) => stream.percentile(percentile).map_err(SummaryError::from),
@@ -53,7 +39,7 @@ where
     }
 
     pub fn heatmap(
-        max: <Value as Atomic>::Primitive,
+        max: u64,
         precision: u8,
         span: Duration<Nanoseconds<u64>>,
         resolution: Duration<Nanoseconds<u64>>,
@@ -66,14 +52,9 @@ where
     }
 }
 
-enum SummaryType<Value>
-where
-    Value: crate::Value,
-    <Value as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive>,
-{
+enum SummaryType {
     Heatmap(
-        <Value as Atomic>::Primitive,
+        u64,
         u8,
         Duration<Nanoseconds<u64>>,
         Duration<Nanoseconds<u64>>,
@@ -81,46 +62,29 @@ where
     Stream(usize),
 }
 
-pub struct Summary<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
-    inner: SummaryType<Value>,
-    _count: PhantomData<Count>,
+pub struct Summary {
+    inner: SummaryType,
 }
 
-impl<Value, Count> Summary<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
+impl Summary {
     pub fn heatmap(
-        max: <Value as Atomic>::Primitive,
+        max: u64,
         precision: u8,
         span: Duration<Nanoseconds<u64>>,
         resolution: Duration<Nanoseconds<u64>>,
-    ) -> Summary<Value, Count> {
+    ) -> Summary {
         Self {
             inner: SummaryType::Heatmap(max, precision, span, resolution),
-            _count: PhantomData,
         }
     }
 
-    pub fn stream(samples: usize) -> Summary<Value, Count> {
+    pub fn stream(samples: usize) -> Summary {
         Self {
             inner: SummaryType::Stream(samples),
-            _count: PhantomData,
         }
     }
 
-    pub(crate) fn build(&self) -> SummaryStruct<Value, Count> {
+    pub(crate) fn build(&self) -> SummaryStruct {
         match self.inner {
             SummaryType::Heatmap(max, precision, span, resolution) => {
                 SummaryStruct::heatmap(max, precision, span, resolution)

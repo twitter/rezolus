@@ -17,7 +17,7 @@ impl HttpStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for HttpStatistic {
+impl Statistic for HttpStatistic {
     fn name(&self) -> &str {
         &self.name
     }

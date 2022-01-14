@@ -21,7 +21,7 @@ pub struct Http {
 impl Http {
     pub fn new(
         address: SocketAddr,
-        metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
+        metrics: Arc<Metrics>,
         count_label: Option<&str>,
     ) -> Self {
         let server = tiny_http::Server::http(address);

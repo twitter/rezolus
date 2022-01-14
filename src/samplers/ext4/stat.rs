@@ -124,7 +124,7 @@ impl Ext4Statistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for Ext4Statistic {
+impl Statistic for Ext4Statistic {
     fn name(&self) -> &str {
         (*self).into()
     }

@@ -164,7 +164,7 @@ impl InterruptStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for InterruptStatistic {
+impl Statistic for InterruptStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

@@ -63,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // initialize metrics
     debug!("initializing metrics");
-    let metrics = Arc::new(Metrics::<AtomicU64, AtomicU32>::new());
+    let metrics = Arc::new(Metrics::new());
 
     // initialize async runtime
     debug!("initializing async runtime");
