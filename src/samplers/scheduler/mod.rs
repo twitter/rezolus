@@ -253,12 +253,10 @@ impl Scheduler {
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
-        use crate::common::MICROSECOND;
-
         // sample bpf
         {
             if self.bpf_last.lock().unwrap().elapsed()
-                >= Duration::new(self.general_config().window() as u64, 0)
+                >= Duration::from_secs(self.general_config().window() as u64)
             {
                 if let Some(ref bpf) = self.bpf {
                     let bpf = bpf.lock().unwrap();

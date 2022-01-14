@@ -159,7 +159,7 @@ impl PageCache {
     fn sample_bpf_counters(&mut self) -> Result<(), std::io::Error> {
         if let Some(ref bpf) = self.bpf {
             let bpf = bpf.lock().unwrap();
-            let time = std::time::Instant::now();
+            let time = Instant::now();
             let mut page_accessed = 0;
             let mut buffer_dirty = 0;
             let mut add_to_page_cache_lru = 0;

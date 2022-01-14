@@ -20,7 +20,7 @@ pub struct KafkaProducer {
 }
 
 impl KafkaProducer {
-    pub fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Self {
+    pub fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU64, AtomicU32>>) -> Self {
         Self {
             snapshot: MetricsSnapshot::new(metrics, config.general().reading_suffix()),
             producer: Producer::from_hosts(config.exposition().kafka().hosts())

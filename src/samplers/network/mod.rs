@@ -211,7 +211,7 @@ impl Network {
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
         if self.bpf_last.lock().unwrap().elapsed()
-            >= Duration::new(self.general_config().window() as u64, 0)
+            >= Duration::from_secs(self.general_config().window() as u64)
         {
             let time = Instant::now();
             if let Some(ref bpf) = self.bpf {
