@@ -4,16 +4,14 @@
 
 use std::convert::TryInto;
 use std::sync::Arc;
-use std::time::Duration;
 
 use async_trait::async_trait;
-use rustcommon_metrics::*;
 use tokio::runtime::Runtime;
 use tokio::time::{interval, Interval};
 
 use crate::config::General as GeneralConfig;
 use crate::config::{Config, SamplerConfig};
-use crate::HardwareInfo;
+use crate::*;
 
 pub mod cpu;
 pub mod disk;
@@ -83,7 +81,7 @@ pub trait Sampler: Sized + Send {
         if self.common_mut().interval().is_none() {
             let millis = self.interval() as u64;
             self.common_mut()
-                .set_interval(Some(interval(Duration::from_millis(millis))));
+                .set_interval(Some(interval(std::time::Duration::from_millis(millis))));
         }
         self.common_mut().interval()
     }
@@ -114,16 +112,15 @@ pub trait Sampler: Sized + Send {
                         Summary::heatmap(
                             1_000_000_000,
                             2,
-                            Duration::new(
+                            Duration::from_secs(
                                 self.common()
                                     .config()
                                     .general()
                                     .window()
                                     .try_into()
                                     .unwrap(),
-                                0,
                             ),
-                            Duration::new(1, 0),
+                            Duration::from_secs(1),
                         ),
                     );
                 } else {

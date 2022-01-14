@@ -7,7 +7,6 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::io::SeekFrom;
 use std::sync::{Arc, Mutex};
-use std::time::*;
 
 use async_trait::async_trait;
 use regex::Regex;
@@ -17,7 +16,7 @@ use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
-use crate::Sampler;
+use crate::*;
 
 mod config;
 mod stat;
@@ -273,9 +272,8 @@ impl Disk {
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
-        use std::convert::TryInto;
         if self.bpf_last.lock().unwrap().elapsed()
-            >= Duration::new(self.general_config().window().try_into().unwrap(), 0)
+            >= Duration::from_secs(self.general_config().window() as u64)
         {
             let time = Instant::now();
             if let Some(ref bpf) = self.bpf {

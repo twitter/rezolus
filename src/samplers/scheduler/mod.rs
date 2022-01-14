@@ -7,21 +7,20 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::io::SeekFrom;
 use std::sync::{Arc, Mutex};
-use std::time::*;
 
+use crate::metrics::{Source, Statistic};
 use async_trait::async_trait;
 #[cfg(feature = "bpf")]
 use bcc::perf_event::{Event, SoftwareEvent};
 #[cfg(feature = "bpf")]
 use bcc::{PerfEvent, PerfEventArray};
-use rustcommon_metrics::{Source, Statistic};
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
 
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
-use crate::Sampler;
+use crate::*;
 
 mod config;
 mod stat;
@@ -254,12 +253,10 @@ impl Scheduler {
 
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
-        use crate::common::MICROSECOND;
-
         // sample bpf
         {
             if self.bpf_last.lock().unwrap().elapsed()
-                >= Duration::new(self.general_config().window() as u64, 0)
+                >= Duration::from_secs(self.general_config().window() as u64)
             {
                 if let Some(ref bpf) = self.bpf {
                     let bpf = bpf.lock().unwrap();

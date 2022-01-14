@@ -2,14 +2,12 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use std::time::*;
-
 use async_trait::async_trait;
 
 use crate::common::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
-use crate::Sampler;
+use crate::*;
 
 mod config;
 mod stat;

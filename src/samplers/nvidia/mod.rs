@@ -3,7 +3,6 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use std::convert::TryInto;
-use std::time::*;
 
 use async_trait::async_trait;
 use nvml_wrapper::enum_wrappers::device::*;
@@ -11,7 +10,7 @@ use nvml_wrapper::NVML;
 
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
-use crate::Sampler;
+use crate::*;
 
 mod config;
 mod stat;

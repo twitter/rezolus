@@ -7,7 +7,7 @@ use core::str::FromStr;
 #[cfg(feature = "bpf")]
 use bcc::perf_event::*;
 
-use rustcommon_metrics::*;
+use crate::metrics::*;
 use serde_derive::{Deserialize, Serialize};
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 

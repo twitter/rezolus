@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use rustcommon_metrics::{AtomicU32, AtomicU64, Source, Statistic};
+use crate::metrics::{AtomicU32, AtomicU64, Source, Statistic};
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct UsercallStatistic {

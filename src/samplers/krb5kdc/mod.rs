@@ -7,11 +7,11 @@ use async_trait::async_trait;
 #[cfg(feature = "bpf")]
 use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
 
 use crate::common::bpf::*;
 use crate::config::SamplerConfig;
 use crate::samplers::{Common, Sampler};
+use crate::*;
 
 #[cfg(feature = "bpf")]
 use crate::common::bpf::bpf_hash_char_to_map;

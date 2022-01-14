@@ -5,7 +5,6 @@
 #[cfg(feature = "bpf")]
 use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
-use std::time::*;
 
 use async_trait::async_trait;
 
@@ -13,6 +12,7 @@ use crate::common::bpf::*;
 use crate::config::SamplerConfig;
 use crate::samplers::Common;
 use crate::Sampler;
+use crate::*;
 
 mod config;
 mod stat;
@@ -161,7 +161,7 @@ impl Xfs {
     #[cfg(feature = "bpf")]
     fn sample_bpf(&self) -> Result<(), std::io::Error> {
         if self.bpf_last.lock().unwrap().elapsed()
-            >= Duration::new(self.general_config().window() as u64, 0)
+            >= Duration::from_secs(self.general_config().window() as u64)
         {
             if let Some(ref bpf) = self.bpf {
                 let bpf = bpf.lock().unwrap();

@@ -6,8 +6,8 @@ use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use crate::*;
 use kafka::producer::{Producer, Record};
-use rustcommon_metrics_legacy::*;
 
 use crate::config::Config;
 use crate::exposition::MetricsSnapshot;
@@ -20,7 +20,7 @@ pub struct KafkaProducer {
 }
 
 impl KafkaProducer {
-    pub fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU32>>) -> Self {
+    pub fn new(config: Arc<Config>, metrics: Arc<Metrics<AtomicU64, AtomicU32>>) -> Self {
         Self {
             snapshot: MetricsSnapshot::new(metrics, config.general().reading_suffix()),
             producer: Producer::from_hosts(config.exposition().kafka().hosts())

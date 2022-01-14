@@ -13,6 +13,7 @@ anyhow = "1.0.51"
 async-trait = "0.1.51"
 bcc = { version = "0.0.32", optional = true }
 clap = "2.34.0"
+crossbeam = "0.8.0"
 ctrlc = { version = "3.2.1", features = ["termination"] }
 dashmap = "4.0.2"
 json = "0.12.4"
@@ -25,13 +26,16 @@ nvml-wrapper = "0.7.0"
 regex = "1.5.4"
 reqwest = { version = "0.11.7", default-features = false, features = ["blocking"] }
 rustcommon-atomics = { git = "https://github.com/twitter/rustcommon", branch = "master" }
+rustcommon-heatmap = { git = "https://github.com/twitter/rustcommon", branch = "master" }
 rustcommon-logger = { git = "https://github.com/twitter/rustcommon", branch = "master" }
-rustcommon-metrics = { git = "https://github.com/twitter/rustcommon", branch = "master" }
+rustcommon-streamstats = { git = "https://github.com/twitter/rustcommon", branch = "master" }
+rustcommon-time = { git = "https://github.com/twitter/rustcommon", branch = "master" }
 serde = "1.0.130"
 serde_derive = "1.0.130"
 strum = "0.23.0"
 strum_macros = "0.23.1"
 sysconf = "0.3.4"
+thiserror = "1.0.20"
 tiny_http = "0.8.2"
 tokio = { version = "1.14.0", features = ["full"] }
 toml = "0.5.8"
