@@ -37,4 +37,4 @@ impl PartialEq for dyn Statistic {
     }
 }
 
-impl Eq for dyn Statistic { }
+impl Eq for dyn Statistic {}

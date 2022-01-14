@@ -184,11 +184,7 @@ impl Clone for Common {
 }
 
 impl Common {
-    pub fn new(
-        config: Arc<Config>,
-        metrics: Arc<Metrics>,
-        runtime: Arc<Runtime>,
-    ) -> Self {
+    pub fn new(config: Arc<Config>, metrics: Arc<Metrics>, runtime: Arc<Runtime>) -> Self {
         Self {
             config,
             hardware_info: Arc::new(HardwareInfo::new()),

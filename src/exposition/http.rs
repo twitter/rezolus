@@ -19,11 +19,7 @@ pub struct Http {
 }
 
 impl Http {
-    pub fn new(
-        address: SocketAddr,
-        metrics: Arc<Metrics>,
-        count_label: Option<&str>,
-    ) -> Self {
+    pub fn new(address: SocketAddr, metrics: Arc<Metrics>, count_label: Option<&str>) -> Self {
         let server = tiny_http::Server::http(address);
         if server.is_err() {
             fatal!("Failed to open {} for HTTP Stats listener", address);

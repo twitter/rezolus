@@ -51,4 +51,4 @@ impl PartialEq for Entry {
     }
 }
 
-impl Eq for Entry { }
+impl Eq for Entry {}

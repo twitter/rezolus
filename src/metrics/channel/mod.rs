@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use rustcommon_atomics::Arithmetic;
-use rustcommon_atomics::AtomicU64;
 use crate::metrics::entry::Entry;
 use crate::metrics::outputs::ApproxOutput;
 use crate::metrics::summary::SummaryStruct;
@@ -11,6 +9,8 @@ use crate::metrics::traits::*;
 use crate::metrics::MetricsError;
 use crate::metrics::Output;
 use crate::metrics::Summary;
+use rustcommon_atomics::Arithmetic;
+use rustcommon_atomics::AtomicU64;
 use rustcommon_time::*;
 
 use crossbeam::atomic::AtomicCell;
@@ -59,11 +59,7 @@ impl Channel {
 
     /// Updates a counter to a new value if the reading is newer than the stored
     /// reading.
-    pub fn record_counter(
-        &self,
-        time: Instant<Nanoseconds<u64>>,
-        value: u64,
-    ) {
+    pub fn record_counter(&self, time: Instant<Nanoseconds<u64>>, value: u64) {
         let t0 = self.refreshed.load();
         if time <= t0 {
             return;
@@ -77,11 +73,7 @@ impl Channel {
                 let rate = (dv
                     / (dt.as_secs() as f64 + dt.subsec_nanos() as f64 / 1_000_000_000.0))
                     .ceil();
-                summary.increment(
-                    time,
-                    u64::from_float(rate),
-                    1_u8.into(),
-                );
+                summary.increment(time, u64::from_float(rate), 1_u8.into());
             }
             self.reading.store(value, Ordering::Relaxed);
         } else {
@@ -98,11 +90,7 @@ impl Channel {
     }
 
     /// Updates a gauge reading if the new value is newer than the stored value.
-    pub fn record_gauge(
-        &self,
-        time: Instant<Nanoseconds<u64>>,
-        value: u64,
-    ) {
+    pub fn record_gauge(&self, time: Instant<Nanoseconds<u64>>, value: u64) {
         {
             let t0 = self.refreshed.load();
             if time <= t0 {
@@ -118,10 +106,7 @@ impl Channel {
     }
 
     /// Returns a percentile across stored readings/rates/...
-    pub fn percentile(
-        &self,
-        percentile: f64,
-    ) -> Result<u64, MetricsError> {
+    pub fn percentile(&self, percentile: f64) -> Result<u64, MetricsError> {
         if let Some(summary) = &self.summary {
             summary.percentile(percentile).map_err(MetricsError::from)
         } else {

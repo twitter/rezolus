@@ -8,30 +8,20 @@ use crate::metrics::*;
 use rustcommon_heatmap::{AtomicHeatmap, Duration, Instant};
 use rustcommon_streamstats::AtomicStreamstats;
 
-pub(crate) enum SummaryStruct
-{
+pub(crate) enum SummaryStruct {
     Heatmap(AtomicHeatmap<u64, AtomicU32>),
     Stream(AtomicStreamstats<AtomicU64>),
 }
 
-impl SummaryStruct
-{
-    pub fn increment(
-        &self,
-        time: Instant<Nanoseconds<u64>>,
-        value: u64,
-        count: u32,
-    ) {
+impl SummaryStruct {
+    pub fn increment(&self, time: Instant<Nanoseconds<u64>>, value: u64, count: u32) {
         match self {
             Self::Heatmap(heatmap) => heatmap.increment(time, value, count),
             Self::Stream(stream) => stream.insert(value),
         }
     }
 
-    pub fn percentile(
-        &self,
-        percentile: f64,
-    ) -> Result<u64, SummaryError> {
+    pub fn percentile(&self, percentile: f64) -> Result<u64, SummaryError> {
         match self {
             Self::Heatmap(heatmap) => heatmap.percentile(percentile).map_err(SummaryError::from),
             Self::Stream(stream) => stream.percentile(percentile).map_err(SummaryError::from),

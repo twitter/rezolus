@@ -75,11 +75,7 @@ impl Metrics {
     /// used when the parameters are not known at compile time. For example, if
     /// a sampling rate is user configurable at runtime, the number of samples
     /// may need to be higher for stream summaries.
-    pub fn set_summary(
-        &self,
-        statistic: &dyn Statistic,
-        summary: Summary,
-    ) {
+    pub fn set_summary(&self, statistic: &dyn Statistic, summary: Summary) {
         if let Some(mut channel) = self.channels.get_mut(statistic.name()) {
             channel.set_summary(summary);
         }
@@ -88,11 +84,7 @@ impl Metrics {
     /// Conditionally add a `Summary` for a `Statistic` if one is not currently
     /// set. This may be used for dynamically registered statistic types to
     /// prevent clearing an existing summary.
-    pub fn add_summary(
-        &self,
-        statistic: &dyn Statistic,
-        summary: Summary,
-    ) {
+    pub fn add_summary(&self, statistic: &dyn Statistic, summary: Summary) {
         if let Some(mut channel) = self.channels.get_mut(statistic.name()) {
             channel.add_summary(summary);
         }
@@ -212,10 +204,7 @@ impl Metrics {
     /// Return the reading for the statistic. For counters and gauges, this is
     /// the most recent measurement recorded.
     // TODO: decide on how to handle distribution channels
-    pub fn reading(
-        &self,
-        statistic: &dyn Statistic,
-    ) -> Result<u64, MetricsError> {
+    pub fn reading(&self, statistic: &dyn Statistic) -> Result<u64, MetricsError> {
         if let Some(channel) = self.channels.get(statistic.name()) {
             channel.reading()
         } else {
@@ -231,9 +220,7 @@ impl Metrics {
             let (_name, channel) = entry.pair();
             for output in channel.outputs() {
                 if let Ok(value) = match Output::from(output) {
-                    Output::Reading => {
-                        self.reading(channel.statistic() as &dyn Statistic)
-                    }
+                    Output::Reading => self.reading(channel.statistic() as &dyn Statistic),
                     Output::Percentile(percentile) => {
                         self.percentile(channel.statistic(), percentile)
                     }
@@ -272,7 +259,7 @@ impl PartialEq for Metric {
     }
 }
 
-impl Eq for Metric { }
+impl Eq for Metric {}
 
 impl Metric {
     /// Get the statistic name for the metric
