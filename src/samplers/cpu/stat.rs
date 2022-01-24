@@ -86,7 +86,7 @@ pub enum CpuStatistic {
     Frequency,
 }
 
-impl Statistic<AtomicU64, AtomicU32> for CpuStatistic {
+impl Statistic for CpuStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

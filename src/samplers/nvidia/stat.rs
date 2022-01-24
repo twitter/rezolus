@@ -96,7 +96,7 @@ pub enum NvidiaStatistic {
     ProcessesCompute(u32),
 }
 
-impl Statistic<AtomicU64, AtomicU32> for NvidiaStatistic {
+impl Statistic for NvidiaStatistic {
     // TODO(bmartin): this should be cleaned up once we have scoped metrics
     fn name(&self) -> &str {
         match self {

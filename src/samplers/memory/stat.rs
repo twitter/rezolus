@@ -203,7 +203,7 @@ impl MemoryStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for MemoryStatistic {
+impl Statistic for MemoryStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

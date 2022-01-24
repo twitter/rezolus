@@ -39,7 +39,7 @@ impl UdpStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for UdpStatistic {
+impl Statistic for UdpStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

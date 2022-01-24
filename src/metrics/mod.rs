@@ -34,7 +34,7 @@ mod tests {
         Alpha,
     }
 
-    impl Statistic<AtomicU64, AtomicU64> for TestStat {
+    impl Statistic for TestStat {
         fn name(&self) -> &str {
             match self {
                 Self::Alpha => "alpha",
@@ -47,7 +47,7 @@ mod tests {
             }
         }
 
-        fn summary(&self) -> Option<Summary<AtomicU64, AtomicU64>> {
+        fn summary(&self) -> Option<Summary> {
             match self {
                 Self::Alpha => Some(Summary::stream(1000)),
             }
@@ -56,7 +56,7 @@ mod tests {
 
     #[test]
     fn basic() {
-        let metrics = Metrics::<AtomicU64, AtomicU64>::new();
+        let metrics = Metrics::new();
         metrics.register(&TestStat::Alpha);
         assert!(metrics.reading(&TestStat::Alpha).is_err());
         metrics
@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     fn outputs() {
-        let metrics = Metrics::<AtomicU64, AtomicU64>::new();
+        let metrics = Metrics::new();
         metrics.register(&TestStat::Alpha);
         assert!(metrics.snapshot().is_empty());
         metrics.add_output(&TestStat::Alpha, Output::Reading);
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn absolute_counter() {
-        let metrics = Metrics::<AtomicU64, AtomicU64>::new();
+        let metrics = Metrics::new();
         metrics.register(&TestStat::Alpha);
         let start = Instant::<Nanoseconds<u64>>::now();
         assert!(metrics.reading(&TestStat::Alpha).is_err());
@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn increment_counter() {
-        let metrics = Metrics::<AtomicU64, AtomicU64>::new();
+        let metrics = Metrics::new();
         metrics.register(&TestStat::Alpha);
         assert!(metrics.reading(&TestStat::Alpha).is_err());
         metrics.increment_counter(&TestStat::Alpha, 1).unwrap();

@@ -31,7 +31,7 @@ pub enum RezolusStatistic {
     MemoryResident,
 }
 
-impl Statistic<AtomicU64, AtomicU32> for RezolusStatistic {
+impl Statistic for RezolusStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

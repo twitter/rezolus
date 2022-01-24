@@ -27,7 +27,7 @@ pub enum NtpStatistic {
     MaximumError,
 }
 
-impl Statistic<AtomicU64, AtomicU32> for NtpStatistic {
+impl Statistic for NtpStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

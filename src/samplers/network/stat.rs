@@ -121,7 +121,7 @@ impl NetworkStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for NetworkStatistic {
+impl Statistic for NetworkStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

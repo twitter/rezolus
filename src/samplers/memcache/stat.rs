@@ -28,7 +28,7 @@ impl MemcacheStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for MemcacheStatistic {
+impl Statistic for MemcacheStatistic {
     fn name(&self) -> &str {
         &self.inner
     }

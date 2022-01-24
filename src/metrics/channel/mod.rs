@@ -9,6 +9,8 @@ use crate::metrics::traits::*;
 use crate::metrics::MetricsError;
 use crate::metrics::Output;
 use crate::metrics::Summary;
+use rustcommon_atomics::Arithmetic;
+use rustcommon_atomics::AtomicU64;
 use rustcommon_time::*;
 
 use crossbeam::atomic::AtomicCell;
@@ -17,32 +19,18 @@ use rustcommon_atomics::{Atomic, AtomicBool, Ordering};
 
 /// Internal type which stores fields necessary to track a corresponding
 /// statistic.
-pub struct Channel<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
+pub struct Channel {
     refreshed: AtomicCell<Instant<Nanoseconds<u64>>>,
-    statistic: Entry<Value, Count>,
+    statistic: Entry,
     empty: AtomicBool,
-    reading: Value,
-    summary: Option<SummaryStruct<Value, Count>>,
+    reading: AtomicU64,
+    summary: Option<SummaryStruct>,
     outputs: DashSet<ApproxOutput>,
 }
 
-impl<Value, Count> Channel<Value, Count>
-where
-    Value: crate::Value,
-    Count: crate::Count,
-    <Value as Atomic>::Primitive: Primitive,
-    <Count as Atomic>::Primitive: Primitive,
-    u64: From<<Value as Atomic>::Primitive> + From<<Count as Atomic>::Primitive>,
-{
+impl Channel {
     /// Creates an empty channel for a statistic.
-    pub fn new(statistic: &dyn Statistic<Value, Count>) -> Self {
+    pub fn new(statistic: &dyn Statistic) -> Self {
         let summary = statistic.summary().map(|v| v.build());
         Self {
             empty: AtomicBool::new(true),
@@ -58,8 +46,8 @@ where
     pub fn record_bucket(
         &self,
         time: Instant<Nanoseconds<u64>>,
-        value: <Value as Atomic>::Primitive,
-        count: <Count as Atomic>::Primitive,
+        value: u64,
+        count: u32,
     ) -> Result<(), MetricsError> {
         if let Some(summary) = &self.summary {
             summary.increment(time, value, count);
@@ -71,11 +59,7 @@ where
 
     /// Updates a counter to a new value if the reading is newer than the stored
     /// reading.
-    pub fn record_counter(
-        &self,
-        time: Instant<Nanoseconds<u64>>,
-        value: <Value as Atomic>::Primitive,
-    ) {
+    pub fn record_counter(&self, time: Instant<Nanoseconds<u64>>, value: u64) {
         let t0 = self.refreshed.load();
         if time <= t0 {
             return;
@@ -89,11 +73,7 @@ where
                 let rate = (dv
                     / (dt.as_secs() as f64 + dt.subsec_nanos() as f64 / 1_000_000_000.0))
                     .ceil();
-                summary.increment(
-                    time,
-                    <Value as Atomic>::Primitive::from_float(rate),
-                    1_u8.into(),
-                );
+                summary.increment(time, u64::from_float(rate), 1_u8.into());
             }
             self.reading.store(value, Ordering::Relaxed);
         } else {
@@ -104,17 +84,13 @@ where
     }
 
     /// Increment a counter by an amount
-    pub fn increment_counter(&self, value: <Value as Atomic>::Primitive) {
+    pub fn increment_counter(&self, value: u64) {
         self.empty.store(false, Ordering::Relaxed);
         self.reading.fetch_add(value, Ordering::Relaxed);
     }
 
     /// Updates a gauge reading if the new value is newer than the stored value.
-    pub fn record_gauge(
-        &self,
-        time: Instant<Nanoseconds<u64>>,
-        value: <Value as Atomic>::Primitive,
-    ) {
+    pub fn record_gauge(&self, time: Instant<Nanoseconds<u64>>, value: u64) {
         {
             let t0 = self.refreshed.load();
             if time <= t0 {
@@ -130,10 +106,7 @@ where
     }
 
     /// Returns a percentile across stored readings/rates/...
-    pub fn percentile(
-        &self,
-        percentile: f64,
-    ) -> Result<<Value as Atomic>::Primitive, MetricsError> {
+    pub fn percentile(&self, percentile: f64) -> Result<u64, MetricsError> {
         if let Some(summary) = &self.summary {
             summary.percentile(percentile).map_err(MetricsError::from)
         } else {
@@ -142,7 +115,7 @@ where
     }
 
     /// Returns the main reading for the channel (eg: counter, gauge)
-    pub fn reading(&self) -> Result<<Value as Atomic>::Primitive, MetricsError> {
+    pub fn reading(&self) -> Result<u64, MetricsError> {
         if !self.empty.load(Ordering::Relaxed) {
             Ok(self.reading.load(Ordering::Relaxed))
         } else {
@@ -151,19 +124,19 @@ where
     }
 
     /// Set a summary to be used for an existing channel
-    pub fn set_summary(&mut self, summary: Summary<Value, Count>) {
+    pub fn set_summary(&mut self, summary: Summary) {
         let summary = summary.build();
         self.summary = Some(summary);
     }
 
     /// Set a summary to be used for an existing channel
-    pub fn add_summary(&mut self, summary: Summary<Value, Count>) {
+    pub fn add_summary(&mut self, summary: Summary) {
         if self.summary.is_none() {
             self.set_summary(summary);
         }
     }
 
-    pub fn statistic(&self) -> &dyn Statistic<Value, Count> {
+    pub fn statistic(&self) -> &dyn Statistic {
         &self.statistic
     }
 

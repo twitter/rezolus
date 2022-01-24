@@ -55,7 +55,7 @@ pub use xfs::Xfs;
 
 #[async_trait]
 pub trait Sampler: Sized + Send {
-    type Statistic: Statistic<AtomicU64, AtomicU32>;
+    type Statistic: Statistic;
 
     /// Create a new instance of the sampler
     fn new(common: Common) -> Result<Self, anyhow::Error>;
@@ -141,7 +141,7 @@ pub trait Sampler: Sized + Send {
         ((1000.0 / self.interval() as f64) * self.general_config().window() as f64).ceil() as usize
     }
 
-    fn metrics(&self) -> &Metrics<AtomicU64, AtomicU32> {
+    fn metrics(&self) -> &Metrics {
         self.common().metrics()
     }
 
@@ -168,7 +168,7 @@ pub struct Common {
     runtime: Arc<Runtime>,
     hardware_info: Arc<HardwareInfo>,
     interval: Option<Interval>,
-    metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
+    metrics: Arc<Metrics>,
 }
 
 impl Clone for Common {
@@ -184,11 +184,7 @@ impl Clone for Common {
 }
 
 impl Common {
-    pub fn new(
-        config: Arc<Config>,
-        metrics: Arc<Metrics<AtomicU64, AtomicU32>>,
-        runtime: Arc<Runtime>,
-    ) -> Self {
+    pub fn new(config: Arc<Config>, metrics: Arc<Metrics>, runtime: Arc<Runtime>) -> Self {
         Self {
             config,
             hardware_info: Arc::new(HardwareInfo::new()),
@@ -218,7 +214,7 @@ impl Common {
         self.interval = interval
     }
 
-    pub fn metrics(&self) -> &Metrics<AtomicU64, AtomicU32> {
+    pub fn metrics(&self) -> &Metrics {
         &self.metrics
     }
 }

@@ -632,7 +632,7 @@ impl Krb5kdcStatistic {
     }
 }
 
-impl Statistic<AtomicU64, AtomicU32> for Krb5kdcStatistic {
+impl Statistic for Krb5kdcStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }

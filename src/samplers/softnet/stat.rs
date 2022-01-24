@@ -38,7 +38,7 @@ pub enum SoftnetStatistic {
     FlowLimitCount = 5,
 }
 
-impl Statistic<AtomicU64, AtomicU32> for SoftnetStatistic {
+impl Statistic for SoftnetStatistic {
     fn name(&self) -> &str {
         (*self).into()
     }
