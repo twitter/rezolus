@@ -41,18 +41,18 @@ impl Config {
             .author("Brian Martin <bmartin@twitter.com>")
             .about("High-Resolution Systems Performance Telemetry")
             .arg(
-                Arg::with_name("config")
+                Arg::new("config")
                     .long("config")
                     .value_name("FILE")
                     .help("TOML config file")
                     .takes_value(true),
             )
             .arg(
-                Arg::with_name("verbose")
-                    .short("v")
+                Arg::new("verbose")
+                    .short('v')
                     .long("verbose")
                     .help("Increase verbosity by one level. Can be used more than once")
-                    .multiple(true),
+                    .multiple_occurrences(true),
             );
 
         let matches = app.get_matches();
