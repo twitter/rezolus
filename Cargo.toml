@@ -25,11 +25,11 @@ num-traits = "0.2.14"
 nvml-wrapper = "0.7.0"
 regex = "1.5.4"
 reqwest = { version = "0.11.9", default-features = false, features = ["blocking"] }
-rustcommon-atomics = { git = "https://github.com/twitter/rustcommon", branch = "master" }
-rustcommon-heatmap = { git = "https://github.com/twitter/rustcommon", branch = "master" }
-rustcommon-logger = { git = "https://github.com/twitter/rustcommon", branch = "master" }
-rustcommon-streamstats = { git = "https://github.com/twitter/rustcommon", branch = "master" }
-rustcommon-time = { git = "https://github.com/twitter/rustcommon", branch = "master" }
+rustcommon-atomics = { git = "https://github.com/twitter/rustcommon", rev = "ff5ca96b31461e1b08c59df770ae17903c54c1b2" }
+rustcommon-heatmap = { git = "https://github.com/twitter/rustcommon", rev = "ff5ca96b31461e1b08c59df770ae17903c54c1b2" }
+rustcommon-logger = { git = "https://github.com/twitter/rustcommon", rev = "ff5ca96b31461e1b08c59df770ae17903c54c1b2" }
+rustcommon-streamstats = { git = "https://github.com/twitter/rustcommon", rev = "ff5ca96b31461e1b08c59df770ae17903c54c1b2" }
+rustcommon-time = { git = "https://github.com/twitter/rustcommon", rev = "ff5ca96b31461e1b08c59df770ae17903c54c1b2" }
 serde = "1.0.135"
 serde_derive = "1.0.135"
 strum = "0.23.0"
