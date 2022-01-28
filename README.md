@@ -9,6 +9,9 @@ toward improved performance.
 Per-metric documentation can be found in the [METRICS](docs/METRICS.md)
 documentation.
 
+[![License: Apache-2.0][license-badge]][license-url]
+[![Build Status: CI][ci-build-badge]][ci-build-url]
+
 ## Overview
 
 Rezolus collects telemetry from several different sources. Currently, Rezolus
@@ -220,6 +223,8 @@ https://www.apache.org/licenses/LICENSE-2.0
 Please report sensitive security issues via Twitter's bug-bounty program
 (https://hackerone.com/twitter) rather than GitHub.
 
+[ci-build-badge]: https://img.shields.io/github/workflow/status/twitter/rezolus/CI/master?label=CI
+[ci-build-url]: https://github.com/twitter/rezolus/actions/workflows/cargo.yml?query=branch%3Amaster+event%3Apush
 [cargo manifest]: https://github.com/twitter/rezolus/blob/master/Cargo.toml
 [contributors]: https://github.com/twitter/rezolus/graphs/contributors?type=a
 [rust-bcc]: https://github.com/rust-bpf/rust-bcc
