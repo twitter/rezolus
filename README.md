@@ -227,6 +227,8 @@ Please report sensitive security issues via Twitter's bug-bounty program
 [ci-build-url]: https://github.com/twitter/rezolus/actions/workflows/cargo.yml?query=branch%3Amaster+event%3Apush
 [cargo manifest]: https://github.com/twitter/rezolus/blob/master/Cargo.toml
 [contributors]: https://github.com/twitter/rezolus/graphs/contributors?type=a
+[license-badge]: https://img.shields.io/badge/license-Apache%202.0-blue.svg
+[license-url]: https://github.com/twitter/rezolus/blob/master/LICENSE
 [rust-bcc]: https://github.com/rust-bpf/rust-bcc
 [BPF Compiler Collection]: https://github.com/iovisor/bcc
 [Open Source Code of Conduct]: https://github.com/twitter/code-of-conduct/blob/master/code-of-conduct.md
