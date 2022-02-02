@@ -342,6 +342,27 @@ bpf = true
 # 	99.0,
 # ]
 
+# The rezolus sampler provides telemetry about the CPU and memory utilization
+# for Rezolus itself.
+[samplers.process]
+# Controls whether to use this sampler
+enabled = true
+
+# Specify the a file to read the PID to monitor
+# pid_file = "/path/to/process.pid"
+
+# Sampling interval, in milliseconds, for this sampler
+# interval = 1000
+
+# The set of exported percentiles can be controlled by specifying them here
+# percentiles = [
+# 	1.0,
+# 	10.0,
+# 	50.0,
+# 	90.0,
+# 	99.0,
+# ]
+
 
 # The rezolus sampler provides telemetry about the CPU and memory utilization
 # for Rezolus itself.

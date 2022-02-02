@@ -8,6 +8,10 @@ use crate::config::SamplerConfig;
 
 use super::stat::*;
 
+fn default_timeout() -> u64 {
+    200
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct HttpConfig {
@@ -22,6 +26,9 @@ pub struct HttpConfig {
     #[serde(default = "crate::common::default_percentiles")]
     percentiles: Vec<f64>,
     url: Option<String>,
+    // http request timeout in milliseconds
+    #[serde(default = "default_timeout")]
+    timeout: u64,
 }
 
 impl Default for HttpConfig {
@@ -34,6 +41,7 @@ impl Default for HttpConfig {
             passthrough: Default::default(),
             percentiles: crate::common::default_percentiles(),
             url: None,
+            timeout: default_timeout(),
         }
     }
 }
@@ -42,6 +50,11 @@ impl HttpConfig {
     /// The URL to query metrics from
     pub fn url(&self) -> Option<String> {
         self.url.clone()
+    }
+
+    /// Timeout for HTTP requests
+    pub fn timeout(&self) -> core::time::Duration {
+        core::time::Duration::from_millis(self.timeout)
     }
 
     /// A list of metric names that should be processed as gauges with

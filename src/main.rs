@@ -92,6 +92,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Network::spawn(common.clone());
     Ntp::spawn(common.clone());
     Nvidia::spawn(common.clone());
+    Process::spawn(common.clone());
     Rezolus::spawn(common.clone());
     Scheduler::spawn(common.clone());
     Softnet::spawn(common.clone());
