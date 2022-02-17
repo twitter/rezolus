@@ -3,7 +3,6 @@ name = "rezolus"
 version = "2.15.2-alpha.0"
 authors = ["Brian Martin <bmartin@twitter.com>"]
 license = "Apache-2.0"
-build = "build.rs"
 publish = false
 edition = "2021"
 description = "High resolution systems performance telemetry agent"
@@ -41,10 +40,6 @@ tokio = { version = "1.15.0", features = ["full"] }
 toml = "0.5.8"
 uuid = "0.8.2"
 walkdir = "2.3.2"
-
-[build-dependencies]
-anyhow = "1.0.51"
-vergen = "5.2.0"
 
 [features]
 all = ["bpf", "push_kafka"]
