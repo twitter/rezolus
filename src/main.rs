@@ -43,12 +43,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("----------");
     info!("{} {}", common::NAME, common::VERSION);
     info!("----------");
-    debug!(
-        "built: {} target: {} rustc: {}",
-        env!("VERGEN_BUILD_TIMESTAMP"),
-        env!("VERGEN_RUSTC_HOST_TRIPLE"),
-        env!("VERGEN_RUSTC_SEMVER"),
-    );
     debug!("host cores: {}", hardware_threads().unwrap_or(1));
 
     let runnable = Arc::new(AtomicBool::new(true));
