@@ -1,6 +1,6 @@
 # [Unreleased]
 
-# [2.15.2] - 2022-02-17
+# [2.15.2] - 2022-02-24
 ## Fixed
 - Fixes issue where release archives do not build successfully due to inclusion
   of `vergen` in the build script. (#279)
