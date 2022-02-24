@@ -1,5 +1,10 @@
 # [Unreleased]
 
+# [2.15.2] - 2022-02-24
+## Fixed
+- Fixes issue where release archives do not build successfully due to inclusion
+  of `vergen` in the build script. (#279)
+
 # [2.15.1] - 2022-01-06
 ## Fixed
 - Fixes `tcp/connection/accepted` and `tcp/connection/initiated` metrics on
@@ -216,7 +221,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.15.1...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.15.2...HEAD
+[2.15.1]: https://github.com/twitter/rezolus/compare/v2.15.1...v2.15.2
 [2.15.1]: https://github.com/twitter/rezolus/compare/v2.15.0...v2.15.1
 [2.15.0]: https://github.com/twitter/rezolus/compare/v2.14.0...v2.15.0
 [2.14.0]: https://github.com/twitter/rezolus/compare/v2.13.0...v2.14.0
