@@ -34,7 +34,11 @@ impl Sampler for Http {
         if url.is_none() && common.config.samplers().http().enabled() {
             return Err(format_err!("no http url configured"));
         }
-        let client = reqwest::blocking::Client::new();
+        let timeout = common.config.samplers().http().timeout();
+        let client = reqwest::blocking::ClientBuilder::new()
+            .timeout(timeout)
+            .build()
+            .map_err(|e| format_err!("error configuring HTTP client: {}", e))?;
         let ret = Self {
             client,
             common,

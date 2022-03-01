@@ -16,6 +16,7 @@ use samplers::network::NetworkConfig;
 use samplers::ntp::NtpConfig;
 use samplers::nvidia::NvidiaConfig;
 use samplers::page_cache::PageCacheConfig;
+use samplers::process::ProcessConfig;
 use samplers::rezolus::RezolusConfig;
 use samplers::scheduler::SchedulerConfig;
 use samplers::softnet::SoftnetConfig;
@@ -51,6 +52,8 @@ pub struct Samplers {
     nvidia: NvidiaConfig,
     #[serde(default)]
     page_cache: PageCacheConfig,
+    #[serde(default)]
+    process: ProcessConfig,
     #[serde(default)]
     rezolus: RezolusConfig,
     #[serde(default)]
@@ -114,6 +117,10 @@ impl Samplers {
 
     pub fn page_cache(&self) -> &PageCacheConfig {
         &self.page_cache
+    }
+
+    pub fn process(&self) -> &ProcessConfig {
+        &self.process
     }
 
     pub fn rezolus(&self) -> &RezolusConfig {
