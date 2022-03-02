@@ -1,6 +1,6 @@
 # [Unreleased]
 
-# [2.16.0] - 2022-03-01
+# [2.16.0] - 2022-03-02
 ## Added
 - Adds a new `process` sampler which can monitor CPU and memory utilization for
   a process. (#282)
