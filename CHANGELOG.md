@@ -1,5 +1,10 @@
 # [Unreleased]
 
+# [2.16.0] - 2022-03-02
+## Added
+- Adds a new `process` sampler which can monitor CPU and memory utilization for
+  a process. (#282)
+
 # [2.15.2] - 2022-02-24
 ## Fixed
 - Fixes issue where release archives do not build successfully due to inclusion
@@ -221,8 +226,9 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.15.2...HEAD
-[2.15.1]: https://github.com/twitter/rezolus/compare/v2.15.1...v2.15.2
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.16.0...HEAD
+[2.16.0]: https://github.com/twitter/rezolus/compare/v2.15.2...v2.16.0
+[2.15.2]: https://github.com/twitter/rezolus/compare/v2.15.1...v2.15.2
 [2.15.1]: https://github.com/twitter/rezolus/compare/v2.15.0...v2.15.1
 [2.15.0]: https://github.com/twitter/rezolus/compare/v2.14.0...v2.15.0
 [2.14.0]: https://github.com/twitter/rezolus/compare/v2.13.0...v2.14.0
