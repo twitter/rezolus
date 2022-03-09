@@ -67,7 +67,7 @@ VALUE_TO_INDEX2_FUNC
 int trace_run(struct pt_regs *ctx, struct task_struct *prev)
 {
     // handle involuntary context switch
-    if (prev->state == TASK_RUNNING) {
+    if (prev->STATE_FIELD == TASK_RUNNING) {
         u32 tgid = prev->tgid;
         u32 pid = prev->pid;
         u64 ts = bpf_ktime_get_ns();

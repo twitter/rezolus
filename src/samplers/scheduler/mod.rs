@@ -159,6 +159,7 @@ impl Scheduler {
             format!("#define NUM_CPU {}", cpus),
             include_str!("perf.c").to_string()
         );
+
         let mut perf_array_attached = false;
         if let Ok(mut bpf) = bcc::BPF::new(&code) {
             for statistic in &self.statistics {
@@ -323,12 +324,24 @@ impl Scheduler {
         {
             if self.enabled() && self.bpf_enabled() {
                 debug!("initializing bpf");
+
+                // get info about the running kernel
+                let kernel_info = KernelInfo::new()?;
+                let kernel_major = kernel_info.release_major()?;
+                let kernel_minor = kernel_info.release_minor()?;
+
                 // load the code and compile
                 let code = include_str!("bpf.c");
                 let code = code.replace(
                     "VALUE_TO_INDEX2_FUNC",
                     include_str!("../../common/value_to_index2.c"),
                 );
+                // task_struct changes in kernel 5.14
+                let code = if kernel_major > 5 || (kernel_major == 5 && kernel_minor >= 14) {
+                    code.replace("STATE_FIELD", "__state")
+                } else {
+                    code.replace("STATE_FIELD", "state")
+                };
                 let mut bpf = bcc::BPF::new(&code)?;
 
                 // collect the set of probes required from the statistics enabled.
