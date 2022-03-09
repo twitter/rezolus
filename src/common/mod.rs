@@ -161,5 +161,3 @@ impl KernelInfo {
         Err(std::io::Error::from(std::io::ErrorKind::InvalidInput))
     }
 }
-
-
