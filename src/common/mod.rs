@@ -123,3 +123,41 @@ pub async fn nested_map_from_file(
 pub fn default_percentiles() -> Vec<f64> {
     vec![1.0, 10.0, 50.0, 90.0, 99.0]
 }
+
+#[allow(dead_code)]
+pub struct KernelInfo {
+    release: String,
+}
+
+#[allow(dead_code)]
+impl KernelInfo {
+    pub fn new() -> Result<Self, std::io::Error> {
+        let output = std::process::Command::new("uname").args(["-r"]).output()?;
+        let release = std::str::from_utf8(&output.stdout)
+            .map_err(|_| std::io::Error::from(std::io::ErrorKind::InvalidInput))?;
+
+        Ok(Self {
+            release: release.to_string(),
+        })
+    }
+
+    pub fn release_major(&self) -> Result<u32, std::io::Error> {
+        let parts: Vec<&str> = self.release.split('.').collect();
+        if let Some(s) = parts.get(0) {
+            return s
+                .parse::<u32>()
+                .map_err(|_| std::io::Error::from(std::io::ErrorKind::InvalidInput));
+        }
+        Err(std::io::Error::from(std::io::ErrorKind::InvalidInput))
+    }
+
+    pub fn release_minor(&self) -> Result<u32, std::io::Error> {
+        let parts: Vec<&str> = self.release.split('.').collect();
+        if let Some(s) = parts.get(1) {
+            return s
+                .parse::<u32>()
+                .map_err(|_| std::io::Error::from(std::io::ErrorKind::InvalidInput));
+        }
+        Err(std::io::Error::from(std::io::ErrorKind::InvalidInput))
+    }
+}
