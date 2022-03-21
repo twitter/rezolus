@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use crate::*;
 use crate::common::SECOND;
 use crate::metrics::*;
+use crate::*;
 #[cfg(feature = "bpf")]
 use bcc::perf_event::*;
 use serde_derive::{Deserialize, Serialize};
@@ -63,8 +63,12 @@ impl SchedulerStatistic {
     pub fn bpf_probes_required(self) -> Vec<Probe> {
         // define the unique probes below.
         // get info about the running kernel
-        let kernel_major = KernelInfo::new().map(|v| v.release_major().unwrap_or(5)).unwrap_or(5);
-        let kernel_minor = KernelInfo::new().map(|v| v.release_minor().unwrap_or(0)).unwrap_or(0);
+        let kernel_major = KernelInfo::new()
+            .map(|v| v.release_major().unwrap_or(5))
+            .unwrap_or(5);
+        let kernel_minor = KernelInfo::new()
+            .map(|v| v.release_minor().unwrap_or(0))
+            .unwrap_or(0);
 
         let finish_task_switch = if kernel_major > 5 || (kernel_major == 5 && kernel_minor >= 14) {
             "finish_task_switch.isra.0".to_string()
