@@ -1,6 +1,12 @@
 # [Unreleased]
 
-# [2.16.1] - 2022-03-22
+# [2.16.2] - 2022-03-22
+## Fixed
+- Fixes scheduler runqueue latency BPF for newer kernels (>= 5.14) and those
+  built with gcc >= 10
+- Fixes issue with release 2.16.1
+
+# [2.16.1] - 2022-03-22 [YANKED]
 ## Fixed
 - Fixes scheduler runqueue latency BPF for newer kernels (>= 5.14) and those
   built with gcc >= 10
@@ -231,7 +237,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.16.1...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.16.2...HEAD
+[2.16.2]: https://github.com/twitter/rezolus/compare/v2.16.1...v2.16.2
 [2.16.1]: https://github.com/twitter/rezolus/compare/v2.16.0...v2.16.1
 [2.16.0]: https://github.com/twitter/rezolus/compare/v2.15.2...v2.16.0
 [2.15.2]: https://github.com/twitter/rezolus/compare/v2.15.1...v2.15.2
