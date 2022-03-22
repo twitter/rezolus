@@ -62,8 +62,11 @@ impl SchedulerStatistic {
     pub fn bpf_probes_required(self) -> Vec<Probe> {
         // define the unique probes below.
 
-        let finish_task_switch =
-            symbol_lookup("finish_task_switch.isra.0").unwrap_or("finish_task_switch".to_string());
+        let finish_task_switch = if symbol_lookup("finish_task_switch.isra.0").is_some() {
+            "finish_task_switch.isra.0".to_string()
+        } else {
+            "finish_task_switch".to_string()
+        };
 
         let finish_task_probe = Probe {
             name: finish_task_switch,
