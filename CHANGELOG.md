@@ -1,5 +1,10 @@
 # [Unreleased]
 
+# [2.16.1] - 2022-03-22
+## Fixed
+- Fixes scheduler runqueue latency BPF for newer kernels (>= 5.14) and those
+  built with gcc >= 10
+
 # [2.16.0] - 2022-03-02
 ## Added
 - Adds a new `process` sampler which can monitor CPU and memory utilization for
@@ -226,7 +231,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.16.0...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.16.1...HEAD
+[2.16.1]: https://github.com/twitter/rezolus/compare/v2.16.0...v2.16.1
 [2.16.0]: https://github.com/twitter/rezolus/compare/v2.15.2...v2.16.0
 [2.15.2]: https://github.com/twitter/rezolus/compare/v2.15.1...v2.15.2
 [2.15.1]: https://github.com/twitter/rezolus/compare/v2.15.0...v2.15.1
