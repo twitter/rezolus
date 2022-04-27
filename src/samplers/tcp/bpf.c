@@ -164,7 +164,7 @@ int trace_inet_socket_accept_return(struct pt_regs *ctx)
     // for 4.10+ to 5.5, sk_gso_max_segs is following sk_protocol field.
     // for 5.6+, sk_gso_max_segs is following sk_protocol field, but the sk_protocol becomes regular member
     // instead of bitfield.
-    // in order to be compatiable, we handle all cases.
+    // in order to be compatible, we handle all cases.
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
     // 5.6+, we can read sk_protocol as a regular field.
     u16 p = 0;

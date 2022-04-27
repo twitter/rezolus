@@ -91,7 +91,7 @@
 # [2.10.0] - 2020-10-26
 ## Changed
 - Updates tokio to 0.3.1 from 0.2.x
-- Reduces syscall load by reusing filehandles in memory, interupt, and network
+- Reduces syscall load by reusing filehandles in memory, interrupt, and network
   samplers.
 
 # [2.9.0] - 2020-10-15
