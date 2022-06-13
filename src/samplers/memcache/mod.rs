@@ -163,11 +163,18 @@ impl Sampler for Memcache {
                         }
                     }
                 }
+            } else {
+                // write failed, so we should disconnect
+                self.stream = None;
             }
-        } else if let Ok(stream) = TcpStream::connect(self.address) {
+        } else if let Ok(stream) =
+            TcpStream::connect_timeout(&self.address, std::time::Duration::from_millis(100))
+        {
             let _ = stream.set_nonblocking(true);
             self.stream = Some(stream);
         } else {
+            // delay here if we hit a connect failure
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             error!("error connecting to memcache");
         }
 
