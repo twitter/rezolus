@@ -1,5 +1,11 @@
 # [Unreleased]
 
+# [2.16.3] - 2022-06-13
+## Fixed
+- Fixes potential deadlock by updating `dashmap` dependency.
+- Updates other dependencies to pull-in bugfixes.
+- Improves memcache sampler reconnect logic.
+
 # [2.16.2] - 2022-03-22
 ## Fixed
 - Fixes scheduler runqueue latency BPF for newer kernels (>= 5.14) and those
@@ -237,7 +243,8 @@ characteristics.
 
 Initial release.
 
-[Unreleased]: https://github.com/twitter/rezolus/compare/v2.16.2...HEAD
+[Unreleased]: https://github.com/twitter/rezolus/compare/v2.16.3...HEAD
+[2.16.3]: https://github.com/twitter/rezolus/compare/v2.16.2...v2.16.3
 [2.16.2]: https://github.com/twitter/rezolus/compare/v2.16.1...v2.16.2
 [2.16.1]: https://github.com/twitter/rezolus/compare/v2.16.0...v2.16.1
 [2.16.0]: https://github.com/twitter/rezolus/compare/v2.15.2...v2.16.0
