@@ -37,7 +37,7 @@ enabled = true
 enabled = true
 
 [samplers.page_cache]
-bpf = true
+bpf = false
 enabled = true
 
 [samplers.rezolus]
