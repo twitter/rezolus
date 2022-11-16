@@ -1,0 +1,20 @@
+
+unstable_features = true
+
+# Overly long comments are hard to read. Better to have rustfmt wrap them to
+# the correct line length.
+wrap_comments = true
+
+# It's ok to have some grouping of imports (e.g. use module::{A, B}) but too
+# much nesting is confusing.
+#
+# Also rust-analyzer tends to automatically add new imports in weird places
+# so having rustfmt normalize them works best.
+imports_granularity = "module"
+
+# Might as well
+format_code_in_doc_comments = true
+
+# Again, rustfmt makes a mess of imports so having rustfmt standardize them
+# is a good thing here.
+group_imports = "stdexternalcrate"

@@ -1,0 +1,13 @@
+[package]
+name = "augur-common"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+async-trait = "0.1"
+anyhow = "1.0"
+augur-thrift = { workspace = true }
+bstr = { version = "1.0", features = [ "serde" ] }
+serde = { version = "1.0", features = [ "derive" ] }
+

@@ -1,0 +1,27 @@
+[package]
+name = "augur-emitter-kafka"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = "1.0"
+async-trait = "0.1"
+augur-common = { workspace = true }
+augur-thrift = { workspace = true }
+augur-encoder = { workspace = true }
+fxhash = "0.2"
+log = "0.4"
+nix = "0.25"
+rand = "0.8"
+rdkafka = { workspace = true, features = ["ssl", "gssapi", "libz-static"] }
+rustcommon-metrics = { workspace = true }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thrift = "0.16"
+tokio = { workspace = true }
+zookeeper = "0.7.0"
+zstd = "0.11.2"
+
+# Lock in the rdkafka-sys version so that it only updates when we want it to.
+rdkafka-sys = "=4.3.0"

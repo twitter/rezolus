@@ -1,0 +1,8 @@
+[package]
+name = "augur-thrift"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+thrift = "0.16"

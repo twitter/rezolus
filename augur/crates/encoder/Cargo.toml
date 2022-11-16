@@ -1,0 +1,13 @@
+[package]
+name = "augur-encoder"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+augur-pprof = { workspace = true }
+augur-common = { workspace = true }
+augur-thrift = { workspace = true }
+rustcommon-metrics = { workspace = true }
+thrift = "0.16"
+zstd = "0.11"
