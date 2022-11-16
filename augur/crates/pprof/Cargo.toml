@@ -1,0 +1,12 @@
+[package]
+name = "augur-pprof"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+augur-common = { workspace = true }
+bstr = "1.0"
+protobuf = "3.2"
+fxhash = "0.2"
+log = "0.4"

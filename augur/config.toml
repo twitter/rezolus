@@ -1,0 +1,18 @@
+
+[general]
+# Sample all processes at a rate of 5Hz
+frequency = 5
+
+# Rotate the output logs from perf after this number of seconds.
+period = 5
+
+debug = "terminal"
+
+[kafka]
+zk_path = "/twitter/service/kafka/prod/main-2"
+zk_server = "sdzookeeper:2181"
+zk_endpoint_name = "kafka-tls"
+topic = "iop-fleetwide-profiling-develop"
+
+[metrics]
+port = 9990

@@ -1,0 +1,83 @@
+[package]
+name = "augur"
+version = "0.1.0"
+edition = "2018"
+publish = false
+description = "Continuous background profiler for twitter services"
+license = "Apache-2.0"
+
+# When adding a new crate to the augur workspace make sure to add it to both
+#  - workspace.members, and
+#  - workspace.dependencies
+# That way, we don't have to remember relative paths when adding
+# dependencies within the workspace.
+[workspace]
+members = [
+    ".",
+    "crates/pprof",
+    "crates/annotate",
+    "crates/common",
+    "crates/thrift",
+    "crates/encoder",
+    "crates/collector/perf",
+    "crates/emitter/kafka",
+    "crates/emitter/pyroscope",
+]
+
+[workspace.dependencies]
+augur-pprof = { path = "crates/pprof" }
+augur-common = { path = "crates/common" }
+augur-thrift = { path = "crates/thrift" }
+augur-encoder = { path = "crates/encoder" }
+augur-annotate = { path = "crates/annotate" }
+augur-collector-perf = { path = "crates/collector/perf" }
+augur-emitter-kafka = { path = "crates/emitter/kafka" }
+augur-emitter-pyroscope = { path = "crates/emitter/pyroscope" }
+
+tokio = "1.21"
+rdkafka = "0.28.0"
+
+# rustcommon-metrics is a workspace dependency so that we can specify the
+# revision in a single location.
+[workspace.dependencies.rustcommon-metrics]
+git = "https://git.twitter.biz/ro/rustcommon-mirror"
+rev = "d550e01d3aeb7b334ed44e87652706acb5b3aea8"
+
+[lib]
+name = "augur"
+path = "src/lib.rs"
+
+[[bin]]
+name = "augur"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+arc-swap = "1.5"
+augur-annotate = { workspace = true }
+augur-common = { workspace = true }
+augur-thrift = { workspace = true }
+augur-encoder = { workspace = true }
+augur-collector-perf = { workspace = true }
+augur-emitter-kafka = { workspace = true }
+augur-emitter-pyroscope = { workspace = true }
+axum = "0.5"
+bstr = "1.0"
+clap = { version = "4.0", features = ["derive"] }
+drop_guard = "0.3"
+env_logger = "0.9"
+reqwest = { version = "0.11" }
+libc = "0.2.102"
+log = "0.4"
+nix = "0.25.0"
+rustcommon-metrics = { workspace = true }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thrift = "0.16.0"
+tokio = { workspace = true, features = ["full"] }
+toml = "0.5.8"
+tempdir = "0.3"
+
+[profile.release]
+lto = "thin"
+debug = true

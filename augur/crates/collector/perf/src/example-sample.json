@@ -1,0 +1,197 @@
+{
+    "iregs": "",
+    "brstack": [],
+    "symbol": "smp_call_function_single",
+    "sample": {
+        "transaction": 0,
+        "addr": 0,
+        "weight": 0,
+        "phys_addr": 0,
+        "ip": 18446744072268423612,
+        "pid": 115590,
+        "period": 1,
+        "datasrc": 84410401,
+        "values": [
+            [
+                0,
+                0
+            ]
+        ],
+        "time": 27220579817676157,
+        "tid": 115590,
+        "datasrc_decode": "N/A|SNP N/A|TLB N/A|LCK N/A",
+        "cpu": 0
+    },
+    "dso": "[kernel.kallsyms]",
+    "brstacksym": [],
+    "comm": "perf",
+    "uregs": "",
+    "ev_name": "cycles",
+    "raw_buf": "",
+    "callchain": [
+        {
+            "ip": 18446744072268423616,
+            "sym": {
+                "start": 140736047239440,
+                "binding": 1,
+                "end": 140736047239664,
+                "name": "smp_call_function_single"
+            },
+            "dso": "[kernel.kallsyms]"
+        },
+        {
+            "ip": 18446744072269091259,
+            "sym": {
+                "start": 140736047907200,
+                "binding": 0,
+                "end": 140736047907280,
+                "name": "cpu_function_call"
+            },
+            "dso": "[kernel.kallsyms]"
+        },
+        {
+            "ip": 18446744072269119952,
+            "sym": {
+                "start": 140736047935744,
+                "binding": 0,
+                "end": 140736047935968,
+                "name": "event_function_call"
+            },
+            "dso": "[kernel.kallsyms]"
+        },
+        {
+            "ip": 18446744072269090900,
+            "sym": {
+                "start": 140736047906848,
+                "binding": 0,
+                "end": 140736047906976,
+                "name": "perf_event_for_each_child"
+            },
+            "dso": "[kernel.kallsyms]"
+        },
+        {
+            "ip": 18446744072269141216,
+            "sym": {
+                "start": 140736047956688,
+                "binding": 0,
+                "end": 140736047958448,
+                "name": "_perf_ioctl"
+            },
+            "dso": "[kernel.kallsyms]"
+        },
+        {
+            "ip": 18446744072269142492,
+            "sym": {
+                "start": 140736047958448,
+                "binding": 0,
+                "end": 140736047958528,
+                "name": "perf_ioctl"
+            },
+            "dso": "[kernel.kallsyms]"
+        },
+        {
+            "ip": 18446744072269953992,
+            "sym": {
+                "start": 140736048769840,
+                "binding": 1,
+                "end": 140736048771440,
+                "name": "do_vfs_ioctl"
+            },
+            "dso": "[kernel.kallsyms]"
+        },
+        {
+            "ip": 18446744072269955536,
+            "sym": {
+                "start": 140736048771440,
+                "binding": 1,
+                "end": 140736048771584,
+                "name": "ksys_ioctl"
+            },
+            "dso": "[kernel.kallsyms]"
+        },
+        {
+            "ip": 18446744072269955606,
+            "sym": {
+                "start": 140736048771584,
+                "binding": 1,
+                "end": 140736048771616,
+                "name": "__x64_sys_ioctl"
+            },
+            "dso": "[kernel.kallsyms]"
+        },
+        {
+            "ip": 18446744072266719880,
+            "sym": {
+                "start": 140736045535808,
+                "binding": 1,
+                "end": 140736045536096,
+                "name": "do_syscall_64"
+            },
+            "dso": "[kernel.kallsyms]"
+        },
+        {
+            "ip": 18446744072277196940,
+            "sym": {
+                "start": 140736056012872,
+                "binding": 1,
+                "end": 140736056013041,
+                "name": "entry_SYSCALL_64_after_hwframe"
+            },
+            "dso": "[kernel.kallsyms]"
+        },
+        {
+            "ip": 140444472226983,
+            "sym": {
+                "start": 1004704,
+                "binding": 0,
+                "end": 1004737,
+                "name": "__GI___ioctl"
+            },
+            "dso": "/usr/lib64/libc-2.17.so"
+        },
+        {
+            "ip": 5044973,
+            "sym": {
+                "start": 850432,
+                "binding": 1,
+                "end": 850828,
+                "name": "evlist__enable"
+            },
+            "dso": "/usr/bin/perf"
+        },
+        {
+            "ip": 4503520,
+            "sym": {
+                "start": 301168,
+                "binding": 1,
+                "end": 309775,
+                "name": "cmd_record"
+            },
+            "dso": "/usr/bin/perf"
+        },
+        {
+            "ip": 4962443,
+            "dso": "/usr/bin/perf"
+        },
+        {
+            "ip": 4404001,
+            "sym": {
+                "start": 208112,
+                "binding": 1,
+                "end": 210127,
+                "name": "main"
+            },
+            "dso": "/usr/bin/perf"
+        },
+        {
+            "ip": 140444471362901,
+            "sym": {
+                "start": 140384,
+                "binding": 1,
+                "end": 140832,
+                "name": "__libc_start_main"
+            },
+            "dso": "/usr/lib64/libc-2.17.so"
+        }
+    ]
+}
