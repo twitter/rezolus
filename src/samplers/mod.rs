@@ -89,7 +89,11 @@ pub trait Sampler: Sized + Send {
     }
 
     /// Access the specific sampler config
-    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic>;
+    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        Self::config(self.common())
+    }
+
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic>;
 
     fn enabled(&self) -> bool {
         self.sampler_config().enabled()

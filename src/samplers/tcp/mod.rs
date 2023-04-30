@@ -86,10 +86,6 @@ impl Sampler for Tcp {
         &mut self.common
     }
 
-    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().samplers().tcp()
-    }
-
     async fn sample(&mut self) -> Result<(), std::io::Error> {
         if let Some(ref mut delay) = self.delay() {
             delay.tick().await;
@@ -112,6 +108,10 @@ impl Sampler for Tcp {
         self.map_result(self.sample_bpf())?;
 
         Ok(())
+    }
+
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        common.config().samplers().tcp()
     }
 }
 

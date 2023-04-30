@@ -80,10 +80,6 @@ impl Sampler for Memcache {
         &mut self.common
     }
 
-    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().samplers().memcache()
-    }
-
     async fn sample(&mut self) -> Result<(), std::io::Error> {
         if let Some(ref mut delay) = self.delay() {
             delay.tick().await;
@@ -179,5 +175,9 @@ impl Sampler for Memcache {
         }
 
         Ok(())
+    }
+
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        common.config().samplers().memcache()
     }
 }

@@ -96,6 +96,10 @@ impl Sampler for Memory {
 
         Ok(())
     }
+
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        common.config().samplers().memory()
+    }
 }
 
 impl Memory {

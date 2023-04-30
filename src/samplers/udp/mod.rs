@@ -86,8 +86,8 @@ impl Sampler for Udp {
         Ok(())
     }
 
-    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().samplers().udp()
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        common.config().samplers().udp()
     }
 }
 
