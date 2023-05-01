@@ -53,22 +53,6 @@ impl Sampler for Rezolus {
         Ok(sampler)
     }
 
-    fn spawn(common: Common) {
-        if common.config().samplers().rezolus().enabled() {
-            if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.runtime().spawn(async move {
-                    loop {
-                        let _ = sampler.sample().await;
-                    }
-                });
-            } else if !common.config.fault_tolerant() {
-                fatal!("failed to initialize rezolus sampler");
-            } else {
-                error!("failed to initialize rezolus sampler");
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }

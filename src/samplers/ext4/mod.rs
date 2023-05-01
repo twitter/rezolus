@@ -56,22 +56,6 @@ impl Sampler for Ext4 {
         Ok(sampler)
     }
 
-    fn spawn(common: Common) {
-        if common.config().samplers().ext4().enabled() {
-            if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.runtime().spawn(async move {
-                    loop {
-                        let _ = sampler.sample().await;
-                    }
-                });
-            } else if !common.config.fault_tolerant() {
-                fatal!("failed to initialize ext4 sampler");
-            } else {
-                error!("failed to initialize ext4 sampler");
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }

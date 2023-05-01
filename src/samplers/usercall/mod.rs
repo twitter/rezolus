@@ -242,27 +242,6 @@ impl Sampler for Usercall {
         Ok(sampler)
     }
 
-    fn spawn(common: Common) {
-        if common.config().samplers().usercall().enabled() {
-            match Self::new(common.clone()) {
-                Ok(mut sampler) => {
-                    common.runtime().spawn(async move {
-                        loop {
-                            let _ = sampler.sample().await;
-                        }
-                    });
-                }
-                Err(e) => {
-                    if !common.config.fault_tolerant() {
-                        fatal!("failed to initialize usercall sampler {}", e);
-                    } else {
-                        error!("failed to initialize usercall sampler {}", e);
-                    }
-                }
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }

@@ -50,24 +50,6 @@ impl Sampler for Nvidia {
         }
     }
 
-    fn spawn(common: Common) {
-        debug!("spawning");
-        if common.config().samplers().nvidia().enabled() {
-            debug!("sampler is enabled");
-            if let Ok(mut sampler) = Nvidia::new(common.clone()) {
-                common.runtime().spawn(async move {
-                    loop {
-                        let _ = sampler.sample().await;
-                    }
-                });
-            } else if !common.config.fault_tolerant() {
-                fatal!("failed to initialize nvidia sampler");
-            } else {
-                error!("failed to initialize nvidia sampler");
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }

@@ -37,24 +37,6 @@ impl Sampler for Ntp {
         Ok(sampler)
     }
 
-    fn spawn(common: Common) {
-        debug!("spawning");
-        if common.config().samplers().ntp().enabled() {
-            debug!("sampler is enabled");
-            if let Ok(mut ntp) = Ntp::new(common.clone()) {
-                common.runtime().spawn(async move {
-                    loop {
-                        let _ = ntp.sample().await;
-                    }
-                });
-            } else if !common.config.fault_tolerant() {
-                fatal!("failed to initialize ntp sampler");
-            } else {
-                error!("failed to initialize ntp sampler");
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }

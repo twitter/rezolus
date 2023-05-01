@@ -42,22 +42,6 @@ impl Sampler for Softnet {
         Ok(sampler)
     }
 
-    fn spawn(common: Common) {
-        if common.config().samplers().softnet().enabled() {
-            if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.runtime().spawn(async move {
-                    loop {
-                        let _ = sampler.sample().await;
-                    }
-                });
-            } else if !common.config.fault_tolerant() {
-                fatal!("failed to initialize softnet sampler");
-            } else {
-                error!("failed to initialize softnet sampler");
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }
