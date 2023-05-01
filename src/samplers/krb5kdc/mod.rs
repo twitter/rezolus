@@ -95,37 +95,12 @@ impl Sampler for Krb5kdc {
         Ok(sampler)
     }
 
-    fn spawn(common: Common) {
-        if common.config().samplers().krb5kdc().enabled() {
-            match Self::new(common.clone()) {
-                Ok(mut sampler) => {
-                    common.runtime().spawn(async move {
-                        loop {
-                            let _ = sampler.sample().await;
-                        }
-                    });
-                }
-                Err(e) => {
-                    if !common.config.fault_tolerant() {
-                        fatal!("failed to initialize krb5kdc sampler {}", e);
-                    } else {
-                        error!("failed to initialize krb5kdc sampler {}", e);
-                    }
-                }
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }
 
     fn common_mut(&mut self) -> &mut Common {
         &mut self.common
-    }
-
-    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().samplers().krb5kdc()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {
@@ -186,5 +161,9 @@ impl Sampler for Krb5kdc {
             }
         }
         Ok(())
+    }
+
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        common.config().samplers().krb5kdc()
     }
 }

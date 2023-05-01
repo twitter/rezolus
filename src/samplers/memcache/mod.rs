@@ -56,32 +56,12 @@ impl Sampler for Memcache {
         Ok(sampler)
     }
 
-    fn spawn(common: Common) {
-        if common.config().samplers().memcache().enabled() {
-            if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.runtime().spawn(async move {
-                    loop {
-                        let _ = sampler.sample().await;
-                    }
-                });
-            } else if !common.config.fault_tolerant() {
-                fatal!("failed to initialize memcache sampler");
-            } else {
-                error!("failed to initialize memcache sampler");
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }
 
     fn common_mut(&mut self) -> &mut Common {
         &mut self.common
-    }
-
-    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().samplers().memcache()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {
@@ -179,5 +159,9 @@ impl Sampler for Memcache {
         }
 
         Ok(())
+    }
+
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        common.config().samplers().memcache()
     }
 }

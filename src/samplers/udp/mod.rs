@@ -42,22 +42,6 @@ impl Sampler for Udp {
         Ok(sampler)
     }
 
-    fn spawn(common: Common) {
-        if common.config().samplers().udp().enabled() {
-            if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.runtime().spawn(async move {
-                    loop {
-                        let _ = sampler.sample().await;
-                    }
-                });
-            } else if !common.config.fault_tolerant() {
-                fatal!("failed to initialize udp sampler");
-            } else {
-                error!("failed to initialize udp sampler");
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }
@@ -86,8 +70,8 @@ impl Sampler for Udp {
         Ok(())
     }
 
-    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().samplers().udp()
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        common.config().samplers().udp()
     }
 }
 

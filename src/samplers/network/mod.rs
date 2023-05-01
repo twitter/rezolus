@@ -63,32 +63,12 @@ impl Sampler for Network {
         Ok(sampler)
     }
 
-    fn spawn(common: Common) {
-        if common.config().samplers().network().enabled() {
-            if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.runtime().spawn(async move {
-                    loop {
-                        let _ = sampler.sample().await;
-                    }
-                });
-            } else if !common.config.fault_tolerant() {
-                fatal!("failed to initialize network sampler");
-            } else {
-                error!("failed to initialize network sampler");
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }
 
     fn common_mut(&mut self) -> &mut Common {
         &mut self.common
-    }
-
-    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().samplers().network()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {
@@ -109,6 +89,10 @@ impl Sampler for Network {
         self.map_result(self.sample_bpf())?;
 
         Ok(())
+    }
+
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        common.config().samplers().network()
     }
 }
 

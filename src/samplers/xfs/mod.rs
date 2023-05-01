@@ -57,32 +57,12 @@ impl Sampler for Xfs {
         Ok(sampler)
     }
 
-    fn spawn(common: Common) {
-        if common.config().samplers().xfs().enabled() {
-            if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.runtime().spawn(async move {
-                    loop {
-                        let _ = sampler.sample().await;
-                    }
-                });
-            } else if !common.config.fault_tolerant() {
-                fatal!("failed to initialize xfs sampler");
-            } else {
-                error!("failed to initialize xfs sampler");
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }
 
     fn common_mut(&mut self) -> &mut Common {
         &mut self.common
-    }
-
-    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().samplers().xfs()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {
@@ -101,6 +81,10 @@ impl Sampler for Xfs {
         self.map_result(self.sample_bpf())?;
 
         Ok(())
+    }
+
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        common.config().samplers().xfs()
     }
 }
 

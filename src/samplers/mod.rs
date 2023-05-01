@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use std::any::type_name;
 use std::convert::TryInto;
 use std::sync::Arc;
 
@@ -66,8 +67,6 @@ pub trait Sampler: Sized + Send {
     fn common(&self) -> &Common;
     fn common_mut(&mut self) -> &mut Common;
 
-    fn spawn(common: Common);
-
     /// Run the sampler and write new observations to the metrics library and
     /// wait until next sample interval
     async fn sample(&mut self) -> Result<(), std::io::Error>;
@@ -89,7 +88,11 @@ pub trait Sampler: Sized + Send {
     }
 
     /// Access the specific sampler config
-    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic>;
+    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        Self::config(self.common())
+    }
+
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic>;
 
     fn enabled(&self) -> bool {
         self.sampler_config().enabled()
@@ -162,6 +165,35 @@ pub trait Sampler: Sized + Send {
             }
         }
         Ok(())
+    }
+}
+
+#[async_trait]
+pub trait Spawner<T: Sampler> {
+    fn spawn(common: Common);
+}
+
+impl<T: Sampler + 'static> Spawner<T> for T {
+    fn spawn(common: Common) {
+        if T::config(&common).enabled() {
+            match T::new(common.clone()) {
+                Ok(mut sampler) => {
+                    common.runtime().spawn(async move {
+                        loop {
+                            let _ = sampler.sample().await;
+                        }
+                    });
+                }
+                Err(error) => {
+                    let sampler_name = type_name::<T>().split(':').last().unwrap_or_default();
+                    if !common.config.fault_tolerant() {
+                        fatal!("failed to initialize sampler {sampler_name}: {error}");
+                    } else {
+                        error!("failed to initialize sampler {sampler_name}: {error}");
+                    }
+                }
+            }
+        }
     }
 }
 

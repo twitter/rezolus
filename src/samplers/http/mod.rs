@@ -48,32 +48,12 @@ impl Sampler for Http {
         Ok(ret)
     }
 
-    fn spawn(common: Common) {
-        if common.config().samplers().http().enabled() {
-            if let Ok(mut sampler) = Self::new(common.clone()) {
-                common.runtime().spawn(async move {
-                    loop {
-                        let _ = sampler.sample().await;
-                    }
-                });
-            } else if !common.config.fault_tolerant() {
-                fatal!("failed to initialize http sampler");
-            } else {
-                error!("failed to initialize http sampler");
-            }
-        }
-    }
-
     fn common(&self) -> &Common {
         &self.common
     }
 
     fn common_mut(&mut self) -> &mut Common {
         &mut self.common
-    }
-
-    fn sampler_config(&self) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
-        self.common.config().samplers().http()
     }
 
     async fn sample(&mut self) -> Result<(), std::io::Error> {
@@ -170,5 +150,9 @@ impl Sampler for Http {
         } else {
             Err(Error::new(ErrorKind::Other, "http request failed!"))
         }
+    }
+
+    fn config(common: &Common) -> &dyn SamplerConfig<Statistic = Self::Statistic> {
+        common.config().samplers().http()
     }
 }
